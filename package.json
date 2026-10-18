@@ -5,7 +5,7 @@
   "description": "A buildless dress-up puzzle game with 36 challenges and 122 collectible pieces.",
   "scripts": {
     "start": "node dev/server.js",
-    "test": "node --test dev/game.test.js && node dev/validate.js",
+    "test": "node dev/game.test.js && node dev/validate.js",
     "validate": "node dev/validate.js",
     "assets": "node dev/export-assets.js",
     "package": "node dev/package.js"
