@@ -65,7 +65,9 @@
     const outfit = normalizeOutfit(valueOutfit, save.unlockedItems);
     const result = scoreBreakdown(theme, equippedItems(outfit));
     const previous = save.levels[theme.id]?.best ?? -1;
-    if (result.score > previous) save.levels[theme.id] = { best: result.score, rank: result.rank };
+    if (result.score > previous) save.levels[theme.id] = { ...save.levels[theme.id], best: result.score, rank: result.rank };
+    const savedLook = result.score >= 35 && (!save.levels[theme.id]?.look || result.score >= save.levels[theme.id].look.score);
+    if (savedLook) save.levels[theme.id].look = { outfit: structuredCopy(outfit), skin: save.skin, score: result.score };
     const fresh = result.score >= 35 ? unlock(save, theme.unlockItems) : [];
     let streakReward = null;
     if (result.rank === 'S') {
@@ -77,7 +79,7 @@
       }
     } else save.streakLevels = [];
     save.streak = save.streakLevels.length;
-    return { save, result, fresh, streakReward, isBest: result.score > previous, outfit, complete: D.themes.every(t => (save.levels[t.id]?.best ?? 0) >= 35) };
+    return { save, result, fresh, streakReward, savedLook, isBest: result.score > previous, outfit, complete: D.themes.every(t => (save.levels[t.id]?.best ?? 0) >= 35) };
   }
   function structuredCopy(value) { return JSON.parse(JSON.stringify(value)); }
   function sanitizeSave(raw) {
@@ -96,7 +98,22 @@
     save.streak = save.streakLevels.length;
     if (D.skins.some(s => s.id === raw.skin)) save.skin = raw.skin;
     save.muted = raw.muted === true;
+    // Optional v1 field: old progress remains valid without a recorded outfit.
+    // Recompute each look from owned items; saved metadata never grants rewards.
+    for (const theme of D.themes) {
+      const look = raw.levels?.[theme.id]?.look, level = save.levels[theme.id];
+      if (!look || !level || !D.skins.some(s => s.id === look.skin)) continue;
+      const outfit = normalizeOutfit(look.outfit, save.unlockedItems);
+      const score = scoreOutfit(theme, equippedItems(outfit));
+      if (score >= 35 && score === look.score && score <= level.best) level.look = { outfit, skin: look.skin, score };
+    }
     return save;
+  }
+  function savedLooks(save) {
+    return D.themes.flatMap(theme => {
+      const look = save.levels[theme.id]?.look;
+      return look ? [{ level: theme.index, ...structuredCopy(look), rank: rankOf(look.score) }] : [];
+    });
   }
   function createStorage(getStorage) {
     let writable = true, notice = '';
@@ -144,5 +161,5 @@
     }
     return best;
   }
-  return { SAVE_KEY, byId, starterIds, newSave, emptyOutfit, rankOf, scoreOutfit, scoreBreakdown, equippedItems, normalizeOutfit, toggleItem, nextLevel, canPlay, enterLevel, finishLevel, sanitizeSave, createStorage, solveTheme };
+  return { SAVE_KEY, byId, starterIds, newSave, emptyOutfit, rankOf, scoreOutfit, scoreBreakdown, equippedItems, normalizeOutfit, toggleItem, nextLevel, canPlay, enterLevel, finishLevel, sanitizeSave, createStorage, solveTheme, savedLooks };
 });

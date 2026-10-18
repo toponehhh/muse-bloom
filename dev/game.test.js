@@ -94,3 +94,46 @@ test('save roundtrip retains progress, skin, mute and streak', () => {
   storage.save(result.save);
   assert.deepEqual(storage.load(), result.save);
 });
+
+test('lookbook keeps the best passing outfit and updates ties without duplicate entries', () => {
+  const save = G.newSave(), outfit = winningOutfit(save, 1);
+  save.skin = 'deep';
+  const win = G.finishLevel(save, 1, outfit);
+  assert.equal(win.savedLook, true);
+  assert.deepEqual(G.savedLooks(win.save)[0], { level: 1, outfit, skin: 'deep', score: 94, rank: 'S' });
+  assert.equal(G.savedLooks(save).length, 0);
+  outfit.hair = null;
+  assert.notEqual(G.savedLooks(win.save)[0].outfit.hair, null);
+  const lower = G.finishLevel(win.save, 1, outfit);
+  assert.equal(lower.savedLook, false);
+  assert.deepEqual(G.savedLooks(lower.save), G.savedLooks(win.save));
+  lower.save.skin = 'porcelain';
+  const tie = G.finishLevel(lower.save, 1, winningOutfit(lower.save, 1));
+  assert.equal(G.savedLooks(tie.save).length, 1);
+  assert.equal(G.savedLooks(tie.save)[0].skin, 'porcelain');
+  assert.equal(G.savedLooks(G.finishLevel(save, 1, G.emptyOutfit()).save).length, 0);
+});
+
+test('legacy progress survives and can start a lookbook without beating its historic score', () => {
+  const legacy = G.finishLevel(G.newSave(), 1, winningOutfit(G.newSave(), 1)).save;
+  delete legacy.levels[first.id].look;
+  const restored = G.sanitizeSave(legacy);
+  assert.deepEqual(restored, legacy);
+  const outfit = winningOutfit(restored, 1); outfit.hair = null;
+  const next = G.finishLevel(restored, 1, outfit);
+  assert.equal(next.save.levels[first.id].best, 94);
+  assert.ok(next.result.score >= 35 && next.result.score < 94);
+  assert.equal(next.savedLook, true);
+  assert.equal(G.savedLooks(G.sanitizeSave(next.save))[0].score, next.result.score);
+});
+
+test('malformed lookbook data cannot create unlocked levels or fabricated scores', () => {
+  const value = G.finishLevel(G.newSave(), 1, winningOutfit(G.newSave(), 1)).save;
+  value.levels[first.id].look.outfit = G.emptyOutfit();
+  value.levels[D.themes[35].id] = { best: 94, rank: 'S', look: { outfit: {}, skin: 'warm', score: 94 } };
+  const repaired = G.sanitizeSave(value);
+  assert.equal(G.savedLooks(repaired).length, 0);
+  assert.equal(repaired.levels[first.id].best, 94);
+  assert.equal(repaired.levels[D.themes[35].id], undefined);
+  assert.equal(G.nextLevel(repaired), 2);
+});
