@@ -9,7 +9,7 @@ npm test
 npm run package
 ```
 
-在 CrazyGames Developer Portal 新建游戏，上传 `dist/muse-bloom-crazygames-v1.0.1.zip`。压缩包根目录是 `index.html`，所有运行时路径均为相对路径。开发脚本、测试、Git 数据、营销视频不在游戏包内。
+在 CrazyGames Developer Portal 新建游戏，上传 `dist/muse-bloom-crazygames-v1.1.0.zip`。压缩包根目录是 `index.html`，所有运行时路径均为相对路径。开发脚本、测试、Git 数据、营销视频不在游戏包内。
 
 本次成品同时准备：
 
@@ -18,8 +18,8 @@ npm run package
 | `promo/cover-landscape.png` | 1920 × 1080 横版封面 |
 | `promo/cover-portrait.png` | 800 × 1200 竖版封面 |
 | `promo/cover-square.png` | 800 × 800 方形封面 |
-| `promo/preview-landscape.mp4` | 1920 × 1080、16.63 秒、无声、真实操作录像 |
-| `promo/preview-portrait.mp4` | 1080 × 1620、16.67 秒、无声、真实操作录像 |
+| `promo/preview-landscape.mp4` | 1920 × 1080、18.00 秒、无声、真实操作录像 |
+| `promo/preview-portrait.mp4` | 1080 × 1620、17.90 秒、无声、真实操作录像 |
 
 封面只包含游戏名，视频以对应封面开场。截图与视频展示本游戏真实角色和服装，不使用第三方品牌资产。
 
@@ -31,7 +31,7 @@ npm run package
 
 **Description:**
 
-Muse Bloom is a cozy dress-up and fashion puzzle game where every outfit tells a little story. Start with a small wardrobe, match the mood of each challenge, and discover new pieces as your style grows. From a casual coffee run and campus days to Y2K looks, a red carpet moment, and modern Chinese fashion, there is always a fresh outfit to explore. Mix tops and bottoms, try a flowing dress, add your favorite shoes, and finish with two accessories. Discover hanfu-inspired layers, mamian skirts, jade details, and New Chinese style in the Silk & Jade collection. Earn S ranks to unlock secret pieces, choose from four skin tones, and save your favorite looks as beautiful outfit cards. There is no timer and no penalty for trying again. A little style. A lot of you.
+Muse Bloom is a glowing pastel dress-up and fashion puzzle game where every outfit tells a little story. Start with a small wardrobe, match the mood of each challenge, and discover new pieces as your style grows. From a casual coffee run and campus days to Y2K looks, a red carpet moment, and modern Chinese fashion, there is always a fresh outfit to explore. Mix tops and bottoms, try a flowing dress, add your favorite shoes, and finish with two accessories. Discover hanfu-inspired layers, mamian skirts, jade details, and New Chinese style in the Silk & Jade collection. Earn S ranks to unlock secret pieces, choose from four skin tones, and save your favorite looks as beautiful outfit cards. There is no timer and no penalty for trying again. Style your glow-up.
 
 **Controls:** Click or tap an item to wear it. Tap it again to remove it. Choose categories to browse your wardrobe, match the three mood tags, and select Score it! Use Tab and Enter to select controls; use the left and right arrow keys in category tabs. A dress replaces your top and bottom. You can wear two accessories.
 

@@ -28,7 +28,7 @@ git push -u origin main
 `.github/workflows/verify.yml` 会在 push、pull request 或手动触发时：
 
 1. 执行规则和存档测试，验证 36 关都能拿到 S。
-2. 安装锁定版本的 Playwright，执行 122 件衣服的穿脱、覆盖、缩略图边界、32 张视觉基准和移动端交互测试。
+2. 安装锁定版本的 Playwright，执行 122 件衣服的穿脱、覆盖、缩略图边界、48 张视觉基准和移动端交互测试。
 3. 保存 UI 报告、截图及失败差异图，核对 SVG 与嵌入数据是否可重复生成。
 4. 生成 CrazyGames ZIP 和单文件试玩版，并保存为 Actions artifact。
 
