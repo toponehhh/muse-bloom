@@ -11,6 +11,8 @@
     "embed-assets": "node dev/embed-assets.js",
     "test:browser": "node dev/browser.test.js",
     "standalone": "node dev/standalone.js",
+    "package:upload": "node dev/standalone.js dist/crazygames-upload/index.html",
+    "test:upload": "npm run package:upload && node dev/upload.test.js",
     "test:accessories": "node dev/accessory.test.js",
     "test:ui": "node dev/standalone.js && node dev/accessory.test.js && node dev/ui.test.js",
     "test:ui:update": "node dev/standalone.js && node dev/ui.test.js --update-baselines",

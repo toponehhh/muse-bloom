@@ -21,12 +21,16 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Wardrobe UI and visual regression
         run: npm run test:ui
+      - name: Single-file portal upload and missing-resource regression
+        run: npm run test:upload
       - name: Keep UI evidence and failure diffs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ui-regression-evidence
-          path: artifacts/ui/
+          path: |
+            artifacts/ui/
+            artifacts/upload/
       - name: Check generated art stays reproducible
         run: |
           npm run assets
