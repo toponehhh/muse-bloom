@@ -15,10 +15,22 @@ jobs:
           node-version: '22'
       - name: Rules, saves and 36-level solvability
         run: npm test
+      - name: Install pinned browser test tools
+        run: npm ci
+      - name: Install test browser
+        run: npx playwright install --with-deps chromium
+      - name: Wardrobe UI and visual regression
+        run: npm run test:ui
+      - name: Keep UI evidence and failure diffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-regression-evidence
+          path: artifacts/ui/
       - name: Check generated art stays reproducible
         run: |
-          npm run embed-assets
-          git diff --exit-code -- js/asset-data.js
+          npm run assets
+          git diff --exit-code -- assets/ js/asset-data.js
       - name: Create CrazyGames archive
         run: npm run package
       - uses: actions/upload-artifact@v4

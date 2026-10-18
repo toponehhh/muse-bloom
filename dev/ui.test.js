@@ -11,15 +11,19 @@ const out = path.join(root, 'artifacts', 'ui'), baselines = path.join(__dirname,
 fs.mkdirSync(out, { recursive: true });
 const update = process.argv.includes('--update-baselines');
 if (update) fs.mkdirSync(baselines, { recursive: true });
-const report = { checks: [], errors: [], itemCount: 0, rasterSamples: 0 };
+const report = { checks: [], errors: [], snapshots: [], itemCount: 0, rasterSamples: 0, baselinesUpdated: update, channel:process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':'chromium') };
 function pass(text) { report.checks.push(text); console.log('PASS:', text); }
 const fullSave = G.newSave();
 fullSave.unlockedItems = D.items.map(i => i.id); fullSave.muted = true;
+fullSave.levels=Object.fromEntries(D.themes.map(t=>[t.id,{best:94,rank:'S'}]));
 const specimens = {
   'vest': ['hair_sporty_04', 'top_edgy_05', 'shoes_casual_01'],
   'long-sleeves': ['hair_sporty_04', D.items.find(i => i.shape === 'cardigan').id, 'bottom_casual_01'],
   'dress': ['hair_sporty_04', D.items.find(i => i.category === 'dress' && i.shape === 'puff').id],
   'hanfu': [D.items.find(i => i.category === 'hair' && i.shape === 'pinbun').id, D.items.find(i => i.category === 'dress' && i.shape === 'hanfu').id],
+  'qipao': ['hair_sporty_04', D.items.find(i=>i.category==='dress'&&i.shape==='qipao').id],
+  'tee-trousers': ['top_casual_01','bottom_casual_01','shoes_casual_01'],
+  'skirt-boots': ['top_cozy_02','bottom_cute_02',D.items.find(i=>i.category==='shoes'&&i.shape==='boot').id],
   'studio-basics': []
 };
 async function equip(page, ids) {
@@ -44,6 +48,7 @@ async function installPixelChecks(page) {
       if (!svg.querySelector('[data-layer="base"]')) throw new Error('Base character missing');
       const rect = svg.getBoundingClientRect();
       if (rect.width < 40 || rect.height < 100) throw new Error('Avatar collapsed');
+      if (![avatar,svg].every(n=>n.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))) throw new Error('Avatar hidden');
       const { pixels } = await uiRaster(new XMLSerializer().serializeToString(svg));
       const alpha = (x, y) => pixels[(y * 720 + x) * 4 + 3];
       // Face, neck, torso, hips, both legs, hands and feet must remain painted.
@@ -75,7 +80,8 @@ async function installPixelChecks(page) {
       const skin = document.querySelector('.skin-selector [aria-pressed="true"]').dataset.skin;
       const expected = (await uiRaster(new XMLSerializer().serializeToString(svg))).pixels;
       const canvas = document.createElement('canvas'); canvas.width=720;canvas.height=1280;
-      const ctx=canvas.getContext('2d');await MuseShare.drawAvatar(ctx,outfit,skin,0,0,720,1280);
+      // Use the same canvas backend for both rasterizations (GPU/CPU edges can differ).
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});await MuseShare.drawAvatar(ctx,outfit,skin,0,0,720,1280);
       const actual=ctx.getImageData(0,0,720,1280).data;
       for(let i=0;i<actual.length;i++)if(actual[i]!==expected[i])throw new Error('Export differs from visible avatar at byte '+i);
     };
@@ -84,10 +90,10 @@ async function installPixelChecks(page) {
 async function paint(page, itemId) { await page.evaluate(id=>uiPaintCheck(id), itemId); report.rasterSamples++; }
 async function snapshot(page, name) {
   // Only the vector avatar: no platform-dependent font rendering in baselines.
-  const image = await page.locator('#avatar-slot .avatar').screenshot({ animations: 'disabled' });
+  const image = await page.locator('#avatar-slot .avatar').screenshot({ animations: 'disabled', style:'#avatar-slot .avatar{background:#e7e8d7}.toast,.skin-selector,.stage-label,.stage-spark,.stage-side{visibility:hidden!important}' });
   const filename = path.join(baselines, name+'.png');
   fs.writeFileSync(path.join(out,name+'.png'),image);
-  if(update) { fs.writeFileSync(filename,image); return; }
+  if(update) { fs.writeFileSync(filename,image); report.snapshots.push({name,updated:true}); return; }
   assert.ok(fs.existsSync(filename),'Missing reviewed baseline: '+filename);
   const comparison = await page.evaluate(async({actual,expected})=>{
     const load=async src=>{const image=new Image();image.src=src;await image.decode();return image;};
@@ -107,6 +113,7 @@ async function snapshot(page, name) {
     if(comparison.diff)fs.writeFileSync(path.join(out,name+'-diff.png'),Buffer.from(comparison.diff.split(',')[1],'base64'));
     assert.fail(`Visual regression ${name}: ${JSON.stringify({differentSize:comparison.differentSize,ratio:comparison.ratio})}`);
   }
+  report.snapshots.push({name,changedRatio:comparison.ratio});
 }
 async function run() {
   const server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -130,8 +137,22 @@ async function run() {
     assert.ok(await page.evaluate(()=>originalAvatar===document.querySelector('#avatar-slot .avatar')),'Clearing must preserve the visible avatar DOM');
     await paint(page);
     assert.ok(await page.evaluate(()=>originalBase===document.querySelector('[data-layer="base"]')),'Clearing must preserve the base layer');
-    const empty=await page.evaluate(async()=>Array.from((await uiRaster(new XMLSerializer().serializeToString(document.querySelector('#avatar-slot svg')))).pixels));
+    await page.evaluate(async()=>{window.uiEmptyPixels=(await uiRaster(new XMLSerializer().serializeToString(document.querySelector('#avatar-slot svg')))).pixels;});
     pass('Clear preserves the avatar and base; head, torso, limbs, hands and feet remain painted');
+    const detected=await page.evaluate(async()=>{
+      const base=document.querySelector('[data-layer="base"]');base.setAttribute('display','none');
+      try { await uiPaintCheck();return false; } catch(error) {return error.message.includes('Blank body');}
+      finally {base.removeAttribute('display');}
+    });
+    assert.ok(detected,'A deliberately hidden base must fail the paint assertion');
+    const thumbnails=await page.evaluate(()=>MuseData.items.map(item=>{
+      const holder=document.createElement('div');holder.style.cssText='position:fixed;left:-5000px;top:0';holder.innerHTML=MuseArt.itemSvg(item,true);document.body.append(holder);
+      const svg=holder.firstElementChild,b=svg.getBBox(),v=svg.viewBox.baseVal;
+      const fits=b.x>=v.x&&b.y>=v.y&&b.x+b.width<=v.x+v.width&&b.y+b.height<=v.y+v.height;
+      holder.remove();return {id:item.id,fits};
+    }));
+    assert.deepEqual(thumbnails.filter(t=>!t.fits),[],'Clipped wardrobe thumbnails');
+    pass('Blank-body negative control fails as expected; all 122 thumbnail drawings fit within their viewboxes');
     for(const item of D.items) {
       await page.locator(`[data-category="${item.category}"]`).click();
       await page.locator(`[data-item="${item.id}"]`).click();
@@ -139,13 +160,14 @@ async function run() {
       await paint(page,item.id);
       await page.locator(`[data-item="${item.id}"]`).click();
       assert.equal(await page.locator(`[data-item="${item.id}"]`).getAttribute('aria-pressed'),'false');
-      const same=await page.evaluate(async expected=>{
+      const same=await page.evaluate(async()=>{
         const pixels=(await uiRaster(new XMLSerializer().serializeToString(document.querySelector('#avatar-slot svg')))).pixels;
-        return pixels.every((v,i)=>v===expected[i]);
-      },empty);
+        return pixels.every((v,i)=>v===uiEmptyPixels[i]);
+      });
       assert.ok(same,'Removing must restore every pixel of studio basics: '+item.id);
       assert.ok(await page.evaluate(()=>originalBase===document.querySelector('[data-layer="base"]')),'Base replaced: '+item.id);
       report.itemCount++;
+      if(report.itemCount%20===0)console.log(`Checked ${report.itemCount}/122 garments`);
     }
     assert.equal(await page.locator('.outfit-status b').innerText(),'0/6');
     pass('All 122 pieces: real equip/remove clicks, selection state, body/garment coverage, pixel-exact empty restoration and zero scoring units');
@@ -168,7 +190,7 @@ async function run() {
         await equip(page,ids);await paint(page);await page.evaluate(()=>uiExportCheck());await snapshot(page,skin.id+'-'+name);
       }
     }
-    pass('20 reviewed vector screenshot baselines: five looks × four skin tones; canvas exports equal visible SVG pixels');
+    pass('32 vector screenshot cases: eight looks × four skin tones; canvas exports equal visible SVG pixels');
     for(const viewport of [{width:375,height:667},{width:390,height:844},{width:667,height:375},{width:1920,height:1080}]) {
       for(const motion of ['no-preference','reduce']) {
         const p=await newPage(viewport,base,motion);await equip(p,specimens.vest);await paint(p,'top_edgy_05');
@@ -193,9 +215,11 @@ async function run() {
     }
     pass('Four viewports × two motion settings: 192 rapid toggle frames, visible avatar, accessible score button, no horizontal overflow');
     const standalone=path.join(root,'dist','Muse-Bloom.html');assert.ok(fs.existsSync(standalone),'Run npm run standalone first');
-    const file=await newPage({width:1440,height:900},pathToFileURL(standalone).href);
+    const file=await newPage({width:1440,height:900},pathToFileURL(standalone).href,'reduce');
     for(const ids of Object.values(specimens)) { await equip(file,ids);await paint(file);await file.evaluate(()=>uiExportCheck()); }
-    await file.context().close();pass('Standalone file:// HTML: five looks, empty fallback and matching canvas export');
+    await file.locator('[data-action="score"]').click();assert.equal(await file.locator('.rank-D').count(),1);assert.equal(await file.locator('#score-number').innerText(),'0');
+    await file.locator('[data-action="retry"]').click();await paint(file);
+    await file.context().close();pass('Standalone file:// HTML: eight looks, empty fallback and matching canvas export');
     assert.deepEqual(report.errors,[],'Console and runtime errors');pass('Zero browser console/runtime errors');
     report.status='passed';
   } catch(error) {
@@ -204,6 +228,7 @@ async function run() {
     throw error;
   } finally {
     fs.writeFileSync(path.join(out,'ui-report.json'),JSON.stringify(report,null,2));
+    fs.writeFileSync(path.join(out,`ui-report-${report.channel}.json`),JSON.stringify(report,null,2));
     if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));
   }
 }

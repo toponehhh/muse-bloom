@@ -28,9 +28,10 @@ git push -u origin main
 `.github/workflows/verify.yml` 会在 push、pull request 或手动触发时：
 
 1. 执行规则和存档测试，验证 36 关都能拿到 S。
-2. 核对自定义 SVG 嵌入数据是否同步。
-3. 生成 CrazyGames ZIP，并保存为 Actions artifact。
+2. 安装锁定版本的 Playwright，执行 122 件衣服的穿脱、覆盖、缩略图边界、32 张视觉基准和移动端交互测试。
+3. 保存 UI 报告、截图及失败差异图，核对 SVG 与嵌入数据是否可重复生成。
+4. 生成 CrazyGames ZIP 和单文件试玩版，并保存为 Actions artifact。
 
-工作流仅有仓库读取权限，不部署 GitHub Pages，也不自动提交到 CrazyGames。Playwright 的完整浏览器测试需单独执行，不属于当前 CI job。
+工作流仅有仓库读取权限，不部署 GitHub Pages，也不自动提交到 CrazyGames。另一个正常进度 36 关通关脚本 `npm run test:browser` 需要单独启动本地服务后执行；测试命令和边界见 `UI-TESTS.md`。目前仅完成本地验证，尚未执行远端 GitHub Actions。
 
 本地提交使用项目作者名 `Muse Bloom Developer`。可以在新增个人提交前设置仓库级别的 `git config user.name` / `git config user.email`；未修改用户全局 Git 设置。

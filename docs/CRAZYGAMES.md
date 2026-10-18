@@ -9,7 +9,7 @@ npm test
 npm run package
 ```
 
-在 CrazyGames Developer Portal 新建游戏，上传 `dist/muse-bloom-crazygames-v1.0.0.zip`。压缩包根目录是 `index.html`，所有运行时路径均为相对路径。开发脚本、测试、Git 数据、营销视频不在游戏包内。
+在 CrazyGames Developer Portal 新建游戏，上传 `dist/muse-bloom-crazygames-v1.0.1.zip`。压缩包根目录是 `index.html`，所有运行时路径均为相对路径。开发脚本、测试、Git 数据、营销视频不在游戏包内。
 
 本次成品同时准备：
 
