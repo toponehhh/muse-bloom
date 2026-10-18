@@ -4,9 +4,8 @@
   function loadImage(svg) { return new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = () => reject(new Error('The look could not be rendered. Please try again.')); image.src = A.uri(svg); }); }
   async function drawAvatar(ctx, outfit, skinId, x, y, width, height) {
     const skin = D.skins.find(s => s.id === skinId) || D.skins[1];
-    const layers = [A.body(skin), ...G.equippedItems(outfit).sort((a,b) => a.z - b.z).map(i => A.itemSvg(i))];
-    const images = await Promise.all(layers.map(loadImage));
-    images.forEach(image => ctx.drawImage(image, x, y, width, height));
+    const image = await loadImage(A.avatarSvg(skin,G.equippedItems(outfit)));
+    ctx.drawImage(image, x, y, width, height);
   }
   function roundRect(ctx, x, y, w, h, r, fill) { ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill(); }
   async function makeCard(theme, outfit, skin, result) {

@@ -67,7 +67,7 @@
         state.outfit=G.toggleItem(state.outfit,id,state.save.unlockedItems);
         S.play(was?'unequip':'equip');U.updateDressing(state,true);break;
       }
-      case 'clear':if(state.screen==='dressing'){state.outfit=G.emptyOutfit();U.updateDressing(state);S.play('unequip');toast('A fresh canvas. Your next look starts here.');}break;
+      case 'clear':if(state.screen==='dressing'){state.outfit=G.emptyOutfit();U.updateDressing(state);S.play('unequip');toast('Studio basics restored. Add your own pieces to earn points.');}break;
       case 'score': {
         if(state.screen!=='dressing')break;
         state.result=G.finishLevel(state.save,state.level,state.outfit);state.save=state.result.save;state.outfit=state.result.outfit;state.shareCard=null;persist();navigate('result');animateScore();S.play(state.result.result.rank==='S'?'rankS':'rankLow');break;

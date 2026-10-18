@@ -21,7 +21,24 @@
   const thumbnail = item => `<img class="item-art" src="${A.uri(A.itemSvg(item,true))}" alt="" draggable="false">`;
   function avatar(outfit,skinId,cls='') {
     const skin=D.skins.find(s=>s.id===skinId)||D.skins[1];
-    return `<div class="avatar ${cls}" role="img" aria-label="Your styled character"><img src="${A.uri(A.body(skin))}" alt="" draggable="false">${G.equippedItems(outfit).sort((a,b)=>a.z-b.z).map(i=>`<img src="${A.uri(A.itemSvg(i))}" alt="" style="z-index:${i.z}" draggable="false">`).join('')}</div>`;
+    return `<div class="avatar ${cls}" role="img" aria-label="Your styled character">${A.avatarSvg(skin,G.equippedItems(outfit))}</div>`;
+  }
+  function updateAvatar(slot,outfit,skinId,bounce) {
+    const current=slot.querySelector('.avatar'),scene=current?.querySelector(':scope > svg');
+    if(!scene){slot.innerHTML=avatar(outfit,skinId);return;}
+    const skin=D.skins.find(s=>s.id===skinId)||D.skins[1];
+    const template=document.createElement('template');template.innerHTML=A.avatarSvg(skin,G.equippedItems(outfit));
+    const desired=[...template.content.firstElementChild.children],existing=new Map([...scene.children].map(n=>[n.dataset.layer,n]));
+    // All changes are synchronous. Keep the character and unchanged layers mounted.
+    // No Image.decode() gap, including when an item is removed or rapidly replaced.
+    desired.forEach((next,index)=>{
+      const old=existing.get(next.dataset.layer),node=old||next;
+      if(old&&old.innerHTML!==next.innerHTML)old.innerHTML=next.innerHTML;
+      if(scene.children[index]!==node)scene.insertBefore(node,scene.children[index]||null);
+      existing.delete(next.dataset.layer);
+    });
+    existing.forEach(node=>node.remove());
+    current.classList.toggle('equip-bounce',bounce);
   }
   function demoOutfit(which=0) {
     const outfit=G.emptyOutfit();
@@ -80,7 +97,7 @@
   function render(state) { document.getElementById('app').innerHTML=header(state)+({home,map,dressing,result,collection}[state.screen]||home)(state); document.body.dataset.screen=state.screen; }
   function updateDressing(state,bounce=false) {
     const slot=document.getElementById('avatar-slot'); if(!slot)return;
-    slot.innerHTML=avatar(state.outfit,state.save.skin,bounce?'equip-bounce':'');
+    updateAvatar(slot,state.outfit,state.save.skin,bounce);
     document.getElementById('brief-tag-list').innerHTML=tags(D.themes[state.level-1],state.outfit);
     document.getElementById('category-tabs').innerHTML=tabs(state);
     const grid=document.getElementById('item-grid'),scroll=grid.scrollTop,focus=document.activeElement?.dataset.item;
