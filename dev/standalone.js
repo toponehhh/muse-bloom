@@ -4,7 +4,7 @@ const root=path.resolve(__dirname,'..');
 function standalone(destination=path.join(root,'dist','Muse-Bloom.html')) {
   const read=file=>fs.readFileSync(path.join(root,file),'utf8');
   let html=read('index.html').replace('href="assets/favicon.svg"',()=>`href="data:image/svg+xml,${encodeURIComponent(read('assets/favicon.svg'))}"`);
-  html=html.replace('<link rel="stylesheet" href="css/style.css">',()=>'<style>'+read('css/style.css')+'</style>');
+  html=html.replace(/<link rel="stylesheet" href="(css\/[^"]+)">/g,(_,file)=>'<style>'+read(file)+'</style>');
   const scripts=[];
   html=html.replace(/\s*<script defer src="([^"]+)"><\/script>/g,(_,file)=>{scripts.push('<script>'+read(file).replace(/<\/script/gi,'<\\/script')+'</script>');return '';});
   html=html.replace('</body>',()=>scripts.join('\n')+'\n</body>');

@@ -24,6 +24,10 @@ const specimens = {
   'qipao': ['hair_sporty_04', D.items.find(i=>i.category==='dress'&&i.shape==='qipao').id],
   'tee-trousers': ['top_casual_01','bottom_casual_01','shoes_casual_01'],
   'skirt-boots': ['top_cozy_02','bottom_cute_02',D.items.find(i=>i.category==='shoes'&&i.shape==='boot').id],
+  'heart-bag': ['hair_casual_01','top_edgy_05',D.items.find(i=>i.category==='bottom'&&i.shape==='shorts').id,'shoes_casual_01','accessory_cute_03'],
+  'tote': ['hair_sporty_04','top_cozy_02','bottom_casual_01','accessory_casual_01'],
+  'two-handheld': ['accessory_cute_03','accessory_casual_01'],
+  'crossbody': ['top_casual_01','bottom_casual_01','accessory_street_06'],
   'studio-basics': []
 };
 async function equip(page, ids) {
@@ -90,7 +94,7 @@ async function installPixelChecks(page) {
 async function paint(page, itemId) { await page.evaluate(id=>uiPaintCheck(id), itemId); report.rasterSamples++; }
 async function snapshot(page, name) {
   // Only the vector avatar: no platform-dependent font rendering in baselines.
-  const image = await page.locator('#avatar-slot .avatar').screenshot({ animations: 'disabled', style:'#avatar-slot .avatar{background:#e7e8d7}.toast,.skin-selector,.stage-label,.stage-spark,.stage-side{visibility:hidden!important}' });
+  const image = await page.locator('#avatar-slot .avatar').screenshot({ animations: 'disabled', style:'#avatar-slot .avatar{background:#f3edfa;filter:none}.toast,.skin-selector,.stage-label,.stage-spark,.stage-side,.studio-lights{visibility:hidden!important}' });
   const filename = path.join(baselines, name+'.png');
   fs.writeFileSync(path.join(out,name+'.png'),image);
   if(update) { fs.writeFileSync(filename,image); report.snapshots.push({name,updated:true}); return; }
@@ -145,6 +149,18 @@ async function run() {
       finally {base.removeAttribute('display');}
     });
     assert.ok(detected,'A deliberately hidden base must fail the paint assertion');
+    await page.evaluate(()=>{
+      const holder=document.createElement('div');holder.innerHTML=MuseUI.avatar(MuseGame.emptyOutfit(),'deep')+MuseUI.avatar(MuseGame.emptyOutfit(),'porcelain');document.body.append(holder);
+      try{
+        const ids=[...document.querySelectorAll('[id]')].map(n=>n.id);
+        if(new Set(ids).size!==ids.length)throw Error('SVG lighting IDs collide between avatars');
+        for(const svg of holder.querySelectorAll('.avatar > svg'))for(const node of svg.querySelectorAll('[fill],[filter]')){
+          const references=(node.getAttribute('fill')||'')+(node.getAttribute('filter')||'');
+          for(const match of references.matchAll(/url\(#([^)]+)\)/g))if(!svg.querySelector(`[id="${match[1]}"]`))throw Error('Material reference escapes avatar');
+        }
+      }finally{holder.remove();}
+    });
+    pass('Multiple skin tones have independent SVG material/filter namespaces');
     const thumbnails=await page.evaluate(()=>MuseData.items.map(item=>{
       const holder=document.createElement('div');holder.style.cssText='position:fixed;left:-5000px;top:0';holder.innerHTML=MuseArt.itemSvg(item,true);document.body.append(holder);
       const svg=holder.firstElementChild,b=svg.getBBox(),v=svg.viewBox.baseVal;
@@ -190,7 +206,7 @@ async function run() {
         await equip(page,ids);await paint(page);await page.evaluate(()=>uiExportCheck());await snapshot(page,skin.id+'-'+name);
       }
     }
-    pass('32 vector screenshot cases: eight looks × four skin tones; canvas exports equal visible SVG pixels');
+    pass(`${Object.keys(specimens).length*D.skins.length} vector screenshot cases: twelve looks × four skin tones; canvas exports equal visible SVG pixels`);
     for(const viewport of [{width:375,height:667},{width:390,height:844},{width:667,height:375},{width:1920,height:1080}]) {
       for(const motion of ['no-preference','reduce']) {
         const p=await newPage(viewport,base,motion);await equip(p,specimens.vest);await paint(p,'top_edgy_05');
@@ -209,6 +225,7 @@ async function run() {
         assert.equal(samples,24);await paint(p);
         const score=await p.locator('[data-action="score"]').boundingBox();assert.ok(score.y>=0&&score.y+score.height<=viewport.height+1);
         assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+        if(motion==='reduce')assert.equal(await p.evaluate(()=>document.getAnimations().filter(a=>a.playState==='running').length),0,'Reduced motion must stop decorative animation');
         await p.screenshot({path:path.join(out,`viewport-${viewport.width}x${viewport.height}-${motion}.png`)});
         await p.context().close();
       }
@@ -219,7 +236,7 @@ async function run() {
     for(const ids of Object.values(specimens)) { await equip(file,ids);await paint(file);await file.evaluate(()=>uiExportCheck()); }
     await file.locator('[data-action="score"]').click();assert.equal(await file.locator('.rank-D').count(),1);assert.equal(await file.locator('#score-number').innerText(),'0');
     await file.locator('[data-action="retry"]').click();await paint(file);
-    await file.context().close();pass('Standalone file:// HTML: eight looks, empty fallback and matching canvas export');
+    await file.context().close();pass('Standalone file:// HTML: twelve looks, empty fallback and matching canvas export');
     assert.deepEqual(report.errors,[],'Console and runtime errors');pass('Zero browser console/runtime errors');
     report.status='passed';
   } catch(error) {

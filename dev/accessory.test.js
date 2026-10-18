@@ -54,11 +54,16 @@ async function run(){
     });
     assert.equal(negative,true,'Moving a bag away from the hand must fail');
     report.checks.push('Two handheld props use separate hands; a deliberate 40px displacement fails');
+    await page.locator(`[data-item="${props.filter(A.handheld)[0].id}"]`).click();
+    await page.evaluate(()=>checkAttachment());
+    assert.equal(await page.locator('[data-held-hand="left"], [data-layer="hand-left"]').count(),0);
+    assert.equal(await page.locator('[data-held-hand="right"]').count(),1);
+    report.checks.push('Removing the first prop reattaches the remaining prop to the right hand');
     await page.locator('[data-action="clear"]').click();
     assert.equal(await page.locator('[data-layer^="hand-"]').count(),0);
     report.checks.push('Clearing props removes grip overlays');
     assert.deepEqual(report.errors,[]);report.status='passed';console.log(JSON.stringify(report,null,2));
-  }finally{
+  }catch(error){report.status='failed';report.failure=error.stack;throw error;}finally{
     const dir=path.resolve(__dirname,'../artifacts/ui');fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'accessory-report.json'),JSON.stringify(report,null,2));
     if(browser)await browser.close();await new Promise(r=>server.close(r));
   }
