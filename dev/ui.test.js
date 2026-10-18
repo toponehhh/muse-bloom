@@ -74,7 +74,7 @@ async function installPixelChecks(page) {
     };
     window.uiExportCheck = async function() {
       const svg = document.querySelector('#avatar-slot .avatar > svg');
-      const ids = [...svg.querySelectorAll(':scope > [data-layer]')].map(n=>n.dataset.layer).filter(id=>id!=='base');
+      const ids = [...svg.querySelectorAll(':scope > [data-layer]')].map(n=>n.dataset.layer).filter(id=>MuseGame.byId[id]);
       const outfit = MuseGame.emptyOutfit();
       for (const id of ids) { const i = MuseGame.byId[id]; if(i.category==='accessory')outfit.accessory.push(id);else outfit[i.category]=id; }
       const skin = document.querySelector('.skin-selector [aria-pressed="true"]').dataset.skin;

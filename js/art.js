@@ -142,18 +142,21 @@
     if(s==='pin') return p('M389 138 L457 187','none',`stroke="${c}" stroke-width="5"`)+flower(445,160,17,'#edc7b7')+p('M450 175 L453 222','none',`stroke="${c}"`)+circle(453,224,6,'#9cbaa0');
     if(s==='scarf') return p('M315 341 Q359 369 406 341 L417 374 L381 397 L410 530 L366 551 L355 397 Q326 390 302 371Z',c)+line('M381 407 L392 513 M371 541 L377 556 M382 536 L389 552 M393 532 L402 546');
     if(s==='watch') return rect(465,711,28,20,3,c)+circle(478,721,13,'#e8dfc7')+line('M478 713 L478 721 L484 726',.8);
-    if(s==='fan') return p('M497 735 L504 857','none','stroke="#b79564" stroke-width="9"')+`<ellipse cx="494" cy="708" rx="58" ry="67" fill="${c}"/>`+flower(484,697,21,'#d7a9a5')+line('M490 725 Q497 709 511 687');
+    if(s==='fan') return p('M486 716 L486 795','none','data-part="handle" stroke="#b79564" stroke-width="9"')+`<ellipse cx="486" cy="660" rx="58" ry="67" fill="${c}"/>`+flower(476,649,21,'#d7a9a5')+line('M482 677 Q489 661 503 639');
     const tote=s==='tote',cross=s==='crossbody';
-    return (cross?p('M299 368 L470 709','none',`stroke="${c}" stroke-width="12"`):p('M438 716 L439 674 Q439 645 465 645 Q492 645 492 676 L493 716','none',`stroke="${c}" stroke-width="8"`))+
-      p(tote?'M415 703 L510 703 L522 833 Q471 851 413 832Z':'M419 706 Q469 690 513 706 L518 788 Q470 809 418 788Z',c)+
-      (tote?line('M425 717 L425 819 M500 718 L507 822'):p('M420 707 Q468 761 513 707','none')+rect(459,736,17,14,3,'#d8b879'))+
-      (item.chinese?flower(469,773,13,'#e9cead'):tote?flower(467,773,17,'#e2ceb0'):'');
+    if(cross) return p('M299 368 L441 670','none',`data-part="shoulder-strap" stroke="${c}" stroke-width="12"`)+p('M402 661 Q445 649 484 663 L488 739 Q443 759 401 739Z',c)+p('M403 663 Q444 710 484 664','none')+rect(436,692,15,12,3,'#d8b879');
+    // One shared grip at (486, 776); the bag hangs below it and the fingers
+    // are composited over the handle. A second handheld uses the other hand.
+    return p('M451 834 L455 806 Q461 776 486 776 Q513 776 522 806 L526 834','none',`data-part="handle" stroke="${c}" stroke-width="8"`)+
+      p(tote?'M438 825 L537 825 L545 947 Q492 964 435 947Z':'M440 826 Q486 811 534 826 L539 911 Q489 931 439 911Z',c)+
+      (tote?line('M449 840 L447 935 M526 840 L533 936'):p('M441 827 Q488 880 534 827','none')+rect(481,857,17,14,3,'#d8b879'))+
+      (item.chinese?flower(488,898,13,'#e9cead'):tote?flower(488,892,17,'#e2ceb0'):'');
   }
   function itemSvg(item, thumbnail = false) {
     const render = { hair, top, bottom, dress, shoes, accessory }[item.category];
     let box=item.bounds;
     if(item.category==='shoes'&&item.shape==='boot')box=[255,995,210,225];
-    if(item.category==='accessory') box = ['necklace','pendant'].includes(item.shape)?[300,326,120,130]:item.shape==='glasses'?[270,206,180,80]:['clip','pin'].includes(item.shape)?[366,113,110,133]:item.shape==='earrings'?[255,240,210,80]:item.shape==='scarf'?[290,325,140,240]:item.shape==='watch'?[448,687,58,68]:item.shape==='fan'?[427,630,140,250]:[399,630,140,225];
+    if(item.category==='accessory') box = ['necklace','pendant'].includes(item.shape)?[300,326,120,130]:item.shape==='glasses'?[270,206,180,80]:['clip','pin'].includes(item.shape)?[366,113,110,133]:item.shape==='earrings'?[255,240,210,80]:item.shape==='scarf'?[290,325,140,240]:item.shape==='watch'?[448,687,58,68]:item.shape==='fan'?[417,582,140,225]:[422,762,140,213];
     if(item.category==='accessory'&&item.shape==='crossbody')box=[280,350,260,480];
     const embedded = globalThis.MuseAssets?.[item.img];
     if (embedded) return thumbnail ? embedded.replace(/width="720"/,`width="${box[2]}"`).replace(/height="1280"/,`height="${box[3]}"`).replace(/viewBox="0 0 720 1280"/,`viewBox="${box.join(' ')}"`) : embedded;
@@ -161,11 +164,25 @@
   }
   const uri = value => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(value);
   const contents = value => value.replace(/^[\s\S]*?<svg\b[^>]*>/,'').replace(/<\/svg>\s*$/,'');
+  const handheld = item => item.category==='accessory' && ['bag','tote','fan'].includes(item.shape);
+  function grip(skin, left) {
+    // Match each base hand contour; only the curled fingers cover the handle.
+    const finger=left?'M226 773 Q234 767 243 773 L243 782 Q234 787 227 782Z':'M477 773 Q486 767 495 773 L495 782 Q486 787 478 782Z';
+    return svg(p(finger,skin.color,'data-part="fingers"')+line(left?'M229 778 Q235 782 241 777':'M480 778 Q486 782 493 777',.26));
+  }
   function avatarSvg(skin, items = []) {
     const covered=items.map(i=>i.category);
     if(covered.includes('dress'))covered.push('top','bottom');
-    const layers=[['base',body(skin,covered)],...[...items].sort((a,b)=>a.z-b.z).map(i=>[i.id,itemSvg(i)])];
+    let held=0;
+    const layers=[['base',body(skin,covered)],...[...items].sort((a,b)=>a.z-b.z).map(i=>{
+      const source=itemSvg(i);
+      if(!handheld(i))return [i.id,source];
+      const left=held++>0;
+      return [i.id,svg(`<g data-held-hand="${left?'left':'right'}"${left?' transform="translate(720 0) scale(-1 1)"':''}>${contents(source)}</g>`)];
+    })];
+    if(held)layers.push(['hand-right',grip(skin,false)]);
+    if(held>1)layers.push(['hand-left',grip(skin,true)]);
     return `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280" fill="none">${layers.map(([id,source])=>`<g data-layer="${id}">${contents(source)}</g>`).join('')}</svg>`;
   }
-  return { svg, body, itemSvg, avatarSvg, uri, flower };
+  return { svg, body, itemSvg, avatarSvg, uri, flower, handheld };
 });
