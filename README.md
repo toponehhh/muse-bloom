@@ -2,7 +2,7 @@
 
 Style your glow-up.
 
-Version 1.1.0 introduces Glow Studio: icy blue, lilac and pink surfaces, pearl highlights, gentle star glints, dimensional vector materials, and physically attached handheld accessories.
+Version 1.1.1 redraws the face and hands, adds independent relaxed/carrying poses, and preserves Glow Studio: icy blue, lilac and pink surfaces, pearl highlights, gentle star glints, dimensional vector materials, and physically attached handheld accessories.
 
 Muse Bloom is an original, offline-capable HTML5 fashion puzzle: match a brief, style a character, earn a grade, and grow your wardrobe. The first release targets **CrazyGames Basic Launch**.
 
@@ -26,7 +26,7 @@ npm run package
 
 Game source is in `js/`, presentation in `css/`, development tools in `dev/`. The upload archive contains only runtime files. Development dependencies are not needed by the game.
 
-For UI checks, run `npm ci`, install a test browser with `npx playwright install chromium`, then run `npm run test:ui`. This starts and stops its own server and checks all 122 items, removal, garment coverage, 28 accessory attachment cases, 48 visual baselines, responsive layouts and the standalone HTML. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. See [UI test guide](docs/UI-TESTS.md) for evidence, baseline review and limitations.
+For UI checks, run `npm ci`, install a test browser with `npx playwright install chromium`, then run `npm run test:ui`. This starts and stops its own server and checks all 122 items, removal, garment coverage, 28 accessory attachment cases, 88 hairstyle/skin checks, 60 visual baselines, responsive layouts and the standalone HTML. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. See [UI test guide](docs/UI-TESTS.md) for evidence, baseline review and limitations.
 
 For the complete 36-level browser journey, start the server, then run `npm run test:browser`. `npm run standalone` generates a double-clickable `dist/Muse-Bloom.html`. These development tools are never loaded by the game.
 

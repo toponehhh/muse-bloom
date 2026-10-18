@@ -24,7 +24,7 @@ Do not run `npm run assets` after individual asset edits unless you intend to re
 
 The base contains opaque studio basics: short hair, a rose camisole and sage shorts. Groups marked `data-basic="hair"`, `data-basic="top"`, and `data-basic="bottom"` are hidden only when that slot is covered by an equipped item (a dress covers both clothing slots). Keep these markers in custom base artwork. Basics are visual fallbacks, not collectible/scoring items. This prevents pale underlayers protruding around a fitted garment and makes removal an explicit complete appearance.
 
-Long sleeves cover both edges of the base arms through the wrists. Bodices share underarm/waist landmarks; fitted skirts cover the full hip contour. Check `npm run test:ui` after art changes: coverage assertions and 48 reviewed screenshots protect these seams. See [UI test guide](UI-TESTS.md) before deliberately updating baselines.
+Long sleeves cover both edges of the base arms through the wrists. Bodices share underarm/waist landmarks; fitted skirts cover the full hip contour. Check `npm run test:ui` after art changes: coverage assertions and 60 reviewed screenshots protect these seams. See [UI test guide](UI-TESTS.md) before deliberately updating baselines.
 
 Chinese-inspired pieces use lapels, frog buttons, pleated mamian panels, embroidery, jade, hairpins, silk fans and brocade; no brand names or logos are used.
 
@@ -34,6 +34,14 @@ The promotional illustrations use the same character, clothing and rendering cod
 
 Colors are converted to deterministic SVG gradients. Soft skin lighting, hair highlights and fabric shading retain the existing fit coordinates. Each inline avatar has an independent namespace for its gradients and filters, including during keyed updates. This prevents cross-instance skin/material collisions.
 
-Handheld props attach at (486, 776), with a second prop mirrored to (234, 776). Finger overlays paint after the props and are removed when unused. Crossbody straps start at the shoulder (299, 368). Keep `data-part="handle"` and `data-part="shoulder-strap"` when overriding these accessory assets; these identify paths checked by the attachment tests. The game and card exporter use the same hand allocation and compositing.
+Handheld props attach at (486, 776), with a second prop mirrored to (234, 776). Full carrying hands paint after the props and replace the relaxed hands. Watches paint last so the cuff remains visible. Crossbody straps start at the shoulder (299, 368). Keep `data-part="handle"` and `data-part="shoulder-strap"` when overriding these accessory assets; these identify paths checked by the attachment tests. The game and card exporter use the same hand allocation and compositing.
 
 See [Visual direction](VISUAL-DESIGN.md) and `dev/accessory.test.js`.
+
+## Face and hands (v1.1.1)
+
+The base arms end at the wrist. Keep independent `data-hand="left"` and `data-hand="right"` groups in custom bases: a handheld prop hides the relaxed hand on that side, then the complete carrying pose is rendered above the handle. Never retain a second hand silhouette inside the arm path. The four fingertips and thumb have separate contours; palm samples, wrist joins, grip occlusion and close-up baselines protect both poses.
+
+Hand lighting uses the same world coordinates as the torso radial gradient (bounds 223, 300, 275, 433), mirrored for the left hand. Update these together if the torso bounds change to avoid a visible wrist seam.
+
+The face has separately marked eyes, brows, nose and lips. Iris clips remain local to each avatar namespace. Hair, glasses, earrings and hairpins retain existing attachment coordinates. Check the 12 enlarged detail baselines in addition to the 48 full-body looks; all 22 hairstyles are checked in four skin tones.
