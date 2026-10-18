@@ -32,22 +32,39 @@
   function embroidery(points, color = '#f0d7b1') { return points.map(([x,y]) => flower(x,y,10,color)).join(''); }
   const hairCap = color => p('M278 231 Q254 168 286 129 Q312 92 369 103 Q429 99 448 148 Q466 183 439 232 L423 192 Q385 199 356 164 Q333 204 294 207 L286 235Z',color);
   const basic = (slot, content) => `<g data-basic="${slot}">${content}</g>`;
-  function hideBasics(source, covered) {
+  function hideBasics(source, covered, heldHands = []) {
     // Custom base SVGs keep these groups so fitted clothes can replace basics.
-    return source.replace(/data-basic="(hair|top|bottom)"/g,(attribute,slot)=>attribute+(covered.includes(slot)?' display="none"':''));
+    return source.replace(/data-basic="(hair|top|bottom)"/g,(attribute,slot)=>attribute+(covered.includes(slot)?' display="none"':''))
+      .replace(/data-hand="(left|right)"/g,(attribute,side)=>attribute+(heldHands.includes(side)?' display="none"':''));
   }
-  function body(skin, covered = []) {
+  function hand(skin, left = false, pose = 'relaxed') {
+    const c=skin.color,sh=skin.shade;
+    const relaxed='M466 728 Q465 740 461 750 L456 762 Q454 767 458 769 Q462 770 465 763 L469 756 L470 775 L472 790 Q473 795 476 794 Q479 793 478 788 L478 774 L480 797 Q481 801 484 799 Q486 798 485 793 L485 775 L487 793 Q488 797 491 795 Q493 794 492 789 L492 772 L494 782 Q495 786 498 784 Q500 783 499 777 L500 760 Q500 747 497 738 L496 728';
+    const carrying='M466 728 Q463 742 464 753 Q465 763 473 770 L476 781 Q479 787 485 787 Q494 788 499 781 Q502 775 499 766 L497 754 Q500 742 496 728';
+    const outline=p(pose==='grip'?carrying:relaxed,c,'data-part="hand-outline" stroke-width="1.5"');
+    const details=pose==='grip'
+      ?p('M477 770 Q487 767 497 771 L499 777 Q499 783 493 784 L481 783 Q476 781 477 770Z',c,'data-part="fingers" stroke-width="1.4"')+
+       p('M483 773 L483 781 M489 772 L489 783 M495 774 L495 780','none','stroke-width="1.1" opacity=".48"')+
+       p('M465 749 Q468 743 473 750 L483 762 Q486 766 482 769 Q479 771 476 766 L471 760',c,'data-part="thumb" stroke-width="1.5"')+
+       p('M468 735 Q467 743 469 748','none','stroke="#fff4e7" stroke-width="3" opacity=".25"')
+      :p('M469 756 Q472 750 472 744 M472 762 Q479 758 489 761 M477 770 L478 775 M484 769 L485 776 M491 766 L492 773','none','stroke-width="1.1" opacity=".32"')+
+       p('M468 737 Q469 746 466 752 M476 751 Q483 749 491 752','none','stroke="#fff4e7" stroke-width="2.5" opacity=".3"')+
+       p('M496 747 L497 763 L495 775','none',`stroke="${sh}" stroke-width="2.3" opacity=".25"`);
+    return `<g data-pose="${pose}"${left?' transform="translate(720 0) scale(-1 1)"':''}>${outline+details}</g>`;
+  }
+  function body(skin, covered = [], heldHands = []) {
     const embedded = globalThis.MuseAssets?.[`assets/base/${skin.id}.svg`];
-    if (embedded) return hideBasics(embedded,covered);
+    if (embedded) return hideBasics(embedded,covered,heldHands);
     const c = skin.color, sh = skin.shade;
     return hideBasics(svg(
       '<defs><filter id="skin-soft" x="-.15" y="-.15" width="1.3" height="1.3"><feGaussianBlur stdDeviation="5"/></filter><filter id="face-soft"><feGaussianBlur stdDeviation="2.5"/></filter></defs>'+
       p('M307 654 Q282 707 298 828 L312 985 L310 1139 Q293 1159 288 1174 Q287 1187 307 1187 L348 1184 Q359 1180 351 1163 L353 994 L360 793 L367 995 L372 1160 Q368 1182 386 1185 L428 1186 Q442 1178 431 1168 L409 1143 L421 989 L426 829 Q443 712 414 655Z',c)+
-      p('M316 300 L314 344 Q285 354 277 370 Q263 388 255 439 L237 573 L225 717 Q208 762 221 791 Q227 804 235 789 L237 760 Q242 804 253 794 Q263 784 259 762 L257 721 L278 590 L307 467 L310 567 L299 646 Q305 683 360 684 Q414 683 421 646 L410 566 L414 468 L442 592 L465 724 Q459 768 465 788 Q475 805 481 789 L483 762 Q490 809 501 791 Q511 769 495 719 L482 577 L466 437 Q455 377 443 366 Q430 353 406 344 L404 300Z',c)+
+      p('M316 300 L314 344 Q285 354 277 370 Q263 388 255 439 L237 573 L223 730 L254 733 L278 590 L307 467 L310 567 L299 646 Q305 683 360 684 Q414 683 421 646 L410 566 L414 468 L442 592 L466 733 L498 730 L482 577 L466 437 Q455 377 443 366 Q430 353 406 344 L404 300Z',c)+
       p('M316 302 Q357 329 404 302 L403 333 Q358 354 315 333Z',sh,'stroke="none"')+
       // Round limbs with broad edge shadows and narrow bounced-light ribbons.
       p('M307 708 Q302 774 313 841 L324 970 L322 1129 M389 811 L389 989 L389 1133 M282 392 Q267 476 254 581 L241 716 M448 402 L467 573 L482 717','none','stroke="#fff5e8" stroke-width="18" opacity=".24" filter="url(#skin-soft)"')+
       p('M345 792 L337 984 L339 1140 M410 798 L407 978 L400 1137 M298 463 L271 590 L251 724 M465 476 L477 577 L490 715','none',`stroke="${sh}" stroke-width="12" opacity=".32" filter="url(#skin-soft)"`)+
+      `<g data-hand="left">${hand(skin,true)}</g><g data-hand="right">${hand(skin)}</g>`+
       `<ellipse cx="283" cy="239" rx="13" ry="22" fill="${c}"/><ellipse cx="437" cy="239" rx="13" ry="22" fill="${c}"/>`+
       p('M282 202 Q282 125 360 127 Q438 125 439 202 L433 264 Q419 311 361 328 Q307 310 287 264Z',c)+
       p('M285 202 Q350 173 435 207 L433 221 Q357 187 287 219Z',sh,'stroke="none" opacity=".35"')+
@@ -66,7 +83,7 @@
       p('M343 282 Q359 292 378 280 Q361 304 343 282Z','#b65e62','stroke-width="2"')+
       line('M332 286 Q359 314 394 281',.12)+
       basic('hair',hairCap('#704c3b')+p('M284 173 Q295 127 339 124 M367 120 Q405 120 427 145','none','stroke="#d4ad8b" stroke-width="9" opacity=".2"')+line('M280 180 Q286 122 344 120 M365 119 Q418 115 437 160',.24))
-    ,undefined,'skin'),covered);
+    ,undefined,'skin'),covered,heldHands);
   }
   function hair(item) {
     const c = item.color, shape = item.shape;
@@ -189,15 +206,15 @@
   const contents = value => value.replace(/^[\s\S]*?<svg\b[^>]*>/,'').replace(/<\/svg>\s*$/,'');
   const handheld = item => item.category==='accessory' && ['bag','tote','fan'].includes(item.shape);
   function grip(skin, left) {
-    // Match each base hand contour; only the curled fingers cover the handle.
-    const finger=left?'M226 773 Q234 767 243 773 L243 782 Q234 787 227 782Z':'M477 773 Q486 767 495 773 L495 782 Q486 787 478 782Z';
-    return svg(p(finger,skin.color,'data-part="fingers"')+line(left?'M229 778 Q235 782 241 777':'M480 778 Q486 782 493 777',.26),undefined,'skin');
+    return svg(hand(skin,left,'grip'),undefined,'skin');
   }
   function avatarSvg(skin, items = [], namespace='export') {
     const covered=items.map(i=>i.category);
     if(covered.includes('dress'))covered.push('top','bottom');
     let held=0;
-    const layers=[['base',body(skin,covered)],...[...items].sort((a,b)=>a.z-b.z).map(i=>{
+    const count=items.filter(handheld).length,heldHands=count>1?['right','left']:count?['right']:[];
+    const watches=items.filter(i=>i.category==='accessory'&&i.shape==='watch');
+    const layers=[['base',body(skin,covered,heldHands)],...[...items].filter(i=>!watches.includes(i)).sort((a,b)=>a.z-b.z).map(i=>{
       const source=itemSvg(i);
       if(!handheld(i))return [i.id,source];
       const left=held++>0;
@@ -205,6 +222,8 @@
     })];
     if(held)layers.push(['hand-right',grip(skin,false)]);
     if(held>1)layers.push(['hand-left',grip(skin,true)]);
+    // A wristwatch must remain above the hand at the cuff, including grip poses.
+    layers.push(...watches.map(i=>[i.id,itemSvg(i)]));
     const scene=layers.map(([id,source])=>{
       const prefix=namespace+'-'+id+'-';
       return `<g data-layer="${id}">${contents(source).replace(/\bid="([^"]+)"/g,(_,value)=>`id="${prefix+value}"`).replace(/url\(#([^)]+)\)/g,(_,value)=>`url(#${prefix+value})`)}</g>`;

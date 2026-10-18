@@ -17,6 +17,15 @@ async function run(){
     await page.evaluate(()=>{
       window.checkAttachment=()=>{
         const scene=document.querySelector('#avatar-slot .avatar > svg');
+        for(const side of ['left','right']){
+          const resting=scene.querySelector(`[data-layer="base"] [data-hand="${side}"]`);
+          const carrying=scene.querySelector(`[data-layer="hand-${side}"]`);
+          if(!resting)throw Error('Missing independently drawn '+side+' hand');
+          if((resting.getAttribute('display')==='none')!==!!carrying)throw Error('Relaxed and grip hands overlap, or both are hidden');
+          const active=(carrying||resting).querySelector('[data-part="hand-outline"]');
+          const wrist=new DOMPoint(side==='left'?240:480,731).matrixTransform(scene.getScreenCTM()).matrixTransform(active.getScreenCTM().inverse());
+          if(!active.isPointInFill(wrist))throw Error('Hand is disconnected at the wrist');
+        }
         const hands=[...scene.querySelectorAll('[data-held-hand]')].map(n=>n.dataset.heldHand);
         if(new Set(hands).size!==hands.length)throw Error('Two props occupy the same hand');
         for(const prop of scene.querySelectorAll('[data-held-hand]')){
@@ -59,6 +68,13 @@ async function run(){
     assert.equal(await page.locator('[data-held-hand="left"], [data-layer="hand-left"]').count(),0);
     assert.equal(await page.locator('[data-held-hand="right"]').count(),1);
     report.checks.push('Removing the first prop reattaches the remaining prop to the right hand');
+    const watch=D.items.find(i=>i.shape==='watch');await page.locator(`[data-item="${watch.id}"]`).click();
+    await page.evaluate(()=>{
+      checkAttachment();
+      const hand=document.querySelector('[data-layer="hand-right"]'),watch=document.querySelector(`[data-layer="${MuseData.items.find(i=>i.shape==='watch').id}"]`);
+      if(!(hand.compareDocumentPosition(watch)&Node.DOCUMENT_POSITION_FOLLOWING))throw Error('Grip paints over wristwatch');
+    });
+    report.checks.push('Hand poses replace one another, wrists remain joined, and a watch stays above the grip');
     await page.locator('[data-action="clear"]').click();
     assert.equal(await page.locator('[data-layer^="hand-"]').count(),0);
     report.checks.push('Clearing props removes grip overlays');
