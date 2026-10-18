@@ -10,6 +10,8 @@
     "assets": "node dev/export-assets.js && node dev/embed-assets.js",
     "embed-assets": "node dev/embed-assets.js",
     "test:browser": "node dev/browser.test.js",
+    "test:ui": "node dev/ui.test.js",
+    "test:ui:update": "node dev/ui.test.js --update-baselines",
     "package": "node dev/package.js"
   },
   "engines": { "node": ">=20" }
