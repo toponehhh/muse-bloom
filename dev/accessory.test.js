@@ -5,7 +5,7 @@ const {chromium}=require('playwright'),{createServer}=require('./server');
 const D=require('../js/data'),G=require('../js/game'),A=require('../js/art');
 async function run(){
   const server=createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
-  let browser;const report={cases:0,checks:[],errors:[]};
+  let browser;const report={version:require('../package.json').version,cases:0,checks:[],errors:[]};
   try{
     browser=await chromium.launch({headless:true,channel:process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':undefined)});
     const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});

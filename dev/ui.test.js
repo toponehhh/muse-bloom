@@ -11,7 +11,7 @@ const out = path.join(root, 'artifacts', 'ui'), baselines = path.join(__dirname,
 fs.mkdirSync(out, { recursive: true });
 const update = process.argv.includes('--update-baselines');
 if (update) fs.mkdirSync(baselines, { recursive: true });
-const report = { checks: [], errors: [], snapshots: [], itemCount: 0, rasterSamples: 0, baselinesUpdated: update, channel:process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':'chromium') };
+const report = { version:require('../package.json').version, checks: [], errors: [], snapshots: [], itemCount: 0, rasterSamples: 0, baselinesUpdated: update, channel:process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':'chromium') };
 function pass(text) { report.checks.push(text); console.log('PASS:', text); }
 const fullSave = G.newSave();
 fullSave.unlockedItems = D.items.map(i => i.id); fullSave.muted = true;
@@ -56,7 +56,7 @@ async function installPixelChecks(page) {
       const { pixels } = await uiRaster(new XMLSerializer().serializeToString(svg));
       const alpha = (x, y) => pixels[(y * 720 + x) * 4 + 3];
       // Face, neck, torso, hips, both legs, hands and feet must remain painted.
-      for (const [x,y] of [[360,245],[360,337],[360,450],[340,590],[380,590],[330,680],[390,680],[326,900],[394,900],[326,1110],[394,1110],[231,779],[487,779],[326,1178],[394,1178]]) {
+      for (const [x,y] of [[360,245],[360,337],[360,450],[340,590],[380,590],[330,680],[390,680],[326,900],[394,900],[326,1110],[394,1110],[237,751],[483,751],[326,1178],[394,1178]]) {
         if (alpha(x,y) < 250) throw new Error(`Blank body at ${x},${y}, item=${itemId || 'empty'}`);
       }
       if (itemId) {
@@ -75,6 +75,15 @@ async function installPixelChecks(page) {
         }
       }
       return pixels.length;
+    };
+    window.uiFaceCheck = async function() {
+      const svg=document.querySelector('#avatar-slot .avatar > svg');
+      const skin=MuseData.skins.find(s=>s.id===document.querySelector('.skin-selector [aria-pressed="true"]').dataset.skin);
+      const actual=(await uiRaster(new XMLSerializer().serializeToString(svg))).pixels;
+      const reference=(await uiRaster(MuseArt.body(skin))).pixels;
+      for(const [x,y] of [[328,239],[394,239],[355,260],[360,291]])for(let c=0;c<4;c++){
+        const i=(y*720+x)*4+c;if(actual[i]!==reference[i])throw Error('Face feature obscured at '+x+','+y);
+      }
     };
     window.uiExportCheck = async function() {
       const svg = document.querySelector('#avatar-slot .avatar > svg');
@@ -95,6 +104,20 @@ async function paint(page, itemId) { await page.evaluate(id=>uiPaintCheck(id), i
 async function snapshot(page, name) {
   // Only the vector avatar: no platform-dependent font rendering in baselines.
   const image = await page.locator('#avatar-slot .avatar').screenshot({ animations: 'disabled', style:'#avatar-slot .avatar{background:#f3edfa;filter:none}.toast,.skin-selector,.stage-label,.stage-spark,.stage-side,.studio-lights{visibility:hidden!important}' });
+  return compareSnapshot(page,name,image);
+}
+async function closeup(page,name,box,width,height) {
+  const data=await page.evaluate(async({box,width,height})=>{
+    const svg=document.querySelector('#avatar-slot .avatar > svg').cloneNode(true);
+    svg.setAttribute('viewBox',box);svg.setAttribute('width',width);svg.setAttribute('height',height);
+    const image=new Image();image.src=MuseArt.uri(new XMLSerializer().serializeToString(svg));await image.decode();
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#f3edfa';ctx.fillRect(0,0,width,height);ctx.drawImage(image,0,0);
+    return canvas.toDataURL('image/png').split(',')[1];
+  },{box,width,height});
+  return compareSnapshot(page,name,Buffer.from(data,'base64'));
+}
+async function compareSnapshot(page,name,image) {
   const filename = path.join(baselines, name+'.png');
   fs.writeFileSync(path.join(out,name+'.png'),image);
   if(update) { fs.writeFileSync(filename,image); report.snapshots.push({name,updated:true}); return; }
@@ -154,8 +177,8 @@ async function run() {
       try{
         const ids=[...document.querySelectorAll('[id]')].map(n=>n.id);
         if(new Set(ids).size!==ids.length)throw Error('SVG lighting IDs collide between avatars');
-        for(const svg of holder.querySelectorAll('.avatar > svg'))for(const node of svg.querySelectorAll('[fill],[filter]')){
-          const references=(node.getAttribute('fill')||'')+(node.getAttribute('filter')||'');
+        for(const svg of holder.querySelectorAll('.avatar > svg'))for(const node of svg.querySelectorAll('[fill],[filter],[clip-path]')){
+          const references=(node.getAttribute('fill')||'')+(node.getAttribute('filter')||'')+(node.getAttribute('clip-path')||'');
           for(const match of references.matchAll(/url\(#([^)]+)\)/g))if(!svg.querySelector(`[id="${match[1]}"]`))throw Error('Material reference escapes avatar');
         }
       }finally{holder.remove();}
@@ -200,13 +223,30 @@ async function run() {
     assert.equal(await page.locator(`[data-layer="${extras[0].id}"]`).count(),0);
     assert.equal(await page.locator(`[data-item="${extras[0].id}"]`).getAttribute('aria-pressed'),'false');
     pass('A third accessory replaces the oldest in both selection and painted layers');
+    await equip(page,[]);await page.evaluate(()=>uiFaceCheck());
+    assert.ok(await page.evaluate(async()=>{
+      const eye=document.querySelector('[data-feature="eye-left"]');eye.setAttribute('display','none');
+      try{await uiFaceCheck();return false;}catch(e){return e.message.includes('Face feature obscured');}finally{eye.removeAttribute('display');}
+    }),'Hiding an eye must fail face checks');
+    report.faceCases=0;
     for(const skin of D.skins) {
       await page.locator(`.skin-selector [data-skin="${skin.id}"]`).click();
       for(const [name,ids] of Object.entries(specimens)) {
         await equip(page,ids);await paint(page);await page.evaluate(()=>uiExportCheck());await snapshot(page,skin.id+'-'+name);
       }
+      await equip(page,['hair_casual_01','top_edgy_05','bottom_summer_04']);
+      await closeup(page,skin.id+'-detail-face','260 100 210 245',420,490);
+      await closeup(page,skin.id+'-detail-hands','200 710 320 105',960,315);
+      await page.locator('[data-category="accessory"]').click();await page.locator('[data-item="accessory_cute_03"]').click();
+      await closeup(page,skin.id+'-detail-grip','445 710 70 100',280,400);
+      for(const hair of D.items.filter(i=>i.category==='hair')){
+        await page.locator('[data-category="hair"]').click();
+        const button=page.locator(`[data-item="${hair.id}"]`);if(await button.getAttribute('aria-pressed')!=='true')await button.click();
+        await page.evaluate(()=>uiFaceCheck());report.faceCases++;
+      }
     }
     pass(`${Object.keys(specimens).length*D.skins.length} vector screenshot cases: twelve looks × four skin tones; canvas exports equal visible SVG pixels`);
+    pass('12 enlarged face/relaxed-hand/grip baselines; 88 hairstyle/skin face-visibility checks; hidden-eye negative control fails');
     for(const viewport of [{width:375,height:667},{width:390,height:844},{width:667,height:375},{width:1920,height:1080}]) {
       for(const motion of ['no-preference','reduce']) {
         const p=await newPage(viewport,base,motion);await equip(p,specimens.vest);await paint(p,'top_edgy_05');

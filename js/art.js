@@ -38,7 +38,9 @@
       .replace(/data-hand="(left|right)"/g,(attribute,side)=>attribute+(heldHands.includes(side)?' display="none"':''));
   }
   function hand(skin, left = false, pose = 'relaxed') {
-    const c=skin.color,sh=skin.shade;
+    const tone='hand-tone-'+(left?'left':'right'),c=`url(#${tone})`,sh=skin.shade;
+    // Fixed world-space lighting joins the shaded forearm without a glove seam.
+    const material=`<defs><radialGradient id="${tone}" gradientUnits="userSpaceOnUse" gradientTransform="translate(${left?497:223} 300) scale(${left?-275:275} 433)" cx=".35" cy=".28" r=".78"><stop stop-color="${tint(skin.color,.21)}"/><stop offset=".5" stop-color="${skin.color}"/><stop offset="1" stop-color="${tint(skin.color,-.25)}"/></radialGradient></defs>`;
     const relaxed='M466 728 Q465 740 461 750 L456 762 Q454 767 458 769 Q462 770 465 763 L469 756 L470 775 L472 790 Q473 795 476 794 Q479 793 478 788 L478 774 L480 797 Q481 801 484 799 Q486 798 485 793 L485 775 L487 793 Q488 797 491 795 Q493 794 492 789 L492 772 L494 782 Q495 786 498 784 Q500 783 499 777 L500 760 Q500 747 497 738 L496 728';
     const carrying='M466 728 Q463 742 464 753 Q465 763 473 770 L476 781 Q479 787 485 787 Q494 788 499 781 Q502 775 499 766 L497 754 Q500 742 496 728';
     const outline=p(pose==='grip'?carrying:relaxed,c,'data-part="hand-outline" stroke-width="1.5"');
@@ -50,7 +52,34 @@
       :p('M469 756 Q472 750 472 744 M472 762 Q479 758 489 761 M477 770 L478 775 M484 769 L485 776 M491 766 L492 773','none','stroke-width="1.1" opacity=".32"')+
        p('M468 737 Q469 746 466 752 M476 751 Q483 749 491 752','none','stroke="#fff4e7" stroke-width="2.5" opacity=".3"')+
        p('M496 747 L497 763 L495 775','none',`stroke="${sh}" stroke-width="2.3" opacity=".25"`);
-    return `<g data-pose="${pose}"${left?' transform="translate(720 0) scale(-1 1)"':''}>${outline+details}</g>`;
+    return `<g data-pose="${pose}"${left?' transform="translate(720 0) scale(-1 1)"':''}>${material+outline+details}</g>`;
+  }
+  function face(skin) {
+    const c=skin.color,sh=skin.shade;
+    const eye=(side,cx,d,upper)=>`<g data-feature="eye-${side}"><defs><clipPath id="eye-${side}"><path d="${d}" fill="white"/></clipPath></defs>`+
+      p(d,'#faf7f2','stroke="none"')+`<g clip-path="url(#eye-${side})">`+
+      circle(cx,239,8.4,'#72958f','stroke="#546c70" stroke-width="1"')+
+      circle(cx,239,4.2,'#303842','stroke="none"')+circle(cx-2.3,235.8,2.4,'#fff','stroke="none"')+circle(cx+3,242,1,'#e6f3ed','stroke="none"')+'</g>'+
+      p(upper,'none','stroke="#59404c" stroke-width="2.6"')+
+      p(side==='left'?'M307 238 L303 235 M311 233 L308 230':'M413 237 L417 234 M409 232 L412 229','none','stroke="#59404c" stroke-width="1.4"')+
+      p(side==='left'?'M310 242 Q327 249 343 241':'M378 242 Q395 249 411 241','none','stroke="#a37b79" stroke-width="1" opacity=".65"')+'</g>';
+    return `<g data-feature="face">`+
+      `<ellipse cx="283" cy="240" rx="11" ry="21" fill="${c}"/><ellipse cx="437" cy="240" rx="11" ry="21" fill="${c}"/>`+
+      p('M284 201 Q285 127 360 128 Q435 127 437 201 L432 256 Q425 288 403 308 Q381 330 361 333 Q340 330 318 310 Q295 289 289 258Z',c,'stroke-width="1.8"')+
+      p('M289 200 Q353 174 433 205 L431 215 Q355 192 290 217Z',sh,'stroke="none" opacity=".2" filter="url(#face-soft)"')+
+      p('M297 251 Q300 282 324 299 Q312 281 316 259Z',sh,'stroke="none" opacity=".15" filter="url(#face-soft)"')+
+      p('M376 317 Q413 299 426 267 Q417 307 362 328Z',sh,'stroke="none" opacity=".28" filter="url(#face-soft)"')+
+      `<ellipse cx="316" cy="265" rx="17" ry="10" fill="#d88d98" opacity=".2" stroke="none" filter="url(#face-soft)"/><ellipse cx="405" cy="265" rx="17" ry="10" fill="#d88d98" opacity=".2" stroke="none" filter="url(#face-soft)"/>`+
+      p('M306 220 Q323 209 344 218 M377 218 Q396 209 414 220','none','data-feature="brows" stroke="#775646" stroke-width="3"')+
+      p('M308 228 Q327 218 344 228 M377 228 Q394 219 412 228','none',`stroke="${sh}" stroke-width="1.5" opacity=".4"`)+
+      eye('left',328,'M306 238 Q325 225 347 237 Q328 252 306 238Z','M305 237 Q325 223 347 237')+
+      eye('right',394,'M374 237 Q395 225 415 238 Q396 252 374 237Z','M374 237 Q395 223 415 237')+
+      `<g data-feature="nose">`+p('M362 237 Q365 250 368 260 Q365 265 360 264 L361 256Z',sh,'stroke="none" opacity=".23" filter="url(#face-soft)"')+
+      p('M359 239 Q358 251 355 259 Q353 264 359 266 M366 263 Q369 265 371 262','none',`stroke="${sh}" stroke-width="1.6" opacity=".75"`)+
+      p('M357 243 L355 254','none','stroke="#fff3e8" stroke-width="2.6" opacity=".3"')+p('M351 264 Q354 266 357 265','none','stroke="#966557" stroke-width="1.2" opacity=".5"')+'</g>'+
+      `<g data-feature="lips">`+p('M340 284 Q349 280 356 283 Q360 286 364 283 Q371 280 380 284 Q373 297 360 298 Q348 296 340 284Z','#bc7b86','stroke="none"')+
+      p('M342 285 Q359 290 378 285','none','stroke="#87515c" stroke-width="1.2"')+p('M352 293 Q360 295 368 292','none','stroke="#f6d6d8" stroke-width="1.6" opacity=".55"')+'</g>'+
+      p('M347 312 Q360 316 374 311','none','stroke="#fff2e5" stroke-width="4" opacity=".14" filter="url(#face-soft)"')+'</g>';
   }
   function body(skin, covered = [], heldHands = []) {
     const embedded = globalThis.MuseAssets?.[`assets/base/${skin.id}.svg`];
@@ -65,23 +94,10 @@
       p('M307 708 Q302 774 313 841 L324 970 L322 1129 M389 811 L389 989 L389 1133 M282 392 Q267 476 254 581 L241 716 M448 402 L467 573 L482 717','none','stroke="#fff5e8" stroke-width="18" opacity=".24" filter="url(#skin-soft)"')+
       p('M345 792 L337 984 L339 1140 M410 798 L407 978 L400 1137 M298 463 L271 590 L251 724 M465 476 L477 577 L490 715','none',`stroke="${sh}" stroke-width="12" opacity=".32" filter="url(#skin-soft)"`)+
       `<g data-hand="left">${hand(skin,true)}</g><g data-hand="right">${hand(skin)}</g>`+
-      `<ellipse cx="283" cy="239" rx="13" ry="22" fill="${c}"/><ellipse cx="437" cy="239" rx="13" ry="22" fill="${c}"/>`+
-      p('M282 202 Q282 125 360 127 Q438 125 439 202 L433 264 Q419 311 361 328 Q307 310 287 264Z',c)+
-      p('M285 202 Q350 173 435 207 L433 221 Q357 187 287 219Z',sh,'stroke="none" opacity=".35"')+
-      p('M296 240 Q293 276 327 295 Q314 277 315 250Z',sh,'stroke="none" opacity=".22"')+
-      p('M373 308 Q411 295 424 264 Q420 300 361 320Z',sh,'stroke="none" opacity=".38"')+
-      p('M316 261 Q326 269 337 261 M389 261 Q400 268 409 260 M354 270 L360 272','none','stroke="#fff3e4" stroke-width="6" opacity=".25" filter="url(#face-soft)"')+
+      face(skin)+
       basic('top',p('M321 349 L332 354 L329 391 Q360 408 391 391 L388 354 L399 349 L410 406 L405 482 L411 606 Q360 621 309 606 L315 482 L310 406Z','#c9b1b7')+line('M318 581 Q360 593 402 581',.22)+flower(360,443,13,'#ead5cf'))+
       basic('bottom',p('M306 600 Q360 612 414 600 Q429 660 426 726 L373 734 L360 686 L347 734 L294 726 Q291 660 306 600Z','#aebda3')+p('M306 600 Q360 612 414 600 L417 624 Q360 635 303 624Z','#c2cbb8')+line('M360 629 L360 683 M304 714 L341 721 M379 721 L416 714',.3))+
       line('M315 975 Q329 980 344 977 M379 976 Q395 981 410 974 M244 570 L251 569 M471 570 L477 574',.2)+
-      `<ellipse cx="317" cy="259" rx="17" ry="8" fill="#db9287" stroke="none" opacity=".42"/><ellipse cx="405" cy="259" rx="17" ry="8" fill="#db9287" stroke="none" opacity=".42"/>`+
-      p('M306 223 Q325 209 343 223 M378 223 Q396 209 413 222','none','stroke-width="4"')+
-      p('M307 238 Q326 227 343 238 M378 238 Q395 228 412 237','none','stroke-width="4"')+
-      `<ellipse cx="328" cy="240" rx="6" ry="9" fill="#3c302d" stroke="none"/><ellipse cx="395" cy="240" rx="6" ry="9" fill="#3c302d" stroke="none"/>`+
-      circle(330,237,1.7,'#fff','stroke="none"')+circle(397,237,1.7,'#fff','stroke="none"')+
-      line('M358 243 L354 263 Q360 267 366 262',.45)+
-      p('M343 282 Q359 292 378 280 Q361 304 343 282Z','#b65e62','stroke-width="2"')+
-      line('M332 286 Q359 314 394 281',.12)+
       basic('hair',hairCap('#704c3b')+p('M284 173 Q295 127 339 124 M367 120 Q405 120 427 145','none','stroke="#d4ad8b" stroke-width="9" opacity=".2"')+line('M280 180 Q286 122 344 120 M365 119 Q418 115 437 160',.24))
     ,undefined,'skin'),covered,heldHands);
   }

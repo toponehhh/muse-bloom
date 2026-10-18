@@ -1,6 +1,6 @@
 {
   "name": "muse-bloom",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "A buildless dress-up puzzle game with 36 challenges and 122 collectible pieces.",
   "scripts": {
