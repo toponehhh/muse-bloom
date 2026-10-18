@@ -24,6 +24,10 @@ npm run package
 
 Game source is in `js/`, presentation in `css/`, development tools in `dev/`. The upload archive contains only runtime files. Development dependencies are not needed by the game.
 
+For optional end-to-end browser checks, install Playwright in your development environment, or set `MUSE_PLAYWRIGHT` to an existing Playwright module. Start the server, then run `npm run test:browser`. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. These tools are never loaded by the game.
+
+See [Art pipeline](docs/ART.md) for editable vectors, [GitHub upload](docs/GITHUB.md) for later pushing, and [QA report](docs/QA.md) for measured verification. Generated release files are in `dist/` and promotional assets in `promo/`.
+
 ## Scope
 
 - 36 sequential challenges across 6 chapters.

@@ -1,0 +1,28 @@
+name: Verify game and prepare upload
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  game:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rules, saves and 36-level solvability
+        run: npm test
+      - name: Check generated art stays reproducible
+        run: |
+          npm run embed-assets
+          git diff --exit-code -- js/asset-data.js
+      - name: Create CrazyGames archive
+        run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: muse-bloom-crazygames
+          path: dist/
+          if-no-files-found: error
