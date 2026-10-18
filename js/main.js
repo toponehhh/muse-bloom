@@ -11,7 +11,7 @@
     cancelAnimationFrame(raf);U.render(state);
     if(focus) { const heading=document.querySelector('main h1,main h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
   }
-  function navigate(screen) { closeDialog();state.screen=screen;render(); }
+  function navigate(screen) { closeDialog();clearTimeout(toastTimer);document.getElementById('toast').classList.remove('visible');state.screen=screen;render(); }
   function openDialog(html) { dialogFocus=document.activeElement;dialog.innerHTML=html;if(!dialog.open)dialog.showModal();document.body.classList.add('modal-open'); }
   function closeDialog() { shareEpoch++;if(dialog.open)dialog.close();document.body.classList.remove('modal-open'); }
   dialog.addEventListener('close',()=>{shareEpoch++;document.body.classList.remove('modal-open');if(dialogFocus?.isConnected)dialogFocus.focus();});

@@ -48,7 +48,7 @@
   function nextLevel(save) { return D.themes.find(t => (save.levels[t.id]?.best ?? 0) < 35)?.index || 36; }
   function canPlay(save, index) { return Number.isInteger(index) && index >= 1 && index <= nextLevel(save); }
   function unlock(save, ids) {
-    const fresh = ids.filter(id => !save.unlockedItems.includes(id));
+    const fresh = [...new Set(ids)].filter(id => !save.unlockedItems.includes(id));
     save.unlockedItems.push(...fresh); return fresh;
   }
   function enterLevel(value, index) {

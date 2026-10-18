@@ -15,6 +15,7 @@ for (const item of D.items) {
 }
 for (const [category, expected] of Object.entries({ hair: 22, top: 23, bottom: 21, dress: 20, shoes: 18, accessory: 18 })) {
   assert.equal(D.items.filter(i => i.category === category).length, expected);
+  for (const tag of D.tags) assert.ok(D.items.filter(i => i.category === category && i.tags.includes(tag)).length >= 2, `${category}: insufficient ${tag} pieces`);
 }
 let save = G.newSave();
 const solutions = [];

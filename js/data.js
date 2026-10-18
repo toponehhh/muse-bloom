@@ -131,7 +131,7 @@
     dress: [
       'Picnic Dress|sundress|#e3b5b2|cute casual summer',
       'Little Black Dress|aline|#45434b|elegant chic formal',
-      'Garden Party|puff|#aebc9b|romantic vintage boho',
+      'Garden Party|puff|#aebc9b|romantic cozy boho',
       'Homecoming Satin|gown|#a08cb8|glam elegant party',
       'Campus Pinafore|pinafore|#a8947d|preppy casual minimalist',
       'Tennis Club Dress|sport|#b7c8b5|sporty preppy summer',
@@ -180,7 +180,7 @@
       'Winter Scarf|scarf|#bc8992|winter cozy cute',
       'Gold Hoops|earrings|#c2a76c|glam formal elegant',
       'Silk Bow|clip|#b49bc7|romantic preppy y2k',
-      'Concert Bag|bag|#736878|party bold edgy',
+      'Concert Bag|bag|#736878|party street edgy',
       'Woven Tote|tote|#c7ad80|boho summer casual',
       'City Watch|watch|#b89d72|chic formal sporty',
       'Stardust Earrings|earrings|#d1bc81|glam party bold',
@@ -211,7 +211,8 @@
     const item = ordinary.shift(); item.unlockLevel = level; item.unlockOn = 'enter';
   }
   let n = 0;
-  while (ordinary.length) { ordinary.shift().unlockLevel = (n++ % 36) + 1; }
+  const progressCount = ordinary.length;
+  while (ordinary.length) { ordinary.shift().unlockLevel = Math.floor(n++ * 36 / progressCount) + 1; }
   const chinese = items.filter(x => x.chinese);
   // Two hair, two tops, two bottoms, two dresses, one shoe and one extra.
   const opening = { hair: 2, top: 2, bottom: 2, dress: 2, shoes: 1, accessory: 1 };

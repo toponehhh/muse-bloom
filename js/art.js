@@ -6,7 +6,7 @@
   'use strict';
   // Original vector paper-doll artwork. Coordinates are shared by every layer.
   const ink = '#514239';
-  const svg = (content, box = '0 0 720 1280') => `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="${box}" fill="none"><g stroke="${ink}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${content}</g></svg>`;
+  const svg = (content, box = '0 0 720 1280') => `<svg xmlns="http://www.w3.org/2000/svg" width="${box.split(' ')[2]}" height="${box.split(' ')[3]}" viewBox="${box}" fill="none"><g stroke="${ink}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${content}</g></svg>`;
   const p = (d, fill, attrs = '') => `<path d="${d}" fill="${fill}" ${attrs}/>`;
   const line = (d, opacity = .35) => `<path d="${d}" stroke="${ink}" opacity="${opacity}"/>`;
   const circle = (x, y, r, fill, attrs = '') => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${attrs}/>`;
@@ -16,6 +16,8 @@
   }
   function embroidery(points, color = '#f0d7b1') { return points.map(([x,y]) => flower(x,y,10,color)).join(''); }
   function body(skin) {
+    const embedded = globalThis.MuseAssets?.[`assets/base/${skin.id}.svg`];
+    if (embedded) return embedded;
     const c = skin.color, sh = skin.shade;
     return svg(
       p('M307 654 Q282 707 298 828 L312 985 L310 1139 Q293 1159 288 1174 Q287 1187 307 1187 L348 1184 Q359 1180 351 1163 L353 994 L360 793 L367 995 L372 1160 Q368 1182 386 1185 L428 1186 Q442 1178 431 1168 L409 1143 L421 989 L426 829 Q443 712 414 655Z',c)+
@@ -140,6 +142,8 @@
     const render = { hair, top, bottom, dress, shoes, accessory }[item.category];
     let box=item.bounds;
     if(item.category==='accessory') box = ['necklace','pendant'].includes(item.shape)?[300,326,120,130]:item.shape==='glasses'?[270,206,180,80]:['clip','pin'].includes(item.shape)?[366,113,110,133]:item.shape==='earrings'?[255,240,210,80]:item.shape==='scarf'?[290,325,140,240]:item.shape==='watch'?[448,687,58,68]:item.shape==='fan'?[427,630,140,250]:[399,630,140,225];
+    const embedded = globalThis.MuseAssets?.[item.img];
+    if (embedded) return thumbnail ? embedded.replace(/width="720"/,`width="${box[2]}"`).replace(/height="1280"/,`height="${box[3]}"`).replace(/viewBox="0 0 720 1280"/,`viewBox="${box.join(' ')}"`) : embedded;
     return svg(render(item),thumbnail?box.join(' '):undefined);
   }
   const uri = value => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(value);

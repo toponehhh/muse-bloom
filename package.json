@@ -7,7 +7,9 @@
     "start": "node dev/server.js",
     "test": "node dev/game.test.js && node dev/validate.js",
     "validate": "node dev/validate.js",
-    "assets": "node dev/export-assets.js",
+    "assets": "node dev/export-assets.js && node dev/embed-assets.js",
+    "embed-assets": "node dev/embed-assets.js",
+    "test:browser": "node dev/browser.test.js",
     "package": "node dev/package.js"
   },
   "engines": { "node": ">=20" }
