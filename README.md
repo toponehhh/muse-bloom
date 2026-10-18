@@ -22,9 +22,12 @@ Visit http://localhost:4173. No installation, framework, CDN, API key, account, 
 npm test       # game rules, persistence, progression, 36-level solvability
 npm run assets
 npm run package
+npm run package:upload  # self-contained index.html for the portal's file/folder uploader
 ```
 
 Game source is in `js/`, presentation in `css/`, development tools in `dev/`. The upload archive contains only runtime files. Development dependencies are not needed by the game.
+
+For the CrazyGames file/folder upload form, use `dist/crazygames-upload/index.html`. Its styles, scripts and SVG artwork are embedded, so no sibling folders are required. `npm run test:upload` verifies this actual file on an otherwise empty server, at a nested URL, in a sandboxed iframe and offline. The ZIP from `npm run package` is a multi-file distribution backup; extract it first if using that format with the portal.
 
 For UI checks, run `npm ci`, install a test browser with `npx playwright install chromium`, then run `npm run test:ui`. This starts and stops its own server and checks all 122 items, removal, garment coverage, 28 accessory attachment cases, 88 hairstyle/skin checks, 60 visual baselines, responsive layouts and the standalone HTML. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. See [UI test guide](docs/UI-TESTS.md) for evidence, baseline review and limitations.
 

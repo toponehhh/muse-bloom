@@ -16,6 +16,8 @@ Windows 默认使用已安装的 Edge；也可设置 `MUSE_BROWSER_CHANNEL=chrom
 
 `npm run test:accessories` 可单独运行包和手部的连接测试，正常 UI 测试也会自动执行它。
 
+`npm run test:upload` 从当前源码生成 `dist/crazygames-upload/index.html`，再运行 `dev/upload.test.js`。服务端只提供生成的 HTML，不提供项目目录中的 CSS/JS/SVG；分别验证根路径桌面、嵌套路径 375×667 手机尺寸、带 sandbox 的 iframe 和 `file://` 离线打开。每个场景都检查样式、人物、穿脱、握包、空搭配计分、重试、刷新后保留肤色，且不能出现额外资源请求或运行时错误。负例故意只提供原始源码入口，使 CSS/JS 返回 404，必须检测到无样式启动页；这是故障模式复现，不代表已证实线上返回 404。报告和截图保存在 `artifacts/upload/`。
+
 ## 覆盖内容
 
 - 7 种手持/斜挎配饰 × 4 肤色 = 28 次实际点击检查：提手路径经过握持点、手指覆盖、绘制顺序正确；双配饰分配双手，卸下第一件后重新定位。故意平移包 40 px 的反例必须失败。

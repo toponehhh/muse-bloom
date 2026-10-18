@@ -6,10 +6,15 @@
 
 ```sh
 npm test
-npm run package
+npm run package:upload
+npm run test:upload
 ```
 
-在 CrazyGames Developer Portal 新建游戏，上传 `dist/muse-bloom-crazygames-v1.1.1.zip`。压缩包根目录是 `index.html`，所有运行时路径均为相对路径。开发脚本、测试、Git 数据、营销视频不在游戏包内。
+在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标和矢量素材，不需要其他文件；游戏版本仍为 v1.1.1，人物、服饰、规则与存档键没有改变。
+
+此前直接上传 ZIP 的说明不适用于用户当前的入口。`npm run package` 仍生成多文件 ZIP，供备份和其他静态托管使用。若使用多文件形式，须先解压，再保留相同层级上传 `index.html`、`css/`、`js/` 和 `assets/`；源码中的 `index.html` 不能单独上传。
+
+如果 Preview 只显示无样式的 “Muse Bloom / Your wardrobe is waking up…”：这表示入口 HTML 已打开，但样式和脚本未正常工作，常见原因是资源缺失、目录层级变化或请求被阻止。不能仅凭截图确认具体状态码。本地已通过故意缺少 CSS/JS 重现该画面；提供的线上预览地址因浏览器管理策略无法读取，因此尚未确认线上实际失败的请求。优先使用上面的单文件版创建新构建并重新 Preview；若仍失败，在浏览器开发者工具 Console / Network 中检查首个错误。
 
 本次成品同时准备：
 
@@ -43,7 +48,7 @@ Muse Bloom is a glowing pastel dress-up and fashion puzzle game where every outf
 
 ## 核对过的官方要求
 
-核对日期：2026-10-18。
+核对日期：2026-10-19；上传形式结合用户当前门户实际反馈修正。
 
 - [Launch requirements](https://docs.crazygames.com/requirements/intro/)：Basic Launch 的 SDK 可选、广告变现不可用；Full Launch 需要 SDK 及相应完整接入。
 - [Technical requirements](https://docs.crazygames.com/requirements/technical/)：无 SDK 时总文件上限 50 MB，移动首页初始下载上限 20 MB，文件上限 1,500，使用相对路径，支持 Chrome/Edge。
