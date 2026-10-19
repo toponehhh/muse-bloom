@@ -1,0 +1,34 @@
+{
+  "version": "1.6.0",
+  "mode": "built-in image_gen; reference-guided generation and identity edits",
+  "referenceArchive": "stitch_western_teen_dress_up_game.zip",
+  "characters": [
+    {
+      "id": "bella",
+      "asset": "assets/characters/bella.webp",
+      "width": 768,
+      "height": 1152,
+      "bytes": 100594,
+      "sha256": "e180783c200330f0c1e8ac8a8c233c4ac3da4b3181d44fb5ef581cab7337777b",
+      "sourceFile": "exec-14f67335-254a-4364-a538-e2a0d53aafef.png"
+    },
+    {
+      "id": "mika",
+      "asset": "assets/characters/mika.webp",
+      "width": 768,
+      "height": 1152,
+      "bytes": 92704,
+      "sha256": "bd46cf9b3b331538da31d9adbc0f741f298e61e3417504b8924a11440b5c87d3",
+      "sourceFile": "exec-ead1bdc5-0ae9-4cf1-b89a-1aadcf6b7e28.png"
+    },
+    {
+      "id": "zoe",
+      "asset": "assets/characters/zoe.webp",
+      "width": 768,
+      "height": 1152,
+      "bytes": 104934,
+      "sha256": "1eb7c138f2274f02e50e77fc87df00c7c5a7a26986012857c49a6af89877d2c0",
+      "sourceFile": "exec-eed8c7af-68b6-473e-a127-53bd7fe0718c.png"
+    }
+  ]
+}

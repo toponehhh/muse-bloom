@@ -2,9 +2,9 @@
   'use strict';
   const A = root.MuseArt, G = root.MuseGame, D = root.MuseData;
   function loadImage(svg) { return new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = () => reject(new Error('The look could not be rendered. Please try again.')); image.src = A.uri(svg); }); }
-  async function drawAvatar(ctx, outfit, skinId, x, y, width, height) {
-    const skin = D.skins.find(s => s.id === skinId) || D.skins[1];
-    const image = await loadImage(A.avatarSvg(skin,G.equippedItems(outfit)));
+  async function drawAvatar(ctx, outfit, characterId, x, y, width, height) {
+    const character = D.characters.find(s => s.id === characterId) || D.characters[0];
+    const image = await loadImage(A.avatarSvg(character,G.equippedItems(outfit)));
     ctx.drawImage(image, x, y, width, height);
   }
   function roundRect(ctx, x, y, w, h, r, fill) { ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill(); }
@@ -22,7 +22,7 @@
     light.addColorStop(0,'#ffffff00');light.addColorStop(.42,'#cebdff16');light.addColorStop(.7,'#ffffff00');
     c.fillStyle=light;c.fillRect(0,0,width,height);
   }
-  async function makeCard(theme, outfit, skin, result) {
+  async function makeCard(theme, outfit, character, result) {
     const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1920;
     const c = canvas.getContext('2d');
     glowBackground(c,1080,1920);
@@ -31,7 +31,7 @@
     c.textAlign='center';c.fillStyle='#cebdff';c.font='600 24px "Segoe UI", sans-serif';c.fillText('YOUR MUSE BLOOM MOMENT',540,95);
     c.fillStyle='#ffafd3';c.font='bold 60px "Trebuchet MS", sans-serif';c.fillText(theme.name,540,192,950);
     const floor=c.createRadialGradient(540,1492,0,540,1492,290);floor.addColorStop(0,'#79604230');floor.addColorStop(1,'#79604200');c.fillStyle=floor;c.beginPath();c.ellipse(540,1492,330,33,0,0,Math.PI*2);c.fill();
-    await drawAvatar(c,outfit,skin,175,240,730,1298);
+    await drawAvatar(c,outfit,character,175,240,730,1298);
     roundRect(c,853,290,115,140,25,'#101224e6');
     c.textAlign='right';c.fillStyle='#ffafd3';c.font='bold 64px "Trebuchet MS", sans-serif';c.fillText(result.rank,944,365);
     c.font='22px "Segoe UI", sans-serif';c.fillText(`${result.score} / 94`,944,408);

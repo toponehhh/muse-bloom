@@ -19,12 +19,6 @@
   function startLevel(index,retry=false) {
     const entry=G.enterLevel(state.save,index);if(!entry.allowed)return;
     state.save=entry.save;state.level=index;state.chapter=D.themes[index-1].chapter;state.result=null;state.shareCard=null;
-    if(!retry && !G.equippedItems(state.outfit).length) {
-      for(const c of ['hair','top','bottom','shoes']) {
-        state.outfit[c]=c==='hair'&&state.save.unlockedItems.includes(D.defaultHair)
-          ?D.defaultHair:D.items.find(i=>i.category===c&&state.save.unlockedItems.includes(i.id)).id;
-      }
-    }
     state.outfit=G.normalizeOutfit(state.outfit,state.save.unlockedItems);
     state.category=state.outfit.dress?'dress':'top';persist();navigate('dressing');
     if(entry.fresh.length) { S.play('unlock');toast(`${entry.fresh.length} fresh pieces unlocked. Your new chapter is here!`); }
@@ -40,12 +34,12 @@
   async function share(look=null) {
     if(!look&&(state.screen!=='result'||!['S','A'].includes(state.result.result.rank)))return;
     S.play('shutter');root.MuseFX.shutter();
-    const theme=D.themes[(look?.level||state.level)-1],outfit=look?.outfit||state.outfit,skin=look?.skin||state.save.skin;
+    const theme=D.themes[(look?.level||state.level)-1],outfit=look?.outfit||state.outfit,character=look?.character||state.save.character;
     const result=look?G.scoreBreakdown(theme,G.equippedItems(outfit)):state.result.result;
     openDialog(`<div class="dialog-head"><h2 id="dialog-title">A portrait of your style</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close look card"')}</div><p class="share-loading">Preparing your portrait…</p>`);
     const token=++shareEpoch;
     try {
-      const data=(!look&&state.shareCard)||await root.MuseShare.makeCard(theme,outfit,skin,result);
+      const data=(!look&&state.shareCard)||await root.MuseShare.makeCard(theme,outfit,character,result);
       if(token!==shareEpoch||!dialog.open)return;
       if(!look)state.shareCard=data;
       dialog.innerHTML=`<div class="dialog-head"><h2 id="dialog-title">A portrait of your style</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close look card"')}</div><img class="share-image" src="${data}" alt="Your Muse Bloom outfit card"><a class="button primary download-button" download="muse-bloom-${theme.id}.png" href="${data}">${U.icon('download')} Save image</a><p class="share-help">If download is blocked, long-press or right-click the image to save it.</p>`;
@@ -81,7 +75,15 @@
         state.result=G.finishLevel(state.save,state.level,state.outfit);state.save=state.result.save;state.outfit=state.result.outfit;state.shareCard=null;persist();navigate('result');animateScore();root.MuseFX.reveal();S.play(state.result.result.rank==='S'?'rankS':'rankLow');break;
       }
       case 'mute':state.save.muted=!state.save.muted;S.setMuted(state.save.muted);if(!state.save.muted)S.play('click');persist();refreshHeader();if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector('[data-action="mute"]')?.focus();}break;
-      case 'skin':state.save.skin=button.dataset.skin;state.shareCard=null;persist();if(state.screen==='dressing')U.updateDressing(state);else render(false);if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector(`[data-skin="${state.save.skin}"]`)?.focus();}break;
+      case 'characters':openDialog(U.characters(state));break;
+      case 'character': {
+        const id=button.dataset.character;if(!D.characters.some(c=>c.id===id))break;
+        state.save.character=id;state.shareCard=null;persist();
+        if(state.screen==='dressing')U.updateDressing(state);else render(false);
+        if(dialog.open){dialog.innerHTML=U.characters(state);dialog.querySelector(`[data-character="${id}"]`)?.focus();}
+        else document.querySelector(`.character-selector [data-character="${id}"]`)?.focus({preventScroll:true});
+        break;
+      }
       case 'settings':openDialog(U.settings(state));break;
       case 'preview-sound':S.play('equip');break;
       case 'close':closeDialog();break;
@@ -91,7 +93,7 @@
         const look=G.savedLooks(state.save).find(l=>l.level===Number(button.dataset.level));if(!look)break;
         if(action==='view-look')openDialog(U.lookDetail(look));
         else if(action==='export-look')share(look);
-        else {state.outfit=G.normalizeOutfit(look.outfit,state.save.unlockedItems);state.save.skin=look.skin;startLevel(look.level,true);}
+        else {state.outfit=G.normalizeOutfit(look.outfit,state.save.unlockedItems);state.save.character=look.character;startLevel(look.level,true);}
         break;
       }
       case 'return':navigate(state.previousScreen);break;
@@ -112,6 +114,7 @@
     }
   });
   document.addEventListener('visibilitychange',()=>document.body.classList.toggle('is-hidden',document.hidden));
+  for(const character of D.characters){const image=new Image();image.src=root.MuseArt.characterSource(character);image.decode().catch(()=>{});}
   S.setMuted(state.save.muted);state.chapter=D.themes[G.nextLevel(state.save)-1].chapter;render(false);
   if(storage.notice)toast(storage.notice);else persist();
   // Read-only data/logic globals are also used by the dependency-free QA harness.

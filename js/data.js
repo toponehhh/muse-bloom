@@ -6,7 +6,7 @@
   'use strict';
   const tags = 'casual cute chic sporty elegant edgy y2k street cozy formal glam romantic vintage preppy bold minimalist boho summer winter party'.split(' ');
   const categories = ['hair', 'top', 'bottom', 'dress', 'shoes', 'accessory'];
-  const categoryNames = { hair: 'Hair', top: 'Tops', bottom: 'Bottoms', dress: 'Dresses', shoes: 'Shoes', accessory: 'Extras' };
+  const categoryNames = { hair: 'Hair details', top: 'Tops', bottom: 'Bottoms', dress: 'Dresses', shoes: 'Shoes', accessory: 'Extras' };
   const chapters = [
     { name: 'Everyday Muse', short: 'Everyday', color: '#f6d6b9', note: 'Little moments. Lovely looks.' },
     { name: 'Campus Club', short: 'Campus', color: '#cadbcb', note: 'Make every entrance your own.' },
@@ -57,28 +57,28 @@
   // name | silhouette | color | three style tags. All art is created locally.
   const rows = {
     hair: [
-      'Sunday Waves|waves|#6a4032|casual cute minimalist',
-      'Sleek Bun|bun|#29282c|chic elegant formal',
-      'Honey Bob|bob|#c18a50|cozy preppy vintage',
-      'Ribbon Ponytail|airypony|#865538|sporty bold summer',
-      'Rose Bob|bob|#b76f7c|y2k cute party',
-      'Midnight Waves|waves|#34353d|edgy street bold',
-      'Cocoa Curls|curls|#55372b|romantic boho casual',
-      'Snowday Bun|bun|#9d7458|winter cozy minimalist',
-      'Ribbon Pony|pony|#a56e47|preppy cute romantic',
-      'Platinum Bob|bob|#c3b9a3|glam edgy y2k',
-      'Golden Waves|waves|#b78a52|summer elegant boho',
-      'Low Chignon|bun|#644338|formal vintage chic',
-      'Cherry Curls|curls|#9d4f5c|party bold romantic',
-      'Sporty Braids|braids|#363133|sporty street casual',
-      'Lilac Bob|bob|#9b83a9|y2k winter cute',
-      'Caramel Pony|pony|#986c48|summer sporty minimalist',
-      'Velvet Waves|waves|#4e3637|glam winter elegant',
-      'Starlight Curls|curls|#b79a65|glam party boho',
-      'Jade Pin Bun|pinbun|#323332|elegant vintage romantic',
-      'Silk Ribbon Hair|ribbon|#49413a|cute chic casual',
-      'Pearl Chignon|pinbun|#44322c|formal elegant minimalist',
-      'Blossom Twist|ribbon|#59433b|romantic bold party'
+      'Sunday Bow|bow|#ef9bbd|casual cute minimalist',
+      'Pearl Halo|pearls|#faf0d8|chic elegant formal',
+      'Honey Headband|band|#e8bf72|cozy preppy vintage',
+      'Sport Ribbon|ribbon|#bb97e8|sporty bold summer',
+      'Rose Clips|clips|#ef82af|y2k cute party',
+      'Midnight Stars|stars|#b8b5e8|edgy street bold',
+      'Cocoa Flower|flower|#eab7a2|romantic boho casual',
+      'Snowday Pearls|pearls|#d8e8ff|winter cozy minimalist',
+      'Ribbon Pair|ribbon|#edb7d8|preppy cute romantic',
+      'Platinum Stars|stars|#e2e4ef|glam edgy y2k',
+      'Golden Headband|band|#efcf6c|summer elegant boho',
+      'Velvet Bow|bow|#b3769e|formal vintage chic',
+      'Cherry Clips|clips|#d8678f|party bold romantic',
+      'Sport Headband|band|#9abfe1|sporty street casual',
+      'Lilac Bow|bow|#bfa3ed|y2k winter cute',
+      'Caramel Ribbon|ribbon|#e6b16d|summer sporty minimalist',
+      'Velvet Pearls|pearls|#c4a9dd|glam winter elegant',
+      'Starlight Halo|stars|#e8cd76|glam party boho',
+      'Jade Blossom|flower|#a7d6c0|elegant vintage romantic',
+      'Silk Ribbons|ribbon|#dc91af|cute chic casual',
+      'Pearl Pin|clips|#f9ebd5|formal elegant minimalist',
+      'Blossom Crown|flower|#f0b3bf|romantic bold party'
     ],
     top: [
       'Cloud Tee|tee|#fff5dc|casual minimalist cute',
@@ -225,6 +225,10 @@
     theme.unlockItems = items.filter(i => i.unlockType === 'progress' && i.unlockLevel === theme.index && i.unlockOn === 'clear').map(i => i.id);
     theme.entryItems = items.filter(i => i.unlockType === 'progress' && i.unlockLevel === theme.index && i.unlockOn === 'enter').map(i => i.id);
   }
-  const skins = [{ id: 'porcelain', name: 'Porcelain', color: '#f2c8ad', shade: '#dca98c' }, { id: 'warm', name: 'Warm', color: '#dca379', shade: '#bd805d' }, { id: 'tan', name: 'Tan', color: '#ad7351', shade: '#895336' }, { id: 'deep', name: 'Deep', color: '#79503c', shade: '#57382d' }];
-  return { tags, categories, categoryNames, chapters, themes, items, skins, counts, defaultHair:'hair_sporty_04', defaultSkin:'porcelain', version: 1, title: 'Muse Bloom' };
+  const characters = [
+    {id:'bella',name:'Bella',note:'Honey bob · blue eyes',color:'#f2c8ad',asset:'assets/characters/bella.webp'},
+    {id:'mika',name:'Mika',note:'Midnight bob · brown eyes',color:'#edbd9f',asset:'assets/characters/mika.webp'},
+    {id:'zoe',name:'Zoe',note:'Curly puffs · hazel eyes',color:'#ad6c3d',asset:'assets/characters/zoe.webp'}
+  ];
+  return {tags,categories,categoryNames,chapters,themes,items,characters,counts,defaultHair:'hair_sporty_04',defaultCharacter:'bella',version:1,title:'Muse Bloom'};
 });

@@ -8,7 +8,7 @@
   const byId = Object.fromEntries(D.items.map(i => [i.id, i]));
   const starterIds = D.items.filter(i => i.unlockType === 'progress' && i.unlockLevel === null).map(i => i.id);
   function emptyOutfit() { return { hair: null, top: null, bottom: null, dress: null, shoes: null, accessory: [] }; }
-  function newSave() { return { version: 1, levels: {}, unlockedItems: [...starterIds], streak: 0, streakLevels: [], skin: D.defaultSkin, muted: false }; }
+  function newSave() { return { version: 1, levels: {}, unlockedItems: [...starterIds], streak: 0, streakLevels: [], character: D.defaultCharacter, muted: false }; }
   function rankOf(score) { return score >= 85 ? 'S' : score >= 70 ? 'A' : score >= 55 ? 'B' : score >= 35 ? 'C' : 'D'; }
   function scoreBreakdown(theme, equipped) {
     const tags = new Set(equipped.flatMap(i => i.tags));
@@ -67,7 +67,7 @@
     const previous = save.levels[theme.id]?.best ?? -1;
     if (result.score > previous) save.levels[theme.id] = { ...save.levels[theme.id], best: result.score, rank: result.rank };
     const savedLook = result.score >= 35 && (!save.levels[theme.id]?.look || result.score >= save.levels[theme.id].look.score);
-    if (savedLook) save.levels[theme.id].look = { outfit: structuredCopy(outfit), skin: save.skin, score: result.score };
+    if (savedLook) save.levels[theme.id].look = { outfit: structuredCopy(outfit), character: save.character, score: result.score };
     const fresh = result.score >= 35 ? unlock(save, theme.unlockItems) : [];
     let streakReward = null;
     if (result.rank === 'S') {
@@ -96,16 +96,18 @@
     if (Array.isArray(raw.unlockedItems)) unlock(save, raw.unlockedItems.filter(id => byId[id]?.unlockType === 'streak'));
     if (Array.isArray(raw.streakLevels)) save.streakLevels = [...new Set(raw.streakLevels)].filter(id => save.levels[id]?.rank === 'S').slice(0, 2);
     save.streak = save.streakLevels.length;
-    if (D.skins.some(s => s.id === raw.skin)) save.skin = raw.skin;
+    if (D.characters.some(s => s.id === raw.character)) save.character = raw.character;
+    else if(!raw.character&&['deep','tan'].includes(raw.skin))save.character='zoe';
     save.muted = raw.muted === true;
     // Optional v1 field: old progress remains valid without a recorded outfit.
     // Recompute each look from owned items; saved metadata never grants rewards.
     for (const theme of D.themes) {
       const look = raw.levels?.[theme.id]?.look, level = save.levels[theme.id];
-      if (!look || !level || !D.skins.some(s => s.id === look.skin)) continue;
+      if (!look || !level) continue;
+      const character=D.characters.some(c=>c.id===look.character)?look.character:!look.character&&['deep','tan'].includes(look.skin)?'zoe':D.defaultCharacter;
       const outfit = normalizeOutfit(look.outfit, save.unlockedItems);
       const score = scoreOutfit(theme, equippedItems(outfit));
-      if (score >= 35 && score === look.score && score <= level.best) level.look = { outfit, skin: look.skin, score };
+      if (score >= 35 && score === look.score && score <= level.best) level.look = { outfit, character, score };
     }
     return save;
   }
