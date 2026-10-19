@@ -1,6 +1,6 @@
 # Muse Bloom
 
-Every look. Entirely you. — v1.6.1, Tailored to Your Muse
+Every look. Entirely you. — v1.6.2, A Better Fit
 
 An offline HTML5 fashion puzzle with 36 challenges and 122 collectible pieces. Choose Bella, Mika or Zoe, dress your character in a bedroom studio, match the style brief, and build a personal lookbook. This release replaces the actual playable vector dolls with three painted, transparent character sprites based on the supplied Stitch visual references. The same characters appear in gameplay, selection, lookbooks, portrait exports and covers.
 
@@ -14,6 +14,7 @@ npm ci                   # install pinned Playwright for development tests
 npx playwright install chromium  # Linux/CI; Windows defaults to installed Edge
 npm run test:ui          # real character input, body coverage and pixel baselines
 npm run test:fitting     # 246 garment checks, 1449 waist seams, 9 viewports
+npm run test:neckline    # 129 neckline contacts, visible necks and covered straps
 npm run test:glam        # 7 viewport layouts, images and contrast
 npm run test:lookbook    # saved identities/outfits and actual PNG downloads
 npm run test:experience  # idle motion, Web Audio and visibility lifecycle
@@ -42,6 +43,8 @@ With `npm start` running, `npm run test:browser` plays all 36 levels through the
 All 82 tops, bottoms, dresses and shoes now use native patterns aligned to the painted cast. Bent sleeves, fitted waists, hip ease, separate trouser legs and new shoe outlines replace the old global garment warp. Footwear renders behind garment hems, so tall boots do not cover long skirts. Hair details and accessory grips retain their separate placement rig.
 
 The character dock occupies its own layout row and cannot cover the stage. Regular portrait phones use 44px character buttons; small-height phones and landscape layouts use compact controls. A new Stitch MCP board informs this layout; see [design provenance](docs/STITCH-DESIGN.md). The game does not call Stitch or require its credentials.
+
+Version 1.6.2 fits all 43 top/dress necklines to the painted neck roots, including crew necks, lapels and standing collars. Shoulder seams cover the basic straps. The style description appears above the stage with the challenge title on every supported screen size; no text panel overlays the head. Desktop stage and wardrobe share the remaining screen height so the visible description cannot push controls offscreen.
 
 ## Game scope
 
