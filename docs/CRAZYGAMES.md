@@ -10,7 +10,7 @@ npm run package:upload
 npm run test:upload
 ```
 
-在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标、矢量素材和卧室背景，不需要其他文件。当前版本为 **v1.3.0 Bedroom Studio**，更新卡通角色、卧室场景、粉白界面、动画和原创音效；人物贴合、评分规则和存档键保持兼容。
+在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标、矢量素材和卧室背景，不需要其他文件。当前版本为 **v1.3.1 Bedroom Studio**，调整为更短、更宽的卡通身材与默认高丸子头，保留卧室场景、粉白界面、动画和原创音效；人物贴合、评分规则和存档键保持兼容。
 
 此前直接上传 ZIP 的说明不适用于用户当前的入口。`npm run package` 仍生成多文件 ZIP，供备份和其他静态托管使用。若使用多文件形式，须先解压，再保留相同层级上传 `index.html`、`css/`、`js/` 和 `assets/`；源码中的 `index.html` 不能单独上传。
 

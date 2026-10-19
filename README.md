@@ -2,7 +2,7 @@
 
 Every look. Entirely you.
 
-Version 1.3.0 brings a bright bedroom dressing room, an original big-eyed cartoon character, pink-and-white wardrobe cards and glossy category buttons. Blink, breathing, outfit sparkles and star reveals add motion; nine original synthesized effects bring clicks, clothes, rewards and the camera to life. The personal lookbook and existing v1 progress remain compatible.
+Version 1.3.1 introduces a shorter, fuller cartoon silhouette and a high bun as the default hairstyle. Hair, clothing, hands and accessories share the adjusted rig; saved outfits keep their chosen hairstyles. The bedroom, original sound effects and animation remain. Version 1.3.0 introduced a bright bedroom dressing room, an original big-eyed cartoon character, pink-and-white wardrobe cards and glossy category buttons. Blink, breathing, outfit sparkles and star reveals add motion; nine original synthesized effects bring clicks, clothes, rewards and the camera to life. The personal lookbook and existing v1 progress remain compatible.
 
 Muse Bloom is an original, offline-capable HTML5 fashion puzzle: match a brief, style a character, earn a grade, and grow your wardrobe. The first release targets **CrazyGames Basic Launch**.
 
