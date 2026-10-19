@@ -10,7 +10,7 @@ npm run package:upload
 npm run test:upload
 ```
 
-在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标、矢量素材和卧室背景，不需要其他文件。当前版本为 **v1.6.0 Meet Your Muse**。实际游戏、角色选择、首页、相册和导出卡片均使用 Bella、Mika、Zoe 三位新绘制人物。旧人物绘制和四个旧身体 SVG 已移除。三位角色与卧室均已内嵌；上传目录只需此一个 index.html。切换人物保留服装，旧进度自动迁移。
+在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标、矢量素材和卧室背景，不需要其他文件。当前版本为 **v1.6.1 Meet Your Muse**。实际游戏、角色选择、首页、相册和导出卡片均使用 Bella、Mika、Zoe 三位新绘制人物。旧人物绘制和四个旧身体 SVG 已移除。三位角色与卧室均已内嵌；上传目录只需此一个 index.html。切换人物保留服装，旧进度自动迁移。
 
 此前直接上传 ZIP 的说明不适用于用户当前的入口。`npm run package` 仍生成多文件 ZIP，供备份和其他静态托管使用。若使用多文件形式，须先解压，再保留相同层级上传 `index.html`、`css/`、`js/` 和 `assets/`；源码中的 `index.html` 不能单独上传。
 

@@ -1,4 +1,4 @@
-# Art pipeline — v1.6.0
+# Art pipeline — v1.6.1
 
 ## Playable cast
 
@@ -8,7 +8,7 @@ The four `assets/base/*.svg` files have been removed. `js/art.js` no longer draw
 
 ## Composition
 
-`avatarSvg(character, items, namespace)` creates one 720 × 1280 composite. The painted image retains its original aspect ratio using x=-66.667, width=853.333 and height=1280. Each item is projected from canonical coordinates by `contourPoint`; head details use a separate head transform. Clothing colours, highlights, seams and embroidery remain editable SVG. Absolute embroidery paths follow the clothing projection.
+`avatarSvg(character, items, namespace)` creates one 720 × 1280 composite. The painted image retains its original aspect ratio using x=-66.667, width=853.333 and height=1280. The 82 clothing and shoe patterns are authored directly in this coordinate system. Neck, bust, waist, hip, knee and ankle anchors are approximately y=286, 385, 490, 625, 840 and 1140. Their envelope includes modest seam ease around the three measured sprites. Clothing is no longer passed through `contourPoint`; only accessories retain that placement rig, and head details use the separate head transform. Colours, seams, embroidery and volume highlights remain editable SVG. Sleeves follow the bent forearms, skirt hips cover the painted studio shorts, and trousers have separate continuous leg contours. Footwear is composited before bottoms/dresses so garment hems cover shoe uppers naturally. Nested texture clips have unique IDs.
 
 The character layer remains mounted during ordinary equip/remove operations. Choosing a different character updates its image and identity attributes, while retaining the equipped items. Sprites are preloaded. Bags and fans use the same grip coordinates; a second handheld is mirrored. Small clipped copies of the actual painted fingertips overlay handles. No vector hand substitute is used.
 
@@ -18,4 +18,4 @@ Body proportions, shoulders, elbows, waist, hips and hands are painted into each
 
 `npm run assets` regenerates 122 garment SVGs and 122 thumbnails, then embeds all character sprites, room artwork and custom garment overrides in `js/asset-data.js`. The garment source is otherwise generated compactly at runtime. It never recreates retired bodies. `standalone.js` embeds the CSS and scripts into one HTML. `share.js` rasterizes the identical avatar composite into a 1080 × 1920 card; no external image request or tainted canvas is needed.
 
-See `UI-TESTS.md` for body-coverage checks and the 24 manually reviewed snapshots. Aesthetic judgement and arbitrary combinations still benefit from human review; tests do not prove every artistic detail correct.
+See `UI-TESTS.md` for all-garment body-coverage checks, all top/bottom waist-seam combinations and the 24 manually reviewed snapshots. Aesthetic judgement and arbitrary combinations still benefit from human review; tests do not prove every artistic detail correct.
