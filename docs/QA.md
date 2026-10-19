@@ -6,7 +6,7 @@
 
 本地 Edge 已验证：发布文件及哈希清单、源码 SHA、`/muse-bloom/` 子路径下电脑和手机首套穿搭 94 分、零外部素材请求、反馈页新建/继续、JSON 下载、刷新保留会话和普通存档隔离。`npm test` 的 20 项测试及 36 关可解性检查也通过。报告在 `artifacts/pages/report.json`。
 
-当前仍待 `toponehhh` 账号授权后创建远端并实际运行 Actions / 验证线上地址；不能把上述本地结果视为已部署。
+已用 `toponehhh` 创建公开仓库并上传全部 50 次历史提交，启用 GitHub Actions 发布的 Pages。首轮远端运行：[39266073208](https://github.com/toponehhh/muse-bloom/actions/runs/39266073208)。后续运行查看 [Actions](https://github.com/toponehhh/muse-bloom/actions/workflows/verify.yml)，每次部署对应网站 `build.json` 中的源码 SHA。本地报告与远端运行分别保留，不能把本地结果视为已部署。
 
 ## v1.7.0 The Studio Edit — 当前私人试玩候选版
 
@@ -34,7 +34,7 @@
 
 **真人试玩人数为 0。** 用户暂时无法安排参与者，本次仅准备任务、说明、反馈表与收集工具。自动化导出使用 `source: automated-check`，汇总测试中的合成参与者只存在于临时测试目录，验证后删除。不提供虚构评分、留存率或审核通过概率。
 
-尚未验证：真实 iOS/Safari、Android、低内存 Chromebook、托管 GitHub Actions、CrazyGames 线上 Preview / QA 与新一轮审核。未创建或推送 GitHub 仓库，未重新提交游戏。
+本节为首次本地交付记录，当时未验证托管 Actions、真实 iOS/Safari、Android、低内存 Chromebook、CrazyGames 线上 Preview / QA 与新一轮审核。后续 GitHub 上传和部署记录见上节；未重新提交游戏。
 
 ## v1.6.2 领口衔接与头部无遮挡 — 历史版本
 

@@ -31,4 +31,4 @@
 
 2026-10-19 重新查看的 [Launch requirements](https://docs.crazygames.com/requirements/intro/) 说明 Basic Launch 的 SDK 可选且不能变现；Full Launch 需要完整接入。 [Technical requirements](https://docs.crazygames.com/requirements/technical/) 说明无 SDK 时总文件不超过 50 MB，进入移动首页的初始文件不超过 20 MB，文件数不超过 1,500，资源使用相对路径，并要求 Chrome/Edge 正常工作。
 
-本地大小和自动化检查只是其中一部分证据。真人反馈、CrazyGames 线上 Preview / QA、真实手机和最终审核仍需要另行完成。没有执行本次版本的线上提交，也没有上传 GitHub。
+本地大小和自动化检查只是其中一部分证据。真人反馈、CrazyGames 线上 Preview / QA、真实手机和最终审核仍需要另行完成。没有执行本次版本的 CrazyGames 线上提交。源码已上传 GitHub；测试页面的构建和部署参见 [GitHub 说明](GITHUB.md)。

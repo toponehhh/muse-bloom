@@ -2,6 +2,10 @@
 
 **v1.7.0 — The Studio Edit**
 
+[Play online](https://toponehhh.github.io/muse-bloom/) · [Playtest tasks & feedback](https://toponehhh.github.io/muse-bloom/playtest/) · [Build & deployment status](https://github.com/toponehhh/muse-bloom/actions/workflows/verify.yml)
+
+The public preview updates automatically after the `main` branch passes all checks. The initial URL becomes available when the first deployment completes.
+
 An offline HTML5 dress-up game with three painted characters, 36 challenges and 122 collectible pieces. This iteration polishes the first three occasions with 14 painted wardrobe pieces, a warm ivory/rose studio, a short adaptive guide, an animated reveal and before/after comparison.
 
 The first occasions are Coffee with friends, The gallery opening and Weekend flower market. Their visible goals reward a complete outfit (40 points) and two occasion details (27 each). An incomplete outfit cannot be revealed. Maximum 94; a complete base can pass, while meeting the details earns the best rank. Later challenges retain the original mood-tag rules. Stored IDs, unlocks and historical look scores are preserved.
@@ -50,6 +54,6 @@ The polished starter capsule has 14 painted pieces. The remaining 108 collectibl
 
 ## Delivery boundaries
 
-Use `dist/crazygames-upload/index.html` for the portal's file/folder upload, not the source HTML alone or the playtest guide. SDK, cloud saves, ads and platform mute integration remain unimplemented. This version is a local playtest candidate; it has not been resubmitted or accepted by CrazyGames. Existing v1.6 promotional media is historical, not a v1.7 capture.
+Use `dist/crazygames-upload/index.html` for the portal's file/folder upload, not the source HTML alone or the playtest guide. SDK, cloud saves, ads and platform mute integration remain unimplemented. This version is a playtest candidate; it has not been resubmitted or accepted by CrazyGames. Existing v1.6 promotional media is historical, not a v1.7 capture.
 
 Changes are checked in in steps. The GitHub Actions workflow tests the game, prepares the upload artifact and deploys the tested website from `main` to GitHub Pages. Pull requests and other branches run checks without publishing. See [GitHub deployment](docs/GITHUB.md), [QA evidence](docs/QA.md), [test contracts](docs/UI-TESTS.md) and [submission notes](docs/CRAZYGAMES.md). Remote publication status is recorded separately from local checks. No open-source license is granted by default.

@@ -1,6 +1,12 @@
 # GitHub Actions 与在线试玩
 
-目标仓库：`toponehhh/muse-bloom`。保留已有分步提交历史，不重新初始化或压平历史。
+仓库：[toponehhh/muse-bloom](https://github.com/toponehhh/muse-bloom)，按用户最终选择设为公开。已有 50 次分步提交历史已完整上传，后续修改继续按步骤提交。
+
+- 游戏：[https://toponehhh.github.io/muse-bloom/](https://toponehhh.github.io/muse-bloom/)
+- 试玩任务与反馈：[playtest/](https://toponehhh.github.io/muse-bloom/playtest/)
+- 构建与部署：[Actions](https://github.com/toponehhh/muse-bloom/actions/workflows/verify.yml)
+
+已将 Pages 的 Source 设置为 GitHub Actions（`build_type: workflow`），HTTPS 已启用。首次访问需等待首次部署成功。具体运行结果以 Actions 和网站的 `build.json` 为准。
 
 ## 工作流
 
@@ -36,7 +42,7 @@
 3. 在 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。也可以调用 Pages API，将 `build_type` 设置为 `workflow`。
 4. 在 **Actions → Test and deploy Muse Bloom** 查看结果。首次启用 Pages 时如果构建已结束，可手动 Run workflow。
 
-默认地址预计为 `https://toponehhh.github.io/muse-bloom/`，具体以成功的 `deploy` job / Pages API 返回为准。仅写好工作流不代表网站已经发布。
+Pages API 已返回 `https://toponehhh.github.io/muse-bloom/`。只有对应 Actions 的 `deploy` job 成功才代表这一提交已经发布。
 
 ## 后续更新
 

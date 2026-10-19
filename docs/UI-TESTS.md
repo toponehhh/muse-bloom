@@ -1,6 +1,6 @@
 # Current UI regression contracts — v1.7.0
 
-All tests operate on real browser rendering or actual pixels, not just asset names. Reports live in `artifacts/`; they are local automated evidence. See `QA.md` for which browser ran each suite. Mobile dimensions are emulated desktop viewports, not physical-phone testing.
+All tests operate on real browser rendering or actual pixels, not just asset names. Reports live in `artifacts/`; they are automated evidence, saved locally or as Actions artifacts. See `QA.md` for which browser ran each suite. Mobile dimensions are emulated desktop viewports, not physical-phone testing.
 
 | Command | Contract |
 |---|---|
@@ -33,4 +33,4 @@ The old `dev/browser.test.js`, `dev/characters.test.js` and 24 v1.6 baselines re
 
 ## Limits
 
-No human playtest results, real iOS/Safari, physical Android, low-memory Chromebook, hosted CI or CrazyGames portal QA are included. Playtest records with `source: automated-check` must never count as human feedback. A passing local test cannot establish retention, artistic preference or platform approval.
+No human playtest results, real iOS/Safari, physical Android, low-memory Chromebook or CrazyGames portal QA are included. Hosted CI status and downloadable evidence are available in the repository Actions runs. Playtest records with `source: automated-check` must never count as human feedback. A passing local test cannot establish retention, artistic preference or platform approval.
