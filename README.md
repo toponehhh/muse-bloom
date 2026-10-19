@@ -1,8 +1,8 @@
 # Muse Bloom
 
-Style your glow-up.
+Every look. Entirely you.
 
-Version 1.1.1 redraws the face and hands, adds independent relaxed/carrying poses, and preserves Glow Studio: icy blue, lilac and pink surfaces, pearl highlights, gentle star glints, dimensional vector materials, and physically attached handheld accessories.
+Version 1.2.0 introduces Editorial Studio: warm ivory, ink and burgundy, magazine typography, a quiet photographic setting and a personal lookbook. Your best passing look from each challenge is saved with its outfit, skin tone and score. Revisit it, restyle it or export a portrait. Existing v1 progress remains compatible.
 
 Muse Bloom is an original, offline-capable HTML5 fashion puzzle: match a brief, style a character, earn a grade, and grow your wardrobe. The first release targets **CrazyGames Basic Launch**.
 
@@ -31,7 +31,7 @@ For the CrazyGames file/folder upload form, use `dist/crazygames-upload/index.ht
 
 For UI checks, run `npm ci`, install a test browser with `npx playwright install chromium`, then run `npm run test:ui`. This starts and stops its own server and checks all 122 items, removal, garment coverage, 28 accessory attachment cases, 88 hairstyle/skin checks, 60 visual baselines, responsive layouts and the standalone HTML. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. See [UI test guide](docs/UI-TESTS.md) for evidence, baseline review and limitations.
 
-For the complete 36-level browser journey, start the server, then run `npm run test:browser`. `npm run standalone` generates a double-clickable `dist/Muse-Bloom.html`. These development tools are never loaded by the game.
+Run `npm run test:lookbook` to check the new archive: keyboard navigation, actual portrait downloads, exact outfit restoration, old-save compatibility, four viewport layouts, header collisions and mobile typography. It starts its own local server. For the complete 36-level browser journey, start the server, then run `npm run test:browser`. `npm run standalone` generates a double-clickable `dist/Muse-Bloom.html`. These development tools are never loaded by the game.
 
 See [Art pipeline](docs/ART.md) for editable vectors, [GitHub upload](docs/GITHUB.md) for later pushing, and [QA report](docs/QA.md) for measured verification. Generated release files are in `dist/` and promotional assets in `promo/`.
 
@@ -40,7 +40,7 @@ See [Art pipeline](docs/ART.md) for editable vectors, [GitHub upload](docs/GITHU
 - 36 sequential challenges across 6 chapters.
 - 122 collectible items, including 20 modern Chinese fashion pieces.
 - Four skin tones, six clothing categories, two accessory slots.
-- Local progress, score breakdowns, S streak rewards and outfit cards.
+- Local progress, score breakdowns, S streak rewards, a 36-look personal archive and downloadable outfit cards.
 - Mouse, touch and keyboard controls; responsive portrait and landscape layouts.
 
 ## Design decisions

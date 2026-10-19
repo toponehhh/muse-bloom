@@ -30,7 +30,7 @@ Chinese-inspired pieces use lapels, frog buttons, pleated mamian panels, embroid
 
 The promotional illustrations use the same character, clothing and rendering code as gameplay. Cover art contains only the game title as text.
 
-## Glow Studio materials and handheld rig
+## Character materials and handheld rig
 
 Colors are converted to deterministic SVG gradients. Soft skin lighting, hair highlights and fabric shading retain the existing fit coordinates. Each inline avatar has an independent namespace for its gradients and filters, including during keyed updates. This prevents cross-instance skin/material collisions.
 
