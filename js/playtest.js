@@ -6,7 +6,7 @@
   if(active){
     try{if(params.get('fresh')==='1'){localStorage.removeItem(key);localStorage.removeItem(saveKey);}
       record=JSON.parse(localStorage.getItem(key)||'null');}catch{}
-    if(!record||record.version!=='1.7.0')record={version:'1.7.0',source:params.get('qa')==='1'?'automated-check':'participant-session',participant:'P-'+Math.random().toString(36).slice(2,8).toUpperCase(),startedAt:new Date().toISOString(),events:[],feedback:null};
+    if(!record||record.version!=='1.7.0'||!Array.isArray(record.events)||!/^P-[A-Z0-9]{6}$/.test(record.participant)||!['participant-session','automated-check'].includes(record.source))record={version:'1.7.0',source:params.get('qa')==='1'?'automated-check':'participant-session',participant:'P-'+Math.random().toString(36).slice(2,8).padEnd(6,'0').toUpperCase(),startedAt:new Date().toISOString(),events:[],feedback:null};
     if(params.has('fresh'))try{const clean=new URL(root.location.href);clean.searchParams.delete('fresh');history.replaceState(null,'',clean);}catch{}
   }
   const persist=()=>{if(active)try{localStorage.setItem(key,JSON.stringify(record));}catch{}};
@@ -20,7 +20,7 @@
   function form(){
     return '<div class="dialog-head"><div><span class="eyebrow">PRIVATE PLAYTEST / '+record.participant+'</span><h2 id="dialog-title">How did it feel?</h2></div>'+
       '<button class="icon-button" data-action="close" aria-label="Close feedback">×</button></div><form class="feedback-form" id="playtest-feedback">'+
-      choice('clarity','I knew what to do next')+choice('visuals','The character and outfits looked like they belonged together')+
+      choice('clarity','I knew what to do next')+choice('readability','I could clearly see the character and clothing details')+choice('visuals','The character and outfits looked like they belonged together')+
       choice('enjoyment','I enjoyed creating different looks')+
       '<label>Would you choose to play another challenge?<select name="continue" required><option value="">Choose one</option><option>Yes</option><option>Maybe</option><option>No</option></select></label>'+
       '<label>What was confusing or frustrating?<textarea name="friction" maxlength="2000" placeholder="Optional. Please do not include personal information."></textarea></label>'+

@@ -7,7 +7,8 @@ const root=path.resolve(__dirname,'..');
 (async()=>{
   const source=JSON.parse(fs.readFileSync(path.join(__dirname,'capsule-source.json'),'utf8'));
   for(const fit of Object.values(source))fit.atlasUrl='data:image/webp;base64,'+fs.readFileSync(path.join(root,fit.asset)).toString('base64');
-  const browser=await chromium.launch({channel:process.env.MUSE_BROWSER_CHANNEL||'msedge',headless:true});
+  const channel=process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':'chromium');
+  const browser=await chromium.launch({channel:channel==='chromium'?undefined:channel,headless:true});
   try {
     const page=await browser.newPage();
     await page.setContent('<!doctype html><body></body>');

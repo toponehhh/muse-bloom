@@ -54,6 +54,12 @@
     ['Style Without Borders','✦','bold vintage party','elegant chic','Your final look. Your own story.']
   ];
   const themes = themeRows.map((r, i) => ({ id: r[0].toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/_$/,''), index: i + 1, chapter: Math.floor(i / 6) + 1, name: r[0], icon: r[1], required: r[2].split(' '), bonus: r[3].split(' '), description: r[4], unlockItems: [], entryItems: [] }));
+  // Keep stored theme IDs stable when updating the three opening occasions.
+  [
+    ['Coffee with friends','☕','A sunny table, your favorite people. Make it feel like you.'],
+    ['The gallery opening','✧','Pick one piece that deserves the spotlight.'],
+    ['Weekend flower market','✿','Fresh flowers and nowhere to rush.']
+  ].forEach(([name,icon,description],i)=>Object.assign(themes[i],{name,icon,description}));
   // name | silhouette | color | three style tags. All art is created locally.
   const rows = {
     hair: [

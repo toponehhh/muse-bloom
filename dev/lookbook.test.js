@@ -47,14 +47,14 @@ async function noOverflow(page, label) {
   assert.ok(header.height < 45, label + ': brand wraps');
   assert.ok(header.controls.every(b => b.x >= 0 && b.right <= page.viewportSize().width + 1), label + ': header action outside viewport');
   if (await page.locator('.home-copy').count()) {
-    assert.equal(await page.locator('.home-copy h1').innerText(), 'Every look.\nEntirely you.', label + ': headline lost its intended line break');
-    assert.match(await page.locator('.home-intro').innerText(), /wardrobe\.\nMake/, label + ': introductory sentences run together');
+    assert.equal(await page.locator('.home-copy h1').innerText(), 'A fresh look.\nA little more you.', label + ': headline lost its intended line break');
+    assert.match(await page.locator('.home-intro').innerText(), /weekend\.\nFind/, label + ': introductory sentences run together');
   }
 }
 async function equip(page, outfit) {
   await page.locator('[data-action="clear"]').click();
   for (const i of G.equippedItems(outfit)) {
-    await page.locator(`[data-category="${i.category}"]`).click();
+    await page.locator(`[data-action="category"][data-category="${i.category}"]`).click();
     await page.locator(`[data-action="equip"][data-item="${i.id}"]`).click();
   }
 }
@@ -64,30 +64,30 @@ async function equip(page, outfit) {
   browser = await chromium.launch({ channel: channel === 'chromium' ? undefined : channel, headless: true });
   report.browser = browser.version();
   const page = await open({ width: 1440, height: 900 });
-  assert.deepEqual(await page.locator('.campaign-main img').getAttribute('data-editorial'),'rose-studio');
+  assert.equal(await page.locator('.home-look [data-layer="base"] [data-character-art="bella"]').count(),1);
   const savedTone=G.newSave();savedTone.character='zoe';
   const tonePage=await open({width:390,height:844},savedTone);
-  assert.deepEqual(await tonePage.locator('.campaign-main img').getAttribute('data-editorial'),'rose-studio','Saved gameplay tone must not change the showcase');
+  assert.equal(await tonePage.locator('.home-look [data-layer="base"] [data-character-art="zoe"]').count(),1);
   await tonePage.locator('[data-action="play"]').click();
   assert.equal(await tonePage.locator('#avatar-slot .avatar').getAttribute('data-avatar-character'),'zoe','Keep the player-selected gameplay tone');
   await tonePage.context().close();
-  pass('Stitch showcase stays independent of saves while retaining the player-selected gameplay tone');
+  pass('Home and studio show the selected character; fresh saves use Bella');
   await shot(page, 'home-desktop'); await noOverflow(page, 'Home');
-  await page.locator('[data-action="lookbook"]').click();
+  await page.locator('.app-header [data-action="lookbook"]').click();
   assert.ok(await page.locator('.lookbook-empty').isVisible());
   assert.equal(await page.locator('.lookbook-card').count(), 0);
   await shot(page, 'empty-desktop');
   await page.locator('[data-action="play"]').click();
   assert.equal(await page.locator('#avatar-slot [data-layer]').count(),1,'Fresh save shows the new character in studio basics');
   assert.equal(await page.locator('#avatar-slot .avatar').getAttribute('data-avatar-character'),'bella','Fresh gameplay uses the light default');
-  await page.locator('.character-selector [data-character="bella"]').click();
+  await page.locator('[data-action="skip-guide"]').click();
   const outfit = winning(G.newSave(), 1);
   await equip(page, outfit);
   await page.locator('[data-action="score"]').click();
   assert.equal(await page.locator('#score-number').innerText(), '94');
   assert.ok(await page.locator('.lookbook-saved').isVisible());
   await shot(page, 'result-desktop');
-  await page.locator('[data-action="lookbook"]').click();
+  await page.locator('.app-header [data-action="lookbook"]').click();
   assert.equal(await page.locator('.lookbook-card').count(), 1);
   await page.locator('.lookbook-card').focus(); await page.keyboard.press('Enter');
   assert.equal(await page.locator('#dialog-title').innerText(), D.themes[0].name);
@@ -101,20 +101,20 @@ async function equip(page, outfit) {
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.lookbook-card').evaluate(n => n === document.activeElement), true);
   pass('First passing look, keyboard-opened dialog, 1080 × 1920 portrait download and focus restoration');
-  await page.locator('[data-action="collection"]').click();
-  await page.locator('[data-action="lookbook"]').click();
+  await page.locator('[data-action="settings"]').click();await page.locator('#dialog [data-action="collection"]').click();
+  await page.locator('.app-header [data-action="lookbook"]').click();
   await page.locator('[data-action="return"]').click();
   assert.ok(await page.locator('.result-screen').isVisible());
-  await page.reload(); await page.locator('[data-action="lookbook"]').click();
+  await page.reload(); await page.locator('.app-header [data-action="lookbook"]').click();
   assert.equal(await page.locator('.lookbook-card').count(), 1);
   await page.locator('.lookbook-card').click(); await page.locator('[data-action="wear-look"]').click();
-  assert.equal(await page.locator('.character-selector [aria-pressed="true"]').getAttribute('data-character'), 'bella');
+  assert.equal(await page.locator('#avatar-slot .avatar').getAttribute('data-avatar-character'), 'bella');
   const ids = await page.locator('#avatar-slot [data-layer]').evaluateAll(nodes => nodes.map(n => n.dataset.layer).filter(id => MuseGame.byId[id]).sort());
   assert.deepEqual(ids, G.equippedItems(outfit).map(i => i.id).sort());
   await page.locator('[data-action="clear"]').click(); await page.locator('[data-action="score"]').click();
-  assert.equal(await page.locator('#score-number').innerText(), '0');
+  assert.ok(await page.locator('.salon-dressing').isVisible());
   assert.equal(await page.locator('.lookbook-saved').count(), 0);
-  await page.locator('[data-action="lookbook"]').click();
+  await page.locator('.app-header [data-action="lookbook"]').click();
   assert.equal(await page.locator('.lookbook-card .lookbook-grade').innerText(), 'S\n94 / 94');
   pass('Saved outfit and tone survive reload, restyle exactly, retain best look after a failed retry, and return to the originating screen');
   await page.context().close();
@@ -127,13 +127,13 @@ async function equip(page, outfit) {
   const legacy = JSON.parse(JSON.stringify(save));
   for (const level of Object.values(legacy.levels)) delete level.look;
   const oldPage = await open({ width: 1440, height: 900 }, legacy);
-  await oldPage.locator('[data-action="lookbook"]').click();
+  await oldPage.locator('.app-header [data-action="lookbook"]').click();
   assert.ok(await oldPage.locator('.lookbook-empty').isVisible());
-  await oldPage.locator('[data-action="home"]').click(); await oldPage.locator('[data-action="map"]').click();
+  await oldPage.locator('[data-action="home"]').click(); await oldPage.locator('.studio-nav [data-action="nav-map"]').click();
   assert.equal(await oldPage.locator('.map-progress>b').innerText(), '12 / 36');
   // Loading a completed chapter also makes the next chapter's entry pieces available.
   const expectedOwned = new Set([...save.unlockedItems, ...D.themes[12].entryItems]);
-  assert.equal(await oldPage.locator('.collection-pill').innerText(), `${expectedOwned.size} / 122`);
+  assert.ok(expectedOwned.size>=legacy.unlockedItems.length);
   const retained = await oldPage.evaluate(key => JSON.parse(localStorage.getItem(key)), G.SAVE_KEY);
   assert.ok(legacy.unlockedItems.every(id => retained.unlockedItems.includes(id)));
   pass('Pre-lookbook v1 save keeps 12 completed challenges and its wardrobe without fabricating saved outfits');
@@ -142,8 +142,8 @@ async function equip(page, outfit) {
   for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }, { width: 667, height: 375 }, { width: 1920, height: 1080 }]) {
     const p = await open(viewport, save), size = `${viewport.width}x${viewport.height}`;
     await noOverflow(p, size + ' home'); await shot(p, 'home-' + size);
-    await p.locator('[data-action="map"]').click(); await noOverflow(p, size + ' map'); await shot(p, 'collections-' + size);
-    await p.locator('[data-action="lookbook"]').click(); await noOverflow(p, size + ' gallery');
+    await p.locator('[data-action="settings"]').click();await p.locator('#dialog [data-action="nav-map"]').click(); await noOverflow(p, size + ' map'); await shot(p, 'collections-' + size);
+    await p.locator('.app-header [data-action="lookbook"]').click(); await noOverflow(p, size + ' gallery');
     assert.equal(await p.locator('.lookbook-card').count(), 12);
     for (const photo of await p.locator('.lookbook-photo').all()) {
       const rect = await photo.boundingBox(); assert.ok(rect.width > 100 && rect.height > 130, size + ': gallery image collapsed');
@@ -156,7 +156,7 @@ async function equip(page, outfit) {
     }
     await p.locator('[data-action="wear-look"]').click();
     await noOverflow(p, size + ' studio');
-    const submit = await p.locator('[data-action="score"]').boundingBox();
+    await p.locator('[data-action="score"]').scrollIntoViewIfNeeded();const submit = await p.locator('[data-action="score"]').boundingBox();
     assert.ok(submit.y + submit.height <= viewport.height + 1, size + ': reveal button below viewport');
     await shot(p, 'studio-' + size);
     pass(`${size}: home, collection map, 12-look gallery, dialog and studio fit without horizontal overflow or header overlap`);

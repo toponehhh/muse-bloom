@@ -37,9 +37,9 @@ const pass=text=>{report.checks.push(text);console.log('PASS:',text);};
    if(upper&&y>=282&&y<510&&x>255&&x<465&&basic(base,p))return true;
    if(upper&&y>=358&&y<508&&x>=302&&x<=418)return true;
    if(lower&&y>=515&&y<lowerEnd(item)&&x>Math.max(224,torsoEdge(y))&&x<720-Math.max(224,torsoEdge(y)))return true;
-   const sleeved=upper&&(longSleeves.includes(s)||c==='dress'&&s==='knit'||s==='hanfu');
+   const sleeved=upper&&(longSleeves.includes(s)&&item.id!=='top_cozy_02'||c==='dress'&&s==='knit'||s==='hanfu');
    if(sleeved&&y>=320&&y<(s==='hanfu'?536:609)&&(x>155&&x<torsoEdge(y)||x>720-torsoEdge(y)&&x<565))return true;
-   if(upper&&['tee','polo','puff','pinafore'].includes(s)&&y>=320&&y<374&&(x>220&&x<277||x>443&&x<500))return true;
+   if(upper&&(['tee','polo','puff','pinafore'].includes(s)||item.id==='top_cozy_02'||item.id==='dress_elegant_02')&&y>=320&&y<374&&(x>220&&x<277||x>443&&x<500))return true;
    return false;
   };
   const interval=(data,y,lo,hi)=>{const xs=[];for(let x=Math.ceil(lo/2);x<=Math.floor(hi/2);x++)if(data[(Math.floor(y/2)*W+x)*4+3]>230)xs.push(x*2);return xs.length?[xs[0],xs.at(-1)]:null;};
@@ -75,12 +75,12 @@ const pass=text=>{report.checks.push(text);console.log('PASS:',text);};
    }
    if(character.id==='bella'){
     const item=MuseData.items.find(i=>i.id==='bottom_casual_01'),source=MuseArt.fittedItemSvg(item);
-    const shifted=source.replace('<defs>','<g transform="translate(80 0)"><defs>').replace('</svg>','</g></svg>');
+    const shifted=source.replace(/(<svg\b[^>]*>)/,'$1<g transform="translate(80 0)">').replace('</svg>','</g></svg>');
     shiftNegative=coverage(base,await paint(shifted),wanted(base,item));
     // An old skirt narrowed around the hips is the exact class of reported bug.
     const skirt=MuseData.items.find(i=>i.id==='bottom_silk_19'),narrow=MuseArt.fittedItemSvg(skirt).replace('<defs>','<g transform="translate(72 0) scale(.8 1)"><defs>').replace('</svg>','</g></svg>');
     nativeNegative=coverage(base,await paint(narrow),wanted(base,skirt));
-    const wide=MuseArt.fittedItemSvg(MuseData.items.find(i=>i.id==='top_casual_01')).replace('<defs>','<g transform="translate(-180 0) scale(1.5 1)"><defs>').replace('</svg>','</g></svg>');
+    const wide=MuseArt.fittedItemSvg(MuseData.items.find(i=>i.id==='top_casual_01')).replace(/(<svg\b[^>]*>)/,'$1<g transform="translate(-180 0) scale(1.5 1)">').replace('</svg>','</g></svg>');
     wideNegative=width(interval(await paint(wide),480,240,480))-width(interval(base,480,280,440));
    }
   }
@@ -95,37 +95,6 @@ const pass=text=>{report.checks.push(text);console.log('PASS:',text);};
  pass(pixels.findings.length+' garment/body checks: all 82 garments on all three characters, including tops, sleeves, dresses, hips and footwear');
  pass(pixels.pairs.length+' top/bottom combinations have no waist gap');
  await page.close();
- report.layouts=[];
- for(const [width,height] of [[320,568],[375,667],[390,844],[667,375],[768,1024],[1024,540],[1024,768],[1440,600],[1440,900]]){
-  const p=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'});p.on('pageerror',e=>report.errors.push(e.message));
-  await p.addInitScript(()=>{localStorage.clear();});await p.goto('http://127.0.0.1:'+server.address().port);await p.locator('[data-action=play]').click();
-  await p.locator('[data-category=shoes]').click();await p.locator('[data-item=shoes_casual_01]').click();
-  for(const character of ['bella','mika','zoe']){
-   await p.locator(`.character-selector [data-character=${character}]`).click();
-   const layout=await p.evaluate(()=>{
-    const stage=document.querySelector('.fitting-stage'),selector=document.querySelector('.character-selector'),avatar=document.querySelector('#avatar-slot svg');
-    const s=stage.getBoundingClientRect(),r=selector.getBoundingClientRect(),matrix=avatar.getScreenCTM();
-    const a=new DOMPoint(250,1130).matrixTransform(matrix),b=new DOMPoint(470,1278).matrixTransform(matrix);
-    const feet={left:a.x,top:a.y,right:b.x,bottom:b.y};
-    const h1=new DOMPoint(180,0).matrixTransform(matrix),h2=new DOMPoint(540,280).matrixTransform(matrix);
-    const head={left:h1.x,top:h1.y,right:h2.x,bottom:h2.y};
-    const brief=document.querySelector('.brief'),description=brief.querySelector('.brief-main p'),br=brief.getBoundingClientRect(),dr=description.getBoundingClientRect();
-    const overlaps=(a,b)=>a.left<b.right&&b.left<a.right&&a.top<b.bottom&&b.top<a.bottom;
-    const buttons=[...selector.querySelectorAll('button')];
-    const overlays=[...document.querySelectorAll('.brief,.character-selector,.wardrobe-panel,.scene-speech')];
-    return {outsideStage:!stage.contains(selector),noStageOverlap:!overlaps(s,r),feetVisible:feet.left>=s.left&&feet.right<=s.right&&feet.top>=s.top&&feet.bottom<=s.bottom,feetClear:!overlaps(feet,r),headVisible:head.left>=s.left&&head.right<=s.right&&head.top>=s.top&&head.bottom<=s.bottom,headClear:overlays.every(n=>!overlaps(head,n.getBoundingClientRect())),briefOutside:!stage.contains(brief)&&br.bottom<=s.top&&!stage.querySelector('.scene-speech'),descriptionVisible:description.checkVisibility()&&dr.height>=12&&dr.bottom<=s.top&&description.textContent===MuseData.themes[0].description,choicesVisible:buttons.every(n=>{const q=n.getBoundingClientRect();return q.width>=30&&q.height>=34&&q.left>=0&&q.right<=innerWidth&&q.top>=0&&q.bottom<=innerHeight;}),scoreVisible:document.querySelector('[data-action=score]').getBoundingClientRect().bottom<=innerHeight+1,noOverflow:document.documentElement.scrollWidth<=innerWidth+1,feet,head,selector:{left:r.left,top:r.top,right:r.right,bottom:r.bottom}};
-   });
-   for(const key of ['outsideStage','noStageOverlap','feetVisible','feetClear','headVisible','headClear','briefOutside','descriptionVisible','choicesVisible','scoreVisible','noOverflow'])assert.equal(layout[key],true,`${width}x${height}/${character}: ${key}`);
-   report.layouts.push({width,height,character,...layout});
-  }
-  await p.screenshot({path:path.join(out,`studio-${width}x${height}.png`)});
-  // Prove the head collision check catches a text panel at the old location.
-  if(width===768){const detected=await p.evaluate(()=>{const stage=document.querySelector('.fitting-stage'),svg=stage.querySelector('#avatar-slot svg'),m=svg.getScreenCTM(),a=new DOMPoint(180,0).matrixTransform(m),b=new DOMPoint(540,280).matrixTransform(m),n=document.createElement('div');n.className='scene-speech';n.textContent='THE STYLE BRIEF';n.style.cssText='position:absolute;left:20px;top:24px;width:130px;height:80px;z-index:99';stage.append(n);const r=n.getBoundingClientRect(),collision=a.x<r.right&&r.left<b.x&&a.y<r.bottom&&r.top<b.y;n.remove();return collision;});assert.ok(detected,'Old brief must collide with the head');}
-  // Negative control: reproduce the old overlay and require rectangle collision.
-  if(width===1440&&height===900){const detected=await p.evaluate(()=>{const n=document.querySelector('.character-selector'),s=document.querySelector('.fitting-stage');s.append(n);n.style.cssText='position:absolute;left:10%;right:10%;bottom:0;height:110px;z-index:99';const a=s.getBoundingClientRect(),b=n.getBoundingClientRect();return a.left<b.right&&b.left<a.right&&a.top<b.bottom&&b.top<a.bottom;});assert.ok(detected);}
-  await p.close();
- }
- pass('27 character/viewport checks: selector outside stage, full shoes visible, controls and score reachable; old overlay negative control detected');
- pass('27 head/brief checks: complete head visible, description readable above stage, old floating brief collision detected');
+ // Current layout, chooser and overlay regressions are exercised by salon.test.js.
  assert.deepEqual(report.errors,[]);report.status='passed';
 })().catch(e=>{report.status='failed';report.errors.push(e.stack);console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();await new Promise(r=>server.close(r));fs.writeFileSync(path.join(out,'report-'+channel+'.json'),JSON.stringify(report,null,2));});

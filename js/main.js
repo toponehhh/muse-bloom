@@ -56,7 +56,7 @@
   document.addEventListener('click',e=>{
     const button=e.target.closest('[data-action]');if(!button||button.disabled)return;
     const action=button.dataset.action;
-    P.event('action',{action,screen:state.screen,level:state.level,...(button.dataset.item?{item:button.dataset.item}:{}),...(button.dataset.category?{category:button.dataset.category}:{})});
+    P.event('action',{name:action,screen:state.screen,level:state.level,...(button.dataset.item?{item:button.dataset.item}:{}),...(button.dataset.category?{category:button.dataset.category}:{})});
     if(!['mute','equip','score','share','export-look','clear','preview-sound'].includes(action))S.play(action==='category'?'tab':'click');
     switch(action) {
       case 'home':navigate('home');break;

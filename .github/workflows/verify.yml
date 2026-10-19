@@ -29,16 +29,19 @@ jobs:
         run: npm run test:upload
       - name: Lookbook persistence, portrait export and responsive UI
         run: npm run test:lookbook
-      - name: Painted character artwork, dark UI contrast and seven responsive layouts
+      - name: Current UI, text contrast and seven responsive layouts
         run: npm run test:glam
       - name: Character motion and Web Audio lifecycle
         run: npm run test:experience
+      - name: Offline private playtest kit and feedback export
+        run: npm run test:playtest
       - name: Keep UI evidence and failure diffs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ui-regression-evidence
           path: |
+            artifacts/v1.7.0/
             artifacts/ui/
             artifacts/characters/
             artifacts/fitting/
