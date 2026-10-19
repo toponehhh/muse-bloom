@@ -27,7 +27,9 @@
     "assets:capsule": "node dev/build-capsule.js && node dev/embed-assets.js",
     "package:playtest": "node dev/package-playtest.js",
     "test:playtest": "node dev/package-playtest.js && node dev/playtest.test.js",
-    "playtest:summary": "node dev/summarize-playtest.js"
+    "playtest:summary": "node dev/summarize-playtest.js",
+    "package:pages": "node dev/package-pages.js",
+    "test:pages": "npm run package:pages && node dev/pages.test.js"
   },
   "engines": {
     "node": ">=20"
