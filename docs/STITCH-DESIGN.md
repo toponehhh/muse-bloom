@@ -1,4 +1,14 @@
-# Stitch design board — fitting dock
+# Stitch direction — v1.7.0
+
+Date: 2026-10-19. Reused the user-authorized Stitch MCP project `82907643651465109` as a drawing board. The response identified the **Velvet Dressing Room** direction and design-system asset `assets/c9efa77c73ed40f8b63d0a49f4a81649`; generation session `11818945389866277708`. No new screen ID is asserted here because a retrievable final screen was not confirmed.
+
+Applied direction: warm ivory/rose/plum surfaces, berry primary action, a large full-body bedroom stage, brief text outside the head, a modal character chooser, a mobile horizontal wardrobe, a concise guide and a reveal/before-after flow. The implemented CSS and real-game screenshots are the deliverable; a generated design response is not proof of a working interface.
+
+The earlier permanent dock and dark palette below are historical and are superseded. No Stitch credentials or remote code are included in the game.
+
+---
+
+# Historical v1.6.1 fitting dock
 
 Date: 2026-10-19. Connected to the user-specified Stitch MCP endpoint and reused the existing private **Western Teen Dress-Up Game** project. A new mobile board was generated without replacing existing designs.
 

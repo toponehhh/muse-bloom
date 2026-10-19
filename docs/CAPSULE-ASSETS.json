@@ -9,19 +9,89 @@
   "files": [
     {
       "path": "assets/capsule/details.webp",
-      "sha256": "1044e7c486447f44ea9f6007ea78afa6decdec97b5a2d70f0c4d468ed1872a16",
-      "bytes": 262066
+      "bytes": 262066,
+      "sha256": "1044e7c486447f44ea9f6007ea78afa6decdec97b5a2d70f0c4d468ed1872a16"
     },
     {
       "path": "assets/capsule/dresses.webp",
-      "sha256": "30b46656f4e4c0ddf8bcf35b9c854db20f309317cf07274bc48574b020808a49",
-      "bytes": 163464
+      "bytes": 163464,
+      "sha256": "30b46656f4e4c0ddf8bcf35b9c854db20f309317cf07274bc48574b020808a49"
+    },
+    {
+      "path": "assets/capsule/fitted/accessory_casual_01.webp",
+      "bytes": 10046,
+      "sha256": "9332f822e7bd165d3c771b48d8a1031ca0b3f2315a0a5dd741f9513a796c4afd"
+    },
+    {
+      "path": "assets/capsule/fitted/accessory_cute_03.webp",
+      "bytes": 9016,
+      "sha256": "9a0ab1d5e65b0e26b42500902218a1b2a1ef62698a875a33da2f69d984d4519c"
+    },
+    {
+      "path": "assets/capsule/fitted/bottom_casual_01.webp",
+      "bytes": 52782,
+      "sha256": "263498be90a1f371784a8f859f00af7673c551770cd8ee083fb4f1f6643fe5e6"
+    },
+    {
+      "path": "assets/capsule/fitted/bottom_cute_02.webp",
+      "bytes": 17810,
+      "sha256": "b2ca795776263fbfb3a2fa205b4b7d4256a3ba914c36d1bf1d2e09c5cfd855e4"
+    },
+    {
+      "path": "assets/capsule/fitted/bottom_summer_04.webp",
+      "bytes": 16960,
+      "sha256": "cb991d235c282f8c67b6f8fa1775381e0e9f124595d018a5522814c34f08e8a3"
+    },
+    {
+      "path": "assets/capsule/fitted/dress_cute_01.webp",
+      "bytes": 51324,
+      "sha256": "3f6ca9a17ce837e10f3037aa16e1bc1aed5ca69e5c2ed0f40e77280a5d179e33"
+    },
+    {
+      "path": "assets/capsule/fitted/dress_elegant_02.webp",
+      "bytes": 34558,
+      "sha256": "7166604b4f12a0c7db8b2baed300e45b98081eb155cfc1480d841e7f72bdc9dd"
+    },
+    {
+      "path": "assets/capsule/fitted/hair_casual_01.webp",
+      "bytes": 7848,
+      "sha256": "4467b0fcefe768b4d6d9f168aa9ad20ef96febe383d49670e3e450f603999858"
+    },
+    {
+      "path": "assets/capsule/fitted/shoes_casual_01.webp",
+      "bytes": 11586,
+      "sha256": "74bca1879f73973b8a6c5ebe047faa226307be4a39d20713bb9517334b4a55cb"
+    },
+    {
+      "path": "assets/capsule/fitted/shoes_chic_03.webp",
+      "bytes": 9954,
+      "sha256": "49293912167ff6be1771d30d2970b68b800fa665f18dc9e5045e27213ef16ec9"
+    },
+    {
+      "path": "assets/capsule/fitted/shoes_cute_02.webp",
+      "bytes": 10182,
+      "sha256": "8475e35c0721f7ba255eb0bcee3352b607beba6c1c21fceaca31d771aaa7ab4a"
+    },
+    {
+      "path": "assets/capsule/fitted/top_casual_01.webp",
+      "bytes": 13962,
+      "sha256": "67a28c633b0be3fb3bf560f22b2453b0abcb6a7b5c0956570a8f90b8ad5e3df7"
+    },
+    {
+      "path": "assets/capsule/fitted/top_cozy_02.webp",
+      "bytes": 21698,
+      "sha256": "4a9367a0f3005aea70cb7542d4f1d47d23bc621c8f3a150a0011335830a688f1"
+    },
+    {
+      "path": "assets/capsule/fitted/top_preppy_03.webp",
+      "bytes": 16388,
+      "sha256": "1019ad71c447f2753f1f78d671b169a37071f2aadd343c798b9d11fe9eaecc11"
     },
     {
       "path": "assets/capsule/separates.webp",
-      "sha256": "22d2b38fba49e46bc16bc9dc43a8d738837249d40c8c566dcc46115241d4c469",
-      "bytes": 217450
+      "bytes": 217450,
+      "sha256": "22d2b38fba49e46bc16bc9dc43a8d738837249d40c8c566dcc46115241d4c469"
     }
   ],
-  "notes": "Original generated alpha preserved. WebP format conversion only. Runtime garment fitting uses a native SVG mask and UV strips; source atlas pixels are not retouched."
+  "notes": "Source atlas alpha preserved. Runtime uses isolated sprite bounds and one continuous scanline-baked WebP per garment, clipped to native coverage. Source atlas pixels are not repainted."
 }

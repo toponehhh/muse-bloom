@@ -1,44 +1,35 @@
-# UI regression — fitted cast and unobstructed stage
+# Current UI regression contracts — v1.7.0
 
-Run `npm ci`, then the browser scripts in README. Windows uses installed Edge by default; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. CI uses Playwright Chromium. All suites except `test:browser` start their own temporary local server. The full journey needs `npm start` first.
+All tests operate on real browser rendering or actual pixels, not just asset names. Reports live in `artifacts/`; they are local automated evidence. See `QA.md` for which browser ran each suite. Mobile dimensions are emulated desktop viewports, not physical-phone testing.
 
-## New character suite: `npm run test:ui`
+| Command | Contract |
+|---|---|
+| `npm test` | 14 save/scoring tests, six starter-occasion/guide/legacy-save tests and 36 achievable 94-point solutions |
+| `npm run test:ui` | `salon.test.js`: complete all 36 via clicks, three different starter tasks, 366 equip/remove pairs (122 × three bodies), stable mounted base, before/after, 1080×1920 portrait, isolated feedback export |
+| `npm run test:fitting` | 246 actual garment/body masks; 1449 top/bottom waist pairs; offset trousers, narrow skirt and oversized top negative fixtures |
+| `npm run test:neckline` | 43 tops/dresses × three painted bodies; neck-root contact, visible necks and covered basic straps; old wide collar and chin-covering negative fixtures |
+| `npm run test:glam` | Seven viewports across home, studio, result, collection, lookbook, challenges and settings; missing-image and low-contrast failures detected |
+| `npm run test:lookbook` | Saved identity/outfit, actual PNG download, keyboard Enter/Escape and focus restoration, old progression without invented outfits, 12-look gallery across four sizes |
+| `npm run test:experience` | Real Web Audio analyser plus nine offline PCM effects; no pre-gesture audio, mute/resume race, background suspension, reduced motion, animated reveal and no-Web-Audio fallback |
+| `npm run test:upload` | Built single HTML at root, nested path, sandbox iframe and file URL; no external asset request; source-only upload intentionally fails |
+| `npm run test:playtest` | Delivered offline guide launches game; new/continue preserves session; backup form downloads; synthetic records exercise deduplication/missing values/automation exclusion and are deleted |
 
-- 3 × 122 actual item equip/remove pairs. Every selected garment must change rendered pixels; every removal retains the mounted character and paints a nonempty body.
-- Three distinct raster hashes, body opacity and true transparent background / leg gap.
-- 60 pixel coverage checks for trousers, shorts and closed shoes across all three bodies. A deliberately shifted garment must fail the coverage threshold.
-- Empty-sprite negative control; retired body directory and old face/body/hand/hairstyle renderers must be absent.
-- 24 reviewed 360 × 640 canvas baselines: each character in basics, separates, shorts, trousers, skirt, gown, Chinese-inspired clothing and two handhelds. Comparison tolerates at most 0.6% pixels with channel difference >20 for cross-browser antialiasing; current measured ratios are in reports.
-- Switching characters retains equipped clothing; reload restores the chosen identity.
-- Seven viewports from 320 × 568 to 1440 × 900: visible selector choices, accessible score action, no horizontal overflow, dialog keyboard selection and Escape close.
+## Layout acceptance
 
-`npm run test:ui:update` explicitly records new baselines. Inspect them before committing. The older vector-body anatomy/accessory test files and their 60 old screenshots were removed, rather than retaining tests for artwork no longer shipped. The `test:anatomy` and `test:accessories` aliases run the new character suite.
+`salon.test.js` tests 320×568, 375×667, 390×844, 667×375, 768×1024, 1024×540, 1024×768, 1440×600 and 1440×1000 with each character. It measures transformed SVG head/foot rectangles against stage and control bounds. Deliberately covering the head or feet must fail, and removing the obstruction must recover.
 
-## Full fitting suite: `npm run test:fitting`
+Small phones scroll vertically so the whole avatar can stay at least 260px tall. The reveal button must be reachable and unclipped; the test does not falsely require every control to fit on the initial viewport. The character picker is a dialog, not the removed permanent dock. The full collection wraps; only the fitting wardrobe uses a horizontal mobile carousel.
 
-- 3 characters × 82 garments = 246 pixel checks against the actual painted bodies. Includes all tops, long/short sleeves, all dresses, skirt hips, pants, shorts and shoes. The lavender basics are also detected by colour so exposed straps or shorts cannot hide behind a skin-only test.
-- The arm/hip gap is measured separately, so skirts need not cover bare hands and sleeveless pieces need not cover arms. Open sandals intentionally expose parts of the feet. Covered regions allow at most 0.3% antialiasing misses and at most 3 consecutive pixels at the 360×640 test resolution.
-- Independent waist/hip ease and calf-width limits reject excessively wide or pinched fits. Test probes are separate from the renderer's authored paths.
-- All 23 × 21 × 3 = 1,449 top/bottom combinations check the waist seam by combining cached rendered alpha masks. This is a seam test, not a claim that every combination has a reviewed screenshot.
-- Nine viewports (320×568, 375×667, 390×844, 667×375, 768×1024, 1024×540, 1024×768, 1440×600, 1440×900) × three characters check that the selector is structurally outside the stage, never intersects it or the projected shoe region, and leaves score/character actions reachable.
-- Shifted trousers, a narrowed skirt, an oversized top and a selector deliberately placed over the stage must be detected as failures.
-- All 27 viewport/character cases also project the complete head into screen space and reject collisions with the brief, wardrobe or character dock. The brief must be readable above the stage. A recreated floating brief at the old position must collide with the head and be detected.
-- Reports and whole-screen captures are under `artifacts/fitting`. Actual pixel tests cover fitting regions, while screenshot review covers overall appearance.
+## Pixel acceptance and visual review
 
-## Neckline contact suite: `npm run test:neckline`
+The body/waist/neckline scripts rasterize the actual native 720×1280 geometry with independent sampled regions. Neck contact allows total seam ease −10 to +16px and a 6px centering tolerance. Basic straps allow at most two antialiasing pixels. Garment coverage permits the script's small antialiasing tolerance and intentionally exposed skin; it does not require sandals to hide the whole foot.
 
-- 43 tops/dresses × 3 painted characters = 129 checks at native 720×1280 resolution. The first opaque neckline row is compared with the actual neck boundaries in the base sprite, independently of authored garment paths. Allowed total seam ease: −10 to +16 px; centering tolerance: 6 px.
-- The upper neck remains visible. Crew/collared openings expose skin below the neck root; intentionally standing collars use their own opening allowance. The lavender basic straps must be covered with no more than two antialiasing pixels at the shoulder edge.
-- Negative fixtures reproduce the old broad neckline and a garment extending onto the chin. Both must fail for every character.
-- Three enlarged sheets capture every neckline in `artifacts/neckline`; these complement the existing 24 full-body baselines. Pixel assertions test geometry/coverage, while humans review the art itself.
+All 14 painted pieces are compared against native fallback pixels; more than 20% of opaque pixels must materially differ. This proves that new textures are actually displayed, not only named in metadata. It does not prove artistic quality. Inspect the real 15-look capsule contact sheet (five combinations × three characters), enlarged neckline sheets, mobile layouts and saved portrait.
 
-## Retained suites
+The first review caught atlas bleed into the tee and satin dress despite passing coverage checks. Source alpha components now isolate individual sprites. Keep both image review and geometric checks.
 
-- `npm test`: 14 rule/save tests plus all 36 levels solvable at 94 points. Includes legacy skin-only saves mapped to a new character without losing progress, unlocked items or outfits, plus identity roundtrips and invalid IDs.
-- `test:lookbook`: actual 1080 × 1920 download, exact restored outfit/identity, best look, legacy progress, keyboard focus and mobile gallery.
-- `test:upload`: unstyled missing-script negative control; self-contained root, nested mobile, sandboxed iframe and file:// startup, outfit changes and saved selection; no asset requests.
-- `test:glam`: decoded playable homepage artwork, seven responsive page layouts, 4.5:1 wardrobe text contrast with a low-contrast negative control.
-- `test:experience`: nine distinct synthesized PCM effects, gesture unlock, mute/resume races, hidden-page suspension, idle breathing, reduced motion and rapid toggles.
-- `test:browser`: full 36-level real-input journey, 122 earned pieces, seven hidden rewards, touch, offline card export and denied/corrupt storage.
+The old `dev/browser.test.js`, `dev/characters.test.js` and 24 v1.6 baselines remain historical source; they are no longer wired to the current npm/CI commands. Current commands do not claim those old snapshots passed.
 
-Reports are under `artifacts/{characters,fitting,glam,lookbook,upload,experience}` plus `artifacts/browser-report-msedge.json`. Whole-page screenshots are manually inspected; they are not represented as automatic whole-page pixel tests. Browser emulation does not replace real iOS/Safari or CrazyGames platform QA.
+## Limits
+
+No human playtest results, real iOS/Safari, physical Android, low-memory Chromebook, hosted CI or CrazyGames portal QA are included. Playtest records with `source: automated-check` must never count as human feedback. A passing local test cannot establish retention, artistic preference or platform approval.

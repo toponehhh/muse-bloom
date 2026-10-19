@@ -1,74 +1,34 @@
-# CrazyGames Basic Launch 提交说明
+# CrazyGames 提交说明 — v1.7.0 试玩候选版
 
-本项目的首发目标是 **Basic Launch**。当前版本无广告、无内购、无登录、无遥测、无外部网络依赖；存档保存在当前浏览器的 `muse_bloom_save_v1`。这是一份本地交付说明，**不代表已经上传或通过平台审核**。
+当前交付用于先进行私人试玩。用户已确认此前被拒绝的是 v1.6.2；拒绝文字只给出整体质量评价，没有指出具体缺陷。本次改动针对我们从实际界面发现的问题，不把推测写成平台确认的拒绝原因，也不承诺重新审核通过。
 
-## 打包与上传
+## 上传文件
 
-```sh
-npm test
-npm run package:upload
-npm run test:upload
-```
+运行 `npm run package:upload`，使用 `dist/crazygames-upload/index.html`。用户当前门户使用文件/文件夹上传；选择这个文件或它所在的文件夹。不要只上传源码根目录的 HTML，也不要把试玩说明页当成游戏入口。
 
-在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标、矢量素材和卧室背景，不需要其他文件。当前版本为 **v1.6.1 Meet Your Muse**。实际游戏、角色选择、首页、相册和导出卡片均使用 Bella、Mika、Zoe 三位新绘制人物。旧人物绘制和四个旧身体 SVG 已移除。三位角色与卧室均已内嵌；上传目录只需此一个 index.html。切换人物保留服装，旧进度自动迁移。
+该单文件约 1.43 MB，内嵌 CSS、JavaScript、角色、14 件精修服饰、其余矢量衣服和卧室。无需 CDN 或其他资源请求。`npm run test:upload` 对实际文件验证根路径、嵌套路径、sandbox iframe 和离线 file URL。故意只提供源码 HTML 时会重现之前的无样式启动页。
 
-此前直接上传 ZIP 的说明不适用于用户当前的入口。`npm run package` 仍生成多文件 ZIP，供备份和其他静态托管使用。若使用多文件形式，须先解压，再保留相同层级上传 `index.html`、`css/`、`js/` 和 `assets/`；源码中的 `index.html` 不能单独上传。
+`dist/playtest-v1.7.0/` 是分享给试玩者的完整目录。它的 `index.html` 是任务和反馈说明，`Muse-Bloom.html` 才是游戏。私人分享 ZIP 可解压后使用；它不是本门户的上传格式。
 
-如果 Preview 只显示无样式的 “Muse Bloom / Your wardrobe is waking up…”：这表示入口 HTML 已打开，但样式和脚本未正常工作，常见原因是资源缺失、目录层级变化或请求被阻止。不能仅凭截图确认具体状态码。本地已通过故意缺少 CSS/JS 重现该画面；提供的线上预览地址因浏览器管理策略无法读取，因此尚未确认线上实际失败的请求。优先使用上面的单文件版创建新构建并重新 Preview；若仍失败，在浏览器开发者工具 Console / Network 中检查首个错误。
+## 当前功能与材料
 
-本次成品同时准备：
+- HTML5；单人；键鼠/触控响应式界面；英文游戏文本。
+- 正常进度存于 LocalStorage `muse_bloom_save_v1`；无账号或服务器。
+- 没有 CrazyGames SDK、云存档、广告或 SDK 静音支持。不要勾选已接入这些功能。
+- 显式 `?playtest=1` 才启用匿名本地操作记录和独立存档。只由参与者手动下载反馈，不自动上传；正常游戏不记录试玩事件。
+- 14 件首发精修服饰，三种不同开场任务；其余 108 件维持原有贴合矢量绘制。不要宣传成全部素材重制或真正 3D。
+- 旧 `promo/` 封面与录像属于 v1.6 系列。本次没有将它们伪装为 v1.7 素材；重新提交前应根据最终玩法重新拍摄。
 
-| 文件 | 用途 |
-| --- | --- |
-| `promo/cover-landscape.png` | 1920 × 1080 横版封面 |
-| `promo/cover-portrait.png` | 800 × 1200 竖版封面 |
-| `promo/cover-square.png` | 800 × 800 方形封面 |
-| `promo/preview-landscape.mp4` | 1920 × 1080、约 18 秒、无声、真实操作录像 |
-| `promo/preview-portrait.mp4` | 1080 × 1620、约 18 秒、无声、真实操作录像 |
-
-封面只包含游戏名，视频以对应封面开场。截图与视频展示本游戏真实角色和服装，不使用第三方品牌资产。
-
-## 可直接使用的英文元数据
+## 新版英文描述草稿
 
 **Title:** Muse Bloom
 
-**Short description:** Style 36 fashion challenges, collect 122 pieces and create your personal lookbook.
+**Description:** Muse Bloom is a cozy dress-up game about the little moments that deserve a look of their own. Choose Bella, Mika or Zoe and start with a curated 14-piece wardrobe. Dress for coffee with friends, a gallery opening and a weekend flower market, with clear occasion goals and room for your own taste. Reveal your outfit, compare before and after, and save a portrait to your style diary. Continue through 36 challenges and collect 122 pieces, including modern Chinese-inspired fashion. There is no timer, and you can restyle as often as you like.
 
-**Description:**
+**Controls:** Click or tap an item to wear it; tap it again to remove it. Browse clothing categories, open Style goals for hints and select Reveal my look when your outfit is complete. Select the character name to change your muse. Open Lookbook to revisit and save outfits. Settings includes challenges, collection, sound and the styling guide. Use Tab and Enter for buttons, and arrow keys in category tabs. A dress replaces separates; selecting a top or bottom switches back to separates.
 
-Muse Bloom is a dress-up and fashion puzzle game set in a cozy bedroom studio. Choose Bella, Mika or Zoe and style your painted fashion character in a midnight-pink studio with subtle sparkles and soft sound effects. Match each brief, discover new pieces and build a lookbook that reflects your point of view. Explore 36 challenges across six collections, from everyday outfits and Y2K style to red carpet looks and modern Chinese fashion. Mix tops and bottoms, choose a dress, find the right shoes and finish with two accessories. Collect 122 pieces, including hanfu-inspired layers, mamian skirts and jade details. Earn S ranks to uncover secret items. Your best completed looks are saved with their outfits and chosen characters, ready to revisit, restyle or download as portrait cards. There is no timer and no penalty for trying again. Every look. Entirely you.
+## 官方要求与本地证据
 
-**Controls:** Choose a character using the stage portraits or Meet the muses. Click or tap an item to wear it. Tap it again to remove it. Browse the categories, match the three mood tags and select Walk the runway. Open Lookbook to revisit a completed outfit, restyle it or save a portrait. Use Tab and Enter to select controls and the left and right arrow keys in category tabs. A dress replaces your top and bottom. You can wear two accessories.
+2026-10-19 重新查看的 [Launch requirements](https://docs.crazygames.com/requirements/intro/) 说明 Basic Launch 的 SDK 可选且不能变现；Full Launch 需要完整接入。 [Technical requirements](https://docs.crazygames.com/requirements/technical/) 说明无 SDK 时总文件不超过 50 MB，进入移动首页的初始文件不超过 20 MB，文件数不超过 1,500，资源使用相对路径，并要求 Chrome/Edge 正常工作。
 
-**Suggested categories:** Dress Up, Fashion, Casual, Puzzle.
-
-**Keywords:** dress up, fashion, aesthetic, outfit, challenge, hanfu, Chinese fashion, New Chinese style.
-
-**Devices:** Desktop and mobile. Responsive portrait and landscape layouts. English interface.
-
-## 核对过的官方要求
-
-以下为前一轮在 2026-10-19 记录的官方要求；本轮只验证本地角色更新和上传文件，未重新联网核对。上传形式沿用用户当前门户的文件/文件夹入口。
-
-- [Launch requirements](https://docs.crazygames.com/requirements/intro/)：Basic Launch 的 SDK 可选、广告变现不可用；Full Launch 需要 SDK 及相应完整接入。
-- [Technical requirements](https://docs.crazygames.com/requirements/technical/)：无 SDK 时总文件上限 50 MB，移动首页初始下载上限 20 MB，文件上限 1,500，使用相对路径，支持 Chrome/Edge。
-- [Game covers](https://docs.crazygames.com/requirements/game-covers/)：需要横、竖、方三张封面，以及横竖预览视频；视频 15–20 秒、无声、最大 50 MB。
-
-## 发布前仍需在平台完成
-
-1. 使用开发者账号上传，在 CrazyGames Preview 中进行平台实际验收。
-2. 确认英文名称、封面与描述符合平台审核要求；商标检索未在本次开发中进行。
-3. 在真实 iPhone/iPad/Safari 上验收音频恢复、触控、分享卡长按保存；桌面 Chromium 的手机尺寸模拟不等于真机测试。
-4. 获准进入 Full Launch 后，再接入 SDK、游戏开始/停止事件、平台静音设置、云存档及广告。当前版本没有宣称完成这些接入。
-
-## 验证入口
-
-- `npm test`：纯函数规则与存档测试，以及逐关可解性、数量、标签分布校验。
-- `dev/browser.test.js`：通过实际界面完成 36 关，验证互斥、解锁、存档、下载、手机尺寸和 iframe。需要 Playwright 及已安装浏览器，见 README。
-- `dev/performance.js`：记录受限网络与 CPU 下的启动结果，性能数据只代表该测试配置。
-- `dev/iframe.html`：本地 iframe 宿主页。
-- `docs/QA.md`：本次实际测试结果与边界。
-
-## 重新生成营销素材
-
-启动本地服务后，执行 `node dev/make-promo.js`。设置 `MUSE_PLAYWRIGHT` 指向 Playwright 模块、`MUSE_FFMPEG` 指向 FFmpeg 可执行文件。工具使用独立浏览器上下文录制，录像保持真实操作时序；这些开发工具不进入游戏包。
+本地大小和自动化检查只是其中一部分证据。真人反馈、CrazyGames 线上 Preview / QA、真实手机和最终审核仍需要另行完成。没有执行本次版本的线上提交，也没有上传 GitHub。

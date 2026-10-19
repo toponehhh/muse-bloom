@@ -1,0 +1,28 @@
+MUSE BLOOM 1.7.0 / GENERATED CAPSULE PROVENANCE
+Tool: built-in image_gen; transparent_background: true.
+The following are condensed generation briefs, not a verbatim request transcript.
+
+1. SEPARATES — transparent 3 by 2 atlas of front-facing clothing, no body.
+Ivory fitted tee, rose short puff-sleeve knit cardigan, sky-blue polo;
+denim jeans, ivory pleated skirt, sage belted shorts. Painted fabric detail,
+soft dimensional shading and highlights to coordinate with the existing
+cartoon fashion characters. Clear separated silhouettes, no lettering.
+Source: exec-ce58996e-ad1d-46be-a7a5-3172a407b6c3.png
+
+2. DRESSES — two separate front-facing dresses on transparent background.
+Lavender short-sleeved A-line day dress, champagne/rose satin midi with a bow.
+Soft painted cloth, coherent lighting, dimensional folds, no body or lettering.
+Source: exec-1a5a445e-81c4-4fc7-a042-19d0f2dfb77d.png
+
+3. DETAILS — transparent 3 by 2 atlas, consistent painted lighting.
+Ivory sneakers, rose Mary Janes, sage loafers; caramel top-handle bag,
+ivory quilted bag, rose satin hair bow. Separate usable silhouettes, no text.
+Source: exec-4c3cafd2-48a5-4677-aa84-f1f9a4fa1080.png
+
+Original images remain under:
+C:\Users\huangd\.codex\generated_images\01a14f31-86b8-7f73-9657-c0b472db0c58\
+
+Repository atlases are format-converted WebP with original alpha preserved.
+Runtime fitting crops isolated sprites and bakes into native garment masks;
+this integration changes fitted geometry but does not repaint source atlases.
+See ART.md for the reproducible preparation/fitting/embedding pipeline.

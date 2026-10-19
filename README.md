@@ -1,61 +1,54 @@
 # Muse Bloom
 
-Every look. Entirely you. — v1.6.2, A Better Fit
+**v1.7.0 — The Studio Edit**
 
-An offline HTML5 fashion puzzle with 36 challenges and 122 collectible pieces. Choose Bella, Mika or Zoe, dress your character in a bedroom studio, match the style brief, and build a personal lookbook. This release replaces the actual playable vector dolls with three painted, transparent character sprites based on the supplied Stitch visual references. The same characters appear in gameplay, selection, lookbooks, portrait exports and covers.
+An offline HTML5 dress-up game with three painted characters, 36 challenges and 122 collectible pieces. This iteration polishes the first three occasions with 14 painted wardrobe pieces, a warm ivory/rose studio, a short adaptive guide, an animated reveal and before/after comparison.
+
+The first occasions are Coffee with friends, The gallery opening and Weekend flower market. Their visible goals reward a complete outfit (40 points) and two occasion details (27 each). An incomplete outfit cannot be revealed. Maximum 94; a complete base can pass, while meeting the details earns the best rank. Later challenges retain the original mood-tag rules. Stored IDs, unlocks and historical look scores are preserved.
 
 ## Play and develop
 
-Open `index.html` or run `npm start` with Node.js 20+ and visit http://localhost:4173. Gameplay needs no installation, account, CDN or network connection.
+Open the source `index.html`, or run `npm start` and visit `http://localhost:4173`. The delivered standalone file needs no server, account, CDN or installation.
 
 ```sh
-npm test                 # 14 rule/save tests + all 36 challenges
-npm ci                   # install pinned Playwright for development tests
-npx playwright install chromium  # Linux/CI; Windows defaults to installed Edge
-npm run test:ui          # real character input, body coverage and pixel baselines
-npm run test:fitting     # 246 garment checks, 1449 waist seams, 9 viewports
-npm run test:neckline    # 129 neckline contacts, visible necks and covered straps
-npm run test:glam        # 7 viewport layouts, images and contrast
-npm run test:lookbook    # saved identities/outfits and actual PNG downloads
-npm run test:experience  # idle motion, Web Audio and visibility lifecycle
-npm run assets          # regenerate garment SVGs and embed local artwork
-npm run package:upload  # dist/crazygames-upload/index.html
-npm run test:upload     # portal-style / nested / iframe / offline tests
-npm run standalone     # dist/Muse-Bloom.html
-npm run package        # multi-file ZIP backup
+npm ci                    # pinned Playwright tools; game itself needs no install
+npm test                  # 20 rules/save/occasion tests + all 36 solvable briefs
+npm run test:ui           # actual 36-level journey, 366 equip/remove pairs, 27 layouts
+npm run test:fitting      # 246 body coverage + 1449 waist combinations
+npm run test:neckline     # 129 neck/shoulder contacts and failure controls
+npm run test:lookbook     # saves, keyboard, export and gallery layouts
+npm run test:glam         # seven viewports across the current screens
+npm run test:experience   # nine audio signals, reveal, mute and reduced motion
+npm run package:upload    # dist/crazygames-upload/index.html
+npm run test:upload       # actual root/nested/iframe/offline upload file
+npm run standalone       # dist/Muse-Bloom.html
+npm run test:playtest     # build and verify the private playtest kit
 ```
 
-With `npm start` running, `npm run test:browser` plays all 36 levels through the UI. Set `MUSE_BROWSER_CHANNEL=chrome` for installed Chrome. `test:ui:update` explicitly replaces the 24 reviewed character-only baselines; review images before checking them in. Development tests are not loaded by the game.
+Tests start their own servers. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. Linux uses Playwright Chromium (`npx playwright install chromium`). Current UI coverage is in `dev/salon.test.js`; old v1.6 browser/character scripts and baselines are historical references, not current test commands.
 
-## Characters and saved progress
+## Private playtest
 
-- Bella: light complexion, honey-blonde bob, blue eyes; fresh-save default.
-- Mika: light complexion, black bob, brown eyes.
-- Zoe: brown complexion, textured puff buns, hazel eyes.
-- Select from portraits in a dedicated row below and outside the stage, the Meet the muses dialog, or Settings. Your outfit remains equipped when you change characters.
-- The old four SVG bodies and face/hand/hairstyle renderer have been deleted from the active project. There is no old-doll fallback.
-- Hairstyles belong to characters. The 22 previous hairstyle item IDs now represent bows, clips, headbands and other Hair details. IDs, style tags, scores and earned unlocks are preserved.
-- Clearing an outfit reveals the painted lavender studio basics. Basics award no points. New sessions start in these basics so the new character is immediately visible.
-- `muse_bloom_save_v1` remains compatible. Current saves and recorded looks store `character`. Older light/warm skin-only saves migrate to Bella; tan/deep migrate to Zoe. Progress and recorded outfits remain intact.
+Run `npm run package:playtest`, then open `dist/playtest-v1.7.0/index.html`. The folder contains the game, three neutral tasks, organizer instructions and an offline backup feedback form. Share the complete folder, or ZIP it for participants to extract. The ZIP is a human-sharing format, not a CrazyGames upload instruction.
 
-## Clothing fit and the character dock
+`?playtest=1` enables a local anonymous session and a separate save; `fresh=1` starts a new participant. Normal play does not collect events. Feedback downloads only after a participant submits the form. No answers are sent automatically. Ask the person to share their JSON voluntarily. Observer forms should use the same participant ID as the game export.
 
-All 82 tops, bottoms, dresses and shoes now use native patterns aligned to the painted cast. Bent sleeves, fitted waists, hip ease, separate trouser legs and new shoe outlines replace the old global garment warp. Footwear renders behind garment hems, so tall boots do not cover long skirts. Hair details and accessory grips retain their separate placement rig.
+```sh
+npm run playtest:summary -- path/to/response-folder
+```
 
-The character dock occupies its own layout row and cannot cover the stage. Regular portrait phones use 44px character buttons; small-height phones and landscape layouts use compact controls. A new Stitch MCP board informs this layout; see [design provenance](docs/STITCH-DESIGN.md). The game does not call Stitch or require its credentials.
+The summary deduplicates IDs, retains session events when adding an observer form, excludes `automated-check` records and treats missing ratings as missing. **No real participants have been recruited or measured in this delivery.** Automated export checks are not player enjoyment, retention or approval evidence.
 
-Version 1.6.2 fits all 43 top/dress necklines to the painted neck roots, including crew necks, lapels and standing collars. Shoulder seams cover the basic straps. The style description appears above the stage with the challenge title on every supported screen size; no text panel overlays the head. Desktop stage and wardrobe share the remaining screen height so the visible description cannot push controls offscreen.
+## Art and compatibility
 
-## Game scope
+Bella is the fresh-save default; Mika and Zoe remain selectable. Change character in the dialog without covering the head or shoes. The homepage uses the actual dressed character and reflects an existing selection. Clearing clothes restores painted studio basics; choosing a top/bottom replaces a dress naturally.
 
-Six collections; 36 sequential briefs; 122 pieces including 20 Chinese-inspired items. A dress replaces separates; two accessory slots. Three required tags contribute 60 points, two bonus tags 10, six outfit units 24. Maximum 94; S starts at 85, pass at 35. Three different S results unlock a secret item. Nine synthesized sounds and reduced-motion-aware animations are included.
+The polished starter capsule has 14 painted pieces. The remaining 108 collectible items retain the fitted SVG artwork; the entire wardrobe has not been repainted. All pieces still work on all three characters. The reveal moves the whole illustration so clothes remain aligned. This is fixed-view painted art, not a rotatable 3D character or a skeletal walking animation.
 
-The rendering is fixed-view painted 2.5D art with fitted SVG clothing, not a rotatable 3D mesh. Canvas exports use the same composite as the stage. No old anatomical vector art is rendered.
+`dev/prepare-capsule.py` reads atlas alpha to find each sprite; `dev/build-capsule.js` bakes continuous texture scanlines into the native fitting mask. This prevents neighboring atlas sprites from bleeding into clothes. `npm run assets:capsule` rebuilds fitted WebP textures and embeds them; Python/Pillow is needed only when recalculating source bounds. `npm run assets` regenerates the native SVG fallback/thumbnail files and embeds local artwork. See [art pipeline](docs/ART.md), [generation briefs](docs/CAPSULE-PROMPTS.txt), [hashes](docs/CAPSULE-ASSETS.json) and [Stitch direction](docs/STITCH-DESIGN.md).
 
-## Release and source
+## Delivery boundaries
 
-For CrazyGames folder/file upload, use the single self-contained `dist/crazygames-upload/index.html`, not the source HTML alone. See [submission notes](docs/CRAZYGAMES.md). SDK, cloud saves, ads and platform mute integration are not implemented; this local build targets Basic Launch. Nothing has been uploaded to CrazyGames or GitHub in this work.
+Use `dist/crazygames-upload/index.html` for the portal's file/folder upload, not the source HTML alone or the playtest guide. SDK, cloud saves, ads and platform mute integration remain unimplemented. This version is a local playtest candidate; it has not been resubmitted or accepted by CrazyGames. Existing v1.6 promotional media is historical, not a v1.7 capture.
 
-Changes are committed in steps locally. [GitHub instructions](docs/GITHUB.md) describe pushing later. CI configuration exists; local test results are recorded in [QA](docs/QA.md), not presented as hosted CI or platform approval.
-
-See [art pipeline](docs/ART.md), [character generation provenance](docs/CHARACTER-PROMPTS.md), [asset hashes](docs/CHARACTER-ASSETS.json) and [UI test coverage](docs/UI-TESTS.md). The original Stitch ZIP is unchanged. Character assets were generated with the built-in image tool using the supplied illustrations as references. This project makes no claim about third-party ownership of supplied reference art. No open-source license is granted by default.
+Changes are checked in locally in steps. No GitHub repository was created or pushed. See [QA evidence](docs/QA.md), [test contracts](docs/UI-TESTS.md), [submission notes](docs/CRAZYGAMES.md) and [later GitHub upload](docs/GITHUB.md). CI is configured but has not run remotely. No open-source license is granted by default.

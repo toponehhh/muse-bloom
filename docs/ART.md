@@ -1,4 +1,19 @@
-# Art pipeline — v1.6.2
+# Art pipeline — v1.7.0
+
+Fourteen starter pieces use locally embedded fitted WebP textures from three original generated atlases: separates, dresses and details. See `CAPSULE-PROMPTS.txt` for the generation briefs and `CAPSULE-ASSETS.json` for hashes. The other 108 pieces retain their fitted SVG artwork.
+
+1. `dev/prepare-capsule.py` (Python + Pillow) reads atlas alpha, isolates the largest garment component or two shoe components in each region, and writes `dev/capsule-source.json`. It does not repaint or alter the atlas. This avoids neighboring sprites bleeding into the tee, denim, sneaker or satin-dress crop.
+2. `dev/build-capsule.js` reads the actual native garment mask in a browser and fits continuous texture scanlines into it. It bakes one WebP per item under `assets/capsule/fitted/`, preserving neck/waist/body coverage. Baking avoids per-band SVG seams and runtime node overhead.
+3. `dev/embed-assets.js` embeds fitted textures, characters and room. `js/art.js` uses the same painted layer in thumbnails, the studio, lookbook and Canvas portrait export. Native masks remain available to independent fit tests.
+4. `dev/review-v17.js` captures the real home, studio, mobile layouts and 15-look contact sheet. Inspect these alongside geometric tests. No claim is made that 14 painted assets repaint the full 122-item wardrobe.
+
+Commands: `python dev/prepare-capsule.py` when recalculating bounds; `npm run assets:capsule` to bake and embed; `npm run assets` to export native SVG files and embed. Commit derived files so players need no build pipeline. The original generated files remain untouched.
+
+The material is fixed-view illustration, not a 3D mesh. Both idle and reveal animation move the complete composite to keep clothing aligned. Current portrait exports match the warm studio palette.
+
+## Retained character and geometry pipeline
+
+
 
 ## Playable cast
 
@@ -20,4 +35,4 @@ Body proportions, shoulders, elbows, waist, hips and hands are painted into each
 
 Crew necks now anchor at the neck root around x=329/391, y=278, with a curved opening and shoulder panels extending to the armholes. Matching trim, lapels, standing collars and crossed collars share this attachment. The pattern includes enough shoulder ease to cover the slightly higher basic straps on Mika. The old broad, shallow neckline is retained only as a failing test fixture.
 
-See `UI-TESTS.md` for 129 independent neckline contact/strap checks, all-garment body-coverage checks, all top/bottom waist-seam combinations and the 24 manually reviewed snapshots. Aesthetic judgement and arbitrary combinations still benefit from human review; tests do not prove every artistic detail correct.
+See `UI-TESTS.md` for 129 independent neckline contact/strap checks, all-garment body-coverage checks, all top/bottom waist-seam combinations and the current 15-look capsule contact sheet. Aesthetic judgement and arbitrary combinations still benefit from human review; tests do not prove every artistic detail correct.

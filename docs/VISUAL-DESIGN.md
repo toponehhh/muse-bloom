@@ -1,11 +1,9 @@
-# Muse Bloom — Meet Your Muse
+# Muse Bloom — The Studio Edit
 
-Version 1.6.0 carries the supplied Stitch studio palette forward: midnight navy, lavender glass, pink accents and small champagne highlights, with a softly lit bedroom backdrop.
+Version 1.7.0 uses warm ivory surfaces, rose/berry actions, plum text and restrained glints. The home image is the actual dressed character in the bedroom. Main screens emphasize the person and outfit; scoring details move into a separate style-goals dialog. Character choice also opens in a dialog, leaving head and shoes unobstructed.
 
-The cast is now playable rather than only editorial. Bella's honey bob, Mika's midnight bob and Zoe's curly puffs each have a distinct face and painted complexion, with a shared frontal pose for clothing fit. The default is Bella. All have compact fashion-doll proportions, natural hand details, visible joints and painted depth. There is no old vector-doll mode.
+The first three occasions have separate stories and visible goals: coffee comfort and a personal detail; a gallery statement and polished shoes; a walking outfit and market bag. A four-step guide adapts to dresses or separates, can be skipped and replayed, and ends when the first outfit is complete. A short whole-composite reveal leads to before/after comparison and a matching warm portrait export. Reduced-motion mode bypasses presentation movement.
 
-Home shows the actual cast, the stage offers labelled portrait buttons, and Meet the muses opens larger character cards. Mobile uses a compact side selector that stays inside the stage even at 320px. Changing a character retains the outfit and updates the save. The lookbook and portrait export preserve the chosen character.
+Fourteen starter pieces have painted fabric, shading and highlights that better match Bella, Mika and Zoe. All three retain their established body pose and identity. Remaining collectibles use the existing fitted vector patterns. Small phone screens scroll rather than shrinking the character; the fitting wardrobe becomes a horizontal carousel, while the full collection remains a wrapping grid.
 
-Hair details now contains bows, clips, ribbons, pearls and headbands. Base hairstyles are attached to character identity. The 22 existing item IDs retain progress and scoring. All 122 pieces remain collectible, and clearing them restores the painted lavender studio basics.
-
-Motion uses the whole character composite, keeping clothes aligned. Sound and reduced-motion controls remain available. Painted depth is a fixed-view 2.5D treatment, not a live 3D scene.
+This is a private playtest candidate. The visual direction was informed by the user's Stitch project, but automated tests and our screenshot review cannot replace independent player reactions. There is no claim that these changes guarantee CrazyGames acceptance.
