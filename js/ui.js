@@ -84,8 +84,7 @@
   function characters(state){return `<div class="dialog-head"><div><div class="eyebrow">MEET YOUR MUSE</div><h2 id="dialog-title">Choose your character</h2></div>${btn('close',icon('close'),'icon-button','aria-label="Close character selector"')}</div><p>Three faces. Your wardrobe. Pick a muse and make the look yours.</p><div class="character-gallery">${D.characters.map(c=>btn('character',`<div class="character-preview">${A.avatarSvg(c,[],'choice-'+c.id)}</div><strong>${c.name}</strong><span>${c.note}</span><small>${state.save.character===c.id?'Selected':'Choose character'}</small>`,'character-card'+(state.save.character===c.id?' active':''),`data-character="${c.id}" aria-pressed="${state.save.character===c.id}"`)).join('')}</div><p class="character-help">Your hairstyle belongs to your character. Add bows, clips and headbands in Hair details.</p>`;}
   const glints=()=>`<div class="studio-lights" aria-hidden="true"><i></i><i></i><i></i><i></i><b>✦</b><b>✧</b><b>✦</b><span class="studio-orbit"></span><span class="studio-podium"></span></div>`;
   function stage(state,cls='') {
-    const thought=state.screen==='dressing'?D.themes[state.level-1].description:'This look is so you!';
-    return `<div class="fitting-stage ${cls}">${room()}<div class="room-light"></div><div class="vanity-rim" aria-hidden="true"></div>${glints()}<div class="scene-speech"><span class="scene-caption">THE STYLE BRIEF</span>${escape(thought)}</div><div class="avatar-shadow"></div><div id="avatar-slot">${avatar(state.outfit,state.save.character)}</div></div>`;
+    return `<div class="fitting-stage ${cls}">${room()}<div class="room-light"></div><div class="vanity-rim" aria-hidden="true"></div>${glints()}<div class="avatar-shadow"></div><div id="avatar-slot">${avatar(state.outfit,state.save.character)}</div></div>`;
   }
   function outfitBar(state) {
     const pieces=G.equippedItems(state.outfit),units=pieces.reduce((n,i)=>n+i.slotUnit,0);

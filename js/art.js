@@ -103,43 +103,47 @@
   }
   // Clothing is drafted in the painted cast's 720 x 1280 coordinates.
   // The shared envelope includes 6–12 px of seam ease around all three sprites.
-  // Neck 286, bust 385, waist 490, hips 625, knees 840, ankles 1140.
+  // Neck root 278 (x329–391), shoulders 300, bust 385, waist 490, hips 625.
+  // Neck openings follow the painted neck, with shoulder fabric continuing to
+  // the armhole. A wide horizontal rim here used to float above the clavicles.
   const mirror=content=>`<g transform="translate(720 0) scale(-1 1)">${content}</g>`;
   function sleeves(color,kind='long') {
     const shape=kind==='short'
-      ?'M301 286 Q264 284 242 304 Q224 322 221 386 Q246 401 279 409 L291 368 L306 321Z'
+      ?'M304 287 Q266 287 242 307 Q224 322 221 386 Q246 401 279 409 L291 368 L306 321Z'
       :kind==='puff'
-      ?'M301 286 Q253 273 233 304 Q212 336 219 372 Q236 397 278 407 Q290 376 294 349Z'
+      ?'M304 287 Q261 281 237 306 Q212 336 219 372 Q236 397 278 407 Q290 376 294 349Z'
       :kind==='flowing'
-      ?'M301 286 Q260 283 239 308 Q221 363 211 435 Q198 480 163 551 Q190 584 239 596 L270 518 Q286 447 294 373Z'
-      :'M301 286 Q259 283 240 308 Q224 331 221 385 L212 445 Q209 472 198 491 Q185 516 179 546 L161 616 Q180 627 203 630 L219 589 Q230 560 245 542 Q261 522 266 490 L283 414 Q296 369 305 328Z';
+      ?'M304 287 Q265 287 239 310 Q221 363 211 435 Q198 480 163 551 Q190 584 239 596 L270 518 Q286 447 294 373Z'
+      :'M304 287 Q265 287 240 310 Q224 331 221 385 L212 445 Q209 472 198 491 Q185 516 179 546 L161 616 Q180 627 203 630 L219 589 Q230 560 245 542 Q261 522 266 490 L283 414 Q296 369 305 328Z';
     const seam=kind==='short'?'M225 375 Q250 391 279 398':kind==='puff'?'M224 370 Q248 390 279 395':kind==='flowing'?'M169 544 Q192 573 241 583':'M164 603 Q184 616 206 616 M214 478 Q229 493 247 493 M202 505 Q217 510 233 508';
     const left=p(shape,color)+line(seam,.3);
     return left+mirror(left);
   }
   function bodice(color,hem=538) {
     const hip=hem>520?274:285;
-    return p(`M300 284 Q360 307 420 284 L441 305 Q427 345 457 384 Q455 415 438 440 Q424 462 426 486 Q426 504 ${720-hip} ${hem} Q360 ${hem+15} ${hip} ${hem} Q294 504 294 486 Q296 462 282 440 Q265 415 263 384 Q293 345 279 305Z`,color);
+    return p(`M329 278 Q360 314 391 278 Q406 285 424 287 L443 305 Q432 345 459 384 Q455 415 438 440 Q424 462 426 486 Q426 504 ${720-hip} ${hem} Q360 ${hem+15} ${hip} ${hem} Q294 504 294 486 Q296 462 282 440 Q265 415 261 384 Q288 345 277 305 L296 287 Q314 285 329 278Z`,color);
   }
-  const neckband=color=>p('M300 286 Q360 309 420 286 L416 298 Q360 322 304 298Z',color);
-  const collar=()=>p('M300 286 Q330 300 360 303 L337 333 L303 305Z','#f6ecda')+p('M420 286 Q390 300 360 303 L383 333 L417 305Z','#f6ecda');
+  const neckband=color=>p('M329 278 Q360 314 391 278 L395 285 Q360 323 325 285Z',color);
+  const collar=()=>p('M329 278 Q338 295 360 301 L340 330 L312 298Z','#f6ecda')+p('M391 278 Q382 295 360 301 L380 330 L408 298Z','#f6ecda');
+  const standCollar=color=>p('M328 283 L333 270 Q360 285 387 270 L392 283 Q360 316 328 283Z',color);
+  const crossedCollar=()=>p('M329 278 L393 388 L391 278 L420 292 L398 416 L300 292Z','#f3e7cf');
   function top(item) {
     const c=item.color,s=item.shape,long=!['tee','polo','vest'].includes(s);
     let content=(s==='vest'?'':sleeves(c,s==='hanfu'?'flowing':long?'long':'short'))+bodice(c);
-    content+=neckband(s==='tee'?'#e5d2bf':c);
-    if(s==='vest')content+=p('M300 287 Q360 310 420 287 L402 324 L360 357 L318 324Z','#f3e8d6')+p('M311 299 L360 341 L409 299 L401 324 L360 358 L319 324Z',c)+line('M282 525 Q360 540 438 525',.55);
+    content+=neckband(s==='tee'?tint(c,-.08):c);
+    if(s==='vest')content+=p('M329 278 Q360 314 391 278 L405 300 L360 351 L315 300Z','#f3e8d6')+p('M323 290 L360 332 L397 290 L405 300 L360 351 L315 300Z',c)+line('M282 525 Q360 540 438 525',.55);
     if(s==='tee')content+=flower(360,390,24,'#d9b99c')+line('M282 524 Q360 539 438 524');
     if(['cardigan','blazer','jacket','frog','mandarin'].includes(s)){
       content+=line('M360 316 L360 540',.65);
-      if(['blazer','jacket'].includes(s))content+=p('M300 287 L360 335 L326 391 L284 332Z','#e9ddc6')+p('M420 287 L360 335 L394 391 L436 332Z','#e9ddc6')+line('M298 475 L335 479 M385 479 L422 475');
+      if(['blazer','jacket'].includes(s))content+=p('M329 278 L360 328 L326 391 L284 332 L300 292Z','#e9ddc6')+p('M391 278 L360 328 L394 391 L436 332 L420 292Z','#e9ddc6')+line('M298 475 L335 479 M385 479 L422 475');
       for(let y=356;y<518;y+=39)content+=s==='frog'||s==='mandarin'?p(`M342 ${y} Q354 ${y-9} 362 ${y} Q374 ${y+9} 382 ${y} M342 ${y} Q354 ${y+9} 362 ${y} Q374 ${y-9} 382 ${y}`,'none','stroke="#e5cfa4" stroke-width="4"'):circle(360,y,4,'#e1ccb0');
     }
     if(s==='polo'||s==='blouse')content+=collar();
     if(s==='blouse')content+=p('M360 317 Q322 299 326 324 Q341 343 360 325 Q380 344 395 323 Q397 302 360 317Z','#f0d8be')+line('M357 327 L345 368 M364 327 L377 366');
-    if(s==='hoodie')content+=p('M300 286 Q274 327 311 344 L360 311 L409 344 Q446 327 420 286 Q360 305 300 286Z','#dfd3bc')+line('M323 338 L319 407 M397 338 L401 407 M321 466 L312 505 Q360 520 408 505 L399 466Z');
+    if(s==='hoodie')content+=p('M329 278 Q314 287 306 300 Q297 323 319 343 L360 310 L401 343 Q423 323 414 300 Q406 287 391 278 Q360 314 329 278Z','#dfd3bc')+line('M323 338 L319 407 M397 338 L401 407 M321 466 L312 505 Q360 520 408 505 L399 466Z');
     if(s==='sweater'||s==='cardigan')content+=Array.from({length:10},(_,i)=>line(`M${294+i*14} 359 Q${288+i*16} 414 ${300+i*13} 477 L${287+i*16} 525`,.12)).join('')+line('M282 520 Q360 535 438 520');
-    if(s==='frog'||s==='mandarin')content+=p('M328 290 L329 274 Q360 287 391 274 L392 290 L360 312Z',c)+embroidery([[307,451],[407,497]],'#ead7b2');
-    if(s==='hanfu')content+=p('M299 286 L393 388 L418 288 L437 305 L398 416 L281 306Z','#f3e7cf')+p('M293 491 Q360 503 427 491 L440 521 Q360 536 280 521Z','#bea078')+line('M358 529 L345 580 M368 529 L385 585',.7)+embroidery([[254,370],[466,370],[226,513],[494,513]],'#e7d0a7');
+    if(s==='frog'||s==='mandarin')content+=standCollar(c)+embroidery([[307,451],[407,497]],'#ead7b2');
+    if(s==='hanfu')content+=crossedCollar()+p('M293 491 Q360 503 427 491 L440 521 Q360 536 280 521Z','#bea078')+line('M358 529 L345 580 M368 529 L385 585',.7)+embroidery([[254,370],[466,370],[226,513],[494,513]],'#e7d0a7');
     return content+line('M281 404 Q312 424 330 413 M438 404 Q408 424 391 413 M304 481 L311 508 M416 481 L410 508',.18);
   }
   function skirtShape(shape) {
@@ -179,15 +183,15 @@
       :`M285 504 Q360 521 435 504 Q475 549 494 612 L${360+spread} ${end} Q360 ${end+24} ${360-spread} ${end} L226 612 Q245 549 285 504Z`;
     let content=(s==='hanfu'?sleeves(c,'flowing'):s==='puff'?sleeves(c,'puff'):s==='knit'?sleeves(c):s==='pinafore'?sleeves('#f6eadc','short'):'')+p(lower,c)+bodice(c,506);
     content+=neckband(c)+line('M285 506 Q360 523 435 506',.32);
-    if(s==='gown')content+=p('M300 287 Q330 313 360 327 Q390 313 420 287 L412 309 Q360 360 308 309Z','#ead4af')+embroidery([[282,704],[447,852],[255,1060],[458,1144]],'#dfc796');
-    if(s==='sundress'||s==='slip')content+=p('M300 287 L296 352 M420 287 L424 352','none','stroke-width="7" stroke="#e6cdb3"')+line('M296 352 Q360 375 424 352',.5);
+    if(s==='gown')content+=p('M329 278 Q360 314 391 278 L397 290 Q386 316 360 329 Q334 316 323 290Z','#ead4af')+embroidery([[282,704],[447,852],[255,1060],[458,1144]],'#dfc796');
+    if(s==='sundress'||s==='slip')content+=p('M303 295 L296 352 M417 295 L424 352','none','stroke-width="7" stroke="#e6cdb3"')+line('M296 352 Q360 375 424 352',.5);
     if(s==='sundress'||s==='puff')content+=embroidery([[315,406],[402,628],[273,814],[446,950],[333,1000]]);
     if(s==='sport')content+=collar()+p('M293 496 Q360 512 427 496','none','stroke="#f3ead8" stroke-width="9"');
-    if(s==='pinafore')content+=p('M300 287 L318 290 L323 365 L397 365 L402 290 L420 287 L422 419 L298 419Z','#d9c5a7')+rect(327,430,66,57,8,c)+circle(309,381,5,'#e3c99d')+circle(411,381,5,'#e3c99d');
+    if(s==='pinafore')content+=p('M300 292 L318 286 L323 365 L397 365 L402 286 L420 292 L422 419 L298 419Z','#d9c5a7')+rect(327,430,66,57,8,c)+circle(309,381,5,'#e3c99d')+circle(411,381,5,'#e3c99d');
     if(s==='wrap')content+=p('M302 288 L422 430 L288 505 L435 509 L350 684','none','stroke="#e7d0ab" stroke-width="6"')+p('M431 505 Q468 482 468 508 Q463 532 436 518 L457 569 L435 549 L428 576 L425 520Z','#e7d0ab');
-    if(s==='qipao')content+=p('M329 290 L329 274 Q360 287 391 274 L391 291 L421 317 L409 390 L382 405','none','stroke="#ead4a9" stroke-width="6"')+embroidery([[404,367],[307,583],[421,797],[308,1003]],'#ebd8b1')+line('M449 1070 L440 1179',.5);
+    if(s==='qipao')content+=standCollar(c)+p('M333 270 Q360 285 387 270 L392 283 L421 317 L409 390 L382 405','none','stroke="#ead4a9" stroke-width="4"')+embroidery([[404,367],[307,583],[421,797],[308,1003]],'#ebd8b1')+line('M449 1070 L440 1179',.5);
     if(s==='knit')content+='<defs><clipPath id="knit-fit">'+p(lower,'#fff')+bodice('#fff',506)+'</clipPath></defs><g clip-path="url(#knit-fit)">'+Array.from({length:10},(_,i)=>line(`M${291+i*15} 352 Q${286+i*16} 430 ${297+i*14} 490 Q${261+i*22} 696 ${202+i*35} 1035`,.16)).join('')+'</g>';
-    if(s==='hanfu')content+=p('M299 286 L393 388 L418 288 L437 305 L398 416 L281 306Z','#f3e7cf')+p('M292 492 Q360 506 428 492 L446 534 Q360 552 274 534Z','#b59c75')+p('M340 542 L380 542 L403 1154 L317 1154Z','#ead7b4')+embroidery([[252,363],[468,363],[277,768],[452,1002],[246,1113],[440,675]]);
+    if(s==='hanfu')content+=crossedCollar()+p('M292 492 Q360 506 428 492 L446 534 Q360 552 274 534Z','#b59c75')+p('M340 542 L380 542 L403 1154 L317 1154Z','#ead7b4')+embroidery([[252,363],[468,363],[277,768],[452,1002],[246,1113],[440,675]]);
     if(s!=='qipao')content+=line(`M289 569 Q270 685 ${380-spread} ${end-17} M431 569 Q450 685 ${340+spread} ${end-17}`, .23);
     return content;
   }
