@@ -23,6 +23,7 @@ npm run package:upload    # dist/crazygames-upload/index.html
 npm run test:upload       # actual root/nested/iframe/offline upload file
 npm run standalone       # dist/Muse-Bloom.html
 npm run test:playtest     # build and verify the private playtest kit
+npm run test:pages        # build and verify the website at a repository subpath
 ```
 
 Tests start their own servers. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. Linux uses Playwright Chromium (`npx playwright install chromium`). Current UI coverage is in `dev/salon.test.js`; old v1.6 browser/character scripts and baselines are historical references, not current test commands.
@@ -51,4 +52,4 @@ The polished starter capsule has 14 painted pieces. The remaining 108 collectibl
 
 Use `dist/crazygames-upload/index.html` for the portal's file/folder upload, not the source HTML alone or the playtest guide. SDK, cloud saves, ads and platform mute integration remain unimplemented. This version is a local playtest candidate; it has not been resubmitted or accepted by CrazyGames. Existing v1.6 promotional media is historical, not a v1.7 capture.
 
-Changes are checked in locally in steps. No GitHub repository was created or pushed. See [QA evidence](docs/QA.md), [test contracts](docs/UI-TESTS.md), [submission notes](docs/CRAZYGAMES.md) and [later GitHub upload](docs/GITHUB.md). CI is configured but has not run remotely. No open-source license is granted by default.
+Changes are checked in in steps. The GitHub Actions workflow tests the game, prepares the upload artifact and deploys the tested website from `main` to GitHub Pages. Pull requests and other branches run checks without publishing. See [GitHub deployment](docs/GITHUB.md), [QA evidence](docs/QA.md), [test contracts](docs/UI-TESTS.md) and [submission notes](docs/CRAZYGAMES.md). Remote publication status is recorded separately from local checks. No open-source license is granted by default.

@@ -1,5 +1,13 @@
 # 本地验收记录
 
+## GitHub Pages 部署准备 — 2026-10-19
+
+新增 `package:pages`、`test:pages` 与通过测试后发布的 Actions 部署任务。现有 Git 提交历史保留。
+
+本地 Edge 已验证：发布文件及哈希清单、源码 SHA、`/muse-bloom/` 子路径下电脑和手机首套穿搭 94 分、零外部素材请求、反馈页新建/继续、JSON 下载、刷新保留会话和普通存档隔离。`npm test` 的 20 项测试及 36 关可解性检查也通过。报告在 `artifacts/pages/report.json`。
+
+当前仍待 `toponehhh` 账号授权后创建远端并实际运行 Actions / 验证线上地址；不能把上述本地结果视为已部署。
+
 ## v1.7.0 The Studio Edit — 当前私人试玩候选版
 
 验收日期：2026-10-19。正式源码：`C:\Users\huangd\SourceCode\H5Apps\muse-bloom`。

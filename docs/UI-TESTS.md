@@ -13,6 +13,7 @@ All tests operate on real browser rendering or actual pixels, not just asset nam
 | `npm run test:experience` | Real Web Audio analyser plus nine offline PCM effects; no pre-gesture audio, mute/resume race, background suspension, reduced motion, animated reveal and no-Web-Audio fallback |
 | `npm run test:upload` | Built single HTML at root, nested path, sandbox iframe and file URL; no external asset request; source-only upload intentionally fails |
 | `npm run test:playtest` | Delivered offline guide launches game; new/continue preserves session; backup form downloads; synthetic records exercise deduplication/missing values/automation exclusion and are deleted |
+| `npm run test:pages` | Published file allowlist/hashes, source commit, actual first outfit at 1440px and 390px under `/muse-bloom/`, embedded resources, feedback guide/popups/download/reload/continue and regular-save isolation; `MUSE_PAGES_URL` runs the same smoke checks against a deployed site |
 
 ## Layout acceptance
 

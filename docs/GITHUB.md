@@ -1,38 +1,64 @@
-# GitHub 上传准备
+# GitHub Actions 与在线试玩
 
-根据当前要求，仅准备本地 Git 仓库，**没有创建远端仓库，也没有推送**。所有开发阶段均保留独立提交。
+目标仓库：`toponehhh/muse-bloom`。保留已有分步提交历史，不重新初始化或压平历史。
 
-## 使用 GitHub CLI 新建私有仓库
+## 工作流
 
-在项目根目录运行：
+`.github/workflows/verify.yml` 在 push、pull request 或手动运行时：
+
+1. 执行规则、存档、前三关玩法和 36 关可解性测试。
+2. 使用锁定的 Playwright / Chromium 执行人物、服装、领口、换装、照片导出、响应式、动画和音效回归。
+3. 验证 CrazyGames 单文件包、离线试玩包，以及网站部署到 `/muse-bloom/` 子路径后的实际交互。
+4. 保存测试报告及截图，检查美术资产可重复生成，生成 CrazyGames 上传文件和网站构建产物。
+5. 仅在 `main` 分支所有检查通过后，使用官方 Pages Actions 发布网站。PR 和其他分支没有部署权限。
+
+测试失败会阻止部署，已经上线的旧版本保持可用。发布操作按分支排队，避免中途取消部署。构建任务只有源码读取权限；部署任务使用 `pages: write` 与 `id-token: write`，通过 `github-pages` environment 发布。无需配置个人令牌作为 Actions secret。
+
+## 网站结构
+
+`npm run package:pages` 只在 `dist/github-pages/` 生成以下文件；发现额外文件时会拒绝打包，避免混入历史报告、源码或玩家反馈：
+
+| 路径 | 用途 |
+| --- | --- |
+| `index.html` | 完整游戏，CSS、脚本和图片内嵌，不依赖根域名资源路径 |
+| `playtest/index.html` | 试玩任务、试玩入口、备用反馈表 |
+| `playtest/Muse-Bloom.html` | 支持独立试玩存档的完整游戏 |
+| `build.json` | 游戏版本、源码提交 SHA、文件大小和 SHA-256 |
+
+网站首页是正常游戏；`playtest/` 提供新试玩和继续试玩入口。试玩记录保存在浏览器中，反馈需玩家主动下载 JSON 后交给组织者，**不会自动发到 GitHub 或服务器**。网站访问权限与反馈存储是两回事；公开的测试链接不是带密码的私人空间。
+
+## 仓库首次配置
+
+使用拥有 `toponehhh` 权限的 GitHub CLI 账号。账号登录信息由 CLI 的系统凭据管理保存，不写入项目。
+
+1. 创建 `muse-bloom` 仓库，按用户选择设置公开或私有。GitHub Free 的 Pages 需要公开仓库；私有仓库需支持 Pages 的付费套餐。
+2. 将已有仓库的 `origin` 设为 `https://github.com/toponehhh/muse-bloom.git`，推送 `main`。已有远端需先核对，不覆盖未知地址。
+3. 在 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。也可以调用 Pages API，将 `build_type` 设置为 `workflow`。
+4. 在 **Actions → Test and deploy Muse Bloom** 查看结果。首次启用 Pages 时如果构建已结束，可手动 Run workflow。
+
+默认地址预计为 `https://toponehhh.github.io/muse-bloom/`，具体以成功的 `deploy` job / Pages API 返回为准。仅写好工作流不代表网站已经发布。
+
+## 后续更新
 
 ```powershell
-git status
-git log --oneline
-gh repo create muse-bloom --private --source . --remote origin --push
+git add <这一步修改的文件>
+git commit -m "描述这一阶段的修改"
+git push origin main
 ```
 
-该命令会创建仓库并上传当前已有提交。请在决定上传时自行执行。需要已经登录 GitHub CLI。
+推送后 Actions 自动校验并更新同一个测试地址。无需手工上传 HTML，也无需创建 `gh-pages` 分支。Actions 的 `muse-bloom-website` artifact 是网站文件，`muse-bloom-crazygames` 是门户上传产物，`ui-regression-evidence` 是测试证据。
 
-## 使用已存在的空仓库
+## 本地与线上验证
 
 ```powershell
-git remote add origin https://github.com/YOUR_ACCOUNT/muse-bloom.git
-git push -u origin main
+npm run test:pages
+# 网站发布后，先确保本机构建对应发布的同一提交：
+npm run package:pages
+$env:MUSE_PAGES_URL = 'https://toponehhh.github.io/muse-bloom/'
+node dev/pages.test.js
+Remove-Item Env:MUSE_PAGES_URL
 ```
 
-将 `YOUR_ACCOUNT` 替换为实际账号。若已有 `origin`，先运行 `git remote -v` 核对地址，再决定是否修改，不要重复添加或覆盖未知远端。
+脚本验证实际页面、首套 94 分穿搭、电脑/手机布局、无缺失资源、试玩新建/继续、反馈下载和普通存档隔离。线上检查还会校对 `build.json` 的源码 SHA，避免把旧缓存版本当成新发布。报告位于 `artifacts/pages/`；自动测试不是用户满意度证据。
 
-## 自动校验
-
-`.github/workflows/verify.yml` 会在 push、pull request 或手动触发时：
-
-1. 执行规则和存档测试，验证 36 关都能拿到 S。
-2. 安装锁定版本的 Playwright，执行 122 件衣服的穿脱、覆盖、缩略图边界、60 张视觉基准和移动端交互测试。
-3. 运行单文件上传回归：空资源目录、嵌套 URL、手机尺寸、iframe、离线文件与缺失资源反例。
-4. 保存 UI / 上传报告、截图及失败差异图，核对 SVG 与嵌入数据是否可重复生成。
-5. 生成分文件备份 ZIP、单文件试玩版及 `crazygames-upload/index.html`，并保存为 Actions artifact；门户文件上传使用其中的单文件 index.html。
-
-工作流仅有仓库读取权限，不部署 GitHub Pages，也不自动提交到 CrazyGames。另一个正常进度 36 关通关脚本 `npm run test:browser` 需要单独启动本地服务后执行；测试命令和边界见 `UI-TESTS.md`。目前仅完成本地验证，尚未执行远端 GitHub Actions。
-
-本地提交使用项目作者名 `Muse Bloom Developer`。可以在新增个人提交前设置仓库级别的 `git config user.name` / `git config user.email`；未修改用户全局 Git 设置。
+参考：[GitHub Pages 自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)、[Pages REST API](https://docs.github.com/en/rest/pages/pages)。

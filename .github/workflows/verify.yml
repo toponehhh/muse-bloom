@@ -1,18 +1,23 @@
-name: Verify game and prepare upload
+name: Test and deploy Muse Bloom
 on:
   push:
   pull_request:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: muse-bloom-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   game:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - name: Rules, saves and 36-level solvability
         run: npm test
       - name: Install pinned browser test tools
@@ -35,6 +40,8 @@ jobs:
         run: npm run test:experience
       - name: Offline private playtest kit and feedback export
         run: npm run test:playtest
+      - name: Build and test Pages at a repository subpath
+        run: npm run test:pages
       - name: Keep UI evidence and failure diffs
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,6 +57,7 @@ jobs:
             artifacts/lookbook/
             artifacts/experience/
             artifacts/glam/
+            artifacts/pages/
       - name: Check generated art stays reproducible
         run: |
           npm run assets
@@ -59,5 +67,36 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: muse-bloom-crazygames
-          path: dist/
+          path: |
+            dist/muse-bloom-crazygames-*.zip
+            dist/package-manifest.json
+            dist/crazygames-upload/
           if-no-files-found: error
+      - name: Keep the tested website for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: muse-bloom-website
+          path: dist/github-pages/
+          if-no-files-found: error
+      - name: Upload the tested Pages site
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/github-pages/
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: game
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Publish the verified website
+        id: deployment
+        uses: actions/deploy-pages@v4
