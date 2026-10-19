@@ -49,6 +49,15 @@
       backup.addEventListener('click',()=>{if(form.reportValidity())exportFile();});submit.after(backup);
     }
     const status=document.createElement('p');status.className='form-note note feedback-status';status.id='feedback-confirmation';status.setAttribute('role','status');status.setAttribute('aria-live','polite');form.append(status);
+    if(form.closest('dialog')){
+      // Scroll answers independently so actions never start below the fold.
+      const fields=document.createElement('div');fields.className='feedback-fields';
+      const actions=document.createElement('div');actions.className='feedback-actions';
+      for(const child of [...form.children]){
+        (child===submit||child===status||child.classList.contains('feedback-backup')?actions:fields).append(child);
+      }
+      form.append(fields,actions);
+    }
     const say=(message,kind='')=>{status.textContent=message;status.dataset.state=kind;};
     const persist=()=>{try{localStorage.setItem(storageKey,JSON.stringify(state));}catch{canStore=false;}};
     form.addEventListener('input',()=>{state.values=values(form);persist();say(canStore?'':t.noStorage);});

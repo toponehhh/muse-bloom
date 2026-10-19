@@ -32,6 +32,8 @@ jobs:
         run: npm run test:feedback-kind
       - name: Online feedback, D1 receipts and safe retries
         run: npm run test:cloudflare
+      - name: Initial action visibility, touch targets and feedback dialogs
+        run: npm run test:playtest-ui
       - name: Check Cloudflare Worker and asset bindings without deploying
         run: npx wrangler deploy --dry-run --outdir artifacts/cloudflare-worker
       - name: Wardrobe UI and visual regression
@@ -69,6 +71,7 @@ jobs:
             artifacts/glam/
             artifacts/pages/
             artifacts/cloudflare/
+            artifacts/playtest-ui/
       - name: Check generated art stays reproducible
         run: |
           npm run assets

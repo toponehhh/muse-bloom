@@ -27,6 +27,9 @@ npm run package:upload    # dist/crazygames-upload/index.html
 npm run test:upload       # actual root/nested/iframe/offline upload file
 npm run standalone       # dist/Muse-Bloom.html
 npm run test:playtest     # build and verify the private playtest kit
+npm run test:playtest-ui  # initial actions, feedback, touch targets: 32 viewport/state cases
+npm run test:feedback-kind # explicit human/automated types, legacy records and duplicate IDs
+npm run test:feedback-api # isolated D1 API and existing-data migration/retry checks
 npm run test:pages        # build and verify the website at a repository subpath
 ```
 
@@ -46,7 +49,7 @@ Run `npm run package:playtest`, then open `dist/playtest-v1.7.0/index.html`. The
 npm run playtest:summary -- path/to/response-folder
 ```
 
-The summary deduplicates IDs, retains session events when adding an observer form, excludes `automated-check` records and treats missing ratings as missing. **No real participants have been recruited or measured in this delivery.** Automated export checks are not player enjoyment, retention or approval evidence.
+The form requires an explicit human or automated playtest type. Use `?qa=1` for automation; guide links carry it into the game, including resumed sessions. The summary only counts `testType: human` records without simulation disclosures, deduplicates IDs and retains session events when adding an observer form. Legacy records and conflicting session types are excluded with reasons for organizer review; missing ratings remain missing. These declarations do not authenticate a person's identity. **No real participants have been recruited or measured in this delivery.** Automated export checks are not player enjoyment, retention or approval evidence.
 
 ## Art and compatibility
 
