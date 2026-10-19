@@ -70,6 +70,7 @@ async function equip(page, outfit) {
   assert.equal(await page.locator('.lookbook-card').count(), 0);
   await shot(page, 'empty-desktop');
   await page.locator('[data-action="play"]').click();
+  assert.equal(await page.locator(`#avatar-slot [data-layer="${D.defaultHair}"]`).count(),1,'Fresh save starts with the high bun');
   await page.locator('.skin-selector [data-skin="porcelain"]').click();
   const outfit = winning(G.newSave(), 1);
   await equip(page, outfit);

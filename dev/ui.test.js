@@ -39,6 +39,16 @@ async function equip(page, ids) {
 }
 async function installPixelChecks(page) {
   await page.evaluate(() => {
+    window.uiProportionCheck = function() {
+      const avatar=document.querySelector('#avatar-slot .avatar');
+      const face=avatar.querySelector('[data-feature="face"]').getBoundingClientRect();
+      const body=avatar.querySelector('[data-anatomy="body"]').getBoundingClientRect();
+      const headToBody=face.height/body.height,bodyWidthToHeight=body.width/body.height;
+      // Independent rendered measurements reject the previous tall, narrow rig.
+      if(headToBody<.31||headToBody>.36||bodyWidthToHeight<.43||bodyWidthToHeight>.51)
+        throw Error('Character proportions outside reviewed range: '+JSON.stringify({headToBody,bodyWidthToHeight}));
+      return {headToBody,bodyWidthToHeight};
+    };
     window.uiRaster = async function(svg) {
       const image = new Image(); image.src = MuseArt.uri(svg); await image.decode();
       const canvas = document.createElement('canvas'); canvas.width = 720; canvas.height = 1280;
@@ -54,16 +64,16 @@ async function installPixelChecks(page) {
       if (rect.width < 40 || rect.height < 100) throw new Error('Avatar collapsed');
       if (![avatar,svg].every(n=>n.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))) throw new Error('Avatar hidden');
       const { pixels } = await uiRaster(new XMLSerializer().serializeToString(svg));
-      const alpha = (x, y) => pixels[(y * 720 + x) * 4 + 3];
+      const alpha = (x, y) => pixels[(Math.round(y) * 720 + Math.round(x)) * 4 + 3];
       // Face, neck, torso, hips, both legs, hands and feet must remain painted.
       for (const [x,y] of [[360,245],[360,337],[360,450],[340,590],[380,590],[330,680],[390,680],[326,900],[394,900],[326,1110],[394,1110],[237,751],[483,751],[326,1178],[394,1178]]) {
-        if (alpha(x,y) < 250) throw new Error(`Blank body at ${x},${y}, item=${itemId || 'empty'}`);
+        if (alpha(...MuseArt.rigPoint(x,y,y<330?'head':'body')) < 250) throw new Error(`Blank body at ${x},${y}, item=${itemId || 'empty'}`);
       }
       if (itemId) {
         const item = MuseGame.byId[itemId];
         const layer = svg.querySelector(`[data-layer="${itemId}"]`);
         if (!layer) throw new Error('Selected item missing from the painted avatar: '+itemId);
-        const garment = (await uiRaster(MuseArt.itemSvg(item))).pixels;
+        const garment = (await uiRaster(MuseArt.fittedItemSvg(item))).pixels;
         const points = [];
         if (['top','dress'].includes(item.category)) points.push([335,450],[385,450],[330,595],[390,595]);
         if (item.category === 'bottom') points.push([325,650],[395,650],[325,720],[395,720]);
@@ -71,7 +81,8 @@ async function installPixelChecks(page) {
           points.push([241,650],[266,650],[479,650],[454,650]);
         }
         for (const [x,y] of points) {
-          if (garment[(y*720+x)*4+3] < 250) throw new Error(`Garment does not fit body at ${x},${y}: ${itemId}`);
+          const [px,py]=MuseArt.rigPoint(x,y).map(Math.round);
+          if (garment[(py*720+px)*4+3] < 250) throw new Error(`Garment does not fit body at ${x},${y}: ${itemId}`);
         }
       }
       return pixels.length;
@@ -80,9 +91,10 @@ async function installPixelChecks(page) {
       const svg=document.querySelector('#avatar-slot .avatar > svg');
       const skin=MuseData.skins.find(s=>s.id===document.querySelector('.skin-selector [aria-pressed="true"]').dataset.skin);
       const actual=(await uiRaster(new XMLSerializer().serializeToString(svg))).pixels;
-      const reference=(await uiRaster(MuseArt.body(skin))).pixels;
+      const reference=(await uiRaster(MuseArt.avatarSvg(skin,[]))).pixels;
       for(const [x,y] of [[328,239],[394,239],[355,260],[360,291]])for(let c=0;c<4;c++){
-        const i=(y*720+x)*4+c;if(actual[i]!==reference[i])throw Error('Face feature obscured at '+x+','+y);
+        const [px,py]=MuseArt.rigPoint(x,y,'head').map(Math.round);
+        const i=(py*720+px)*4+c;if(actual[i]!==reference[i])throw Error('Face feature obscured at '+x+','+y);
       }
     };
     window.uiExportCheck = async function() {
@@ -159,6 +171,16 @@ async function run() {
     browser=await chromium.launch({headless:true,channel:process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':undefined)});
     report.browser=await browser.version();
     const page=await newPage();
+    assert.equal(G.byId[D.defaultHair].shape,'bun');assert.ok(G.starterIds.includes(D.defaultHair));
+    assert.equal(await page.locator(`#avatar-slot [data-layer="${D.defaultHair}"]`).count(),1);
+    report.proportions=await page.evaluate(()=>uiProportionCheck());
+    assert.ok(await page.evaluate(()=>{
+      const nodes=[...document.querySelectorAll('#avatar-slot [data-anatomy]')];
+      const transforms=nodes.map(n=>n.getAttribute('transform'));nodes.forEach(n=>n.removeAttribute('transform'));
+      try{uiProportionCheck();return false;}catch(e){return e.message.includes('proportions');}
+      finally{nodes.forEach((n,i)=>n.setAttribute('transform',transforms[i]));}
+    }),'Restoring the tall, narrow proportions must fail');
+    pass('Default is an unlocked high bun; rendered head/body ratios match the reviewed shorter silhouette, and old proportions fail');
     await page.evaluate(()=>{window.originalAvatar=document.querySelector('#avatar-slot .avatar');window.originalBase=originalAvatar.querySelector('[data-layer="base"]');});
     await page.locator('[data-action="clear"]').click();
     assert.ok(await page.evaluate(()=>originalAvatar===document.querySelector('#avatar-slot .avatar')),'Clearing must preserve the visible avatar DOM');
@@ -234,11 +256,11 @@ async function run() {
       for(const [name,ids] of Object.entries(specimens)) {
         await equip(page,ids);await paint(page);await page.evaluate(()=>uiExportCheck());await snapshot(page,skin.id+'-'+name);
       }
-      await equip(page,['hair_casual_01','top_edgy_05','bottom_summer_04']);
-      await closeup(page,skin.id+'-detail-face','260 100 210 245',420,490);
-      await closeup(page,skin.id+'-detail-hands','200 710 320 105',960,315);
+      await equip(page,[D.defaultHair,'top_edgy_05','bottom_summer_04']);
+      await closeup(page,skin.id+'-detail-face','205 75 310 400',465,600);
+      await closeup(page,skin.id+'-detail-hands','145 765 430 120',1075,300);
       await page.locator('[data-category="accessory"]').click();await page.locator('[data-item="accessory_cute_03"]').click();
-      await closeup(page,skin.id+'-detail-grip','445 710 70 100',280,400);
+      await closeup(page,skin.id+'-detail-grip','455 765 110 115',330,345);
       for(const hair of D.items.filter(i=>i.category==='hair')){
         await page.locator('[data-category="hair"]').click();
         const button=page.locator(`[data-item="${hair.id}"]`);if(await button.getAttribute('aria-pressed')!=='true')await button.click();

@@ -4,6 +4,14 @@ All illustration code is original to Muse Bloom. Version 1.3.0 adds one original
 
 `js/art.js` defines a 720 × 1280 layered character. `avatarSvg()` composes one inline SVG with keyed groups, ordered by item `z`. Dressing updates those groups synchronously and keeps the avatar and base mounted; removing clothes never waits for image decoding. The canvas exporter rasterizes the same composition. Offline `file://` play does not taint the export canvas.
 
+## Presentation proportions · v1.3.1
+
+Editable paths remain in the canonical 720 × 1280 coordinates below. `avatarSvg()` fits the head with `matrix(1.27 0 0 1.27 -97.2 31.7)` and the body with `matrix(1.26 0 0 .86 -93.6 167)`. This enlarges the head, widens the shoulders and hips, and shortens the limbs while keeping the feet on the floor. Hair, glasses, earrings and clips/pins follow the head; garments, necklaces, shoes, watches, bags and carrying hands follow the body. Thumbnail bounds remain canonical.
+
+Keep `data-anatomy="head"` and `data-anatomy="body"` in custom base SVGs; do not bake presentation transforms into editable paths. `rigPoint()` maps attachment coordinates to the final canvas; `fittedItemSvg()` provides the corresponding clothing layer for coverage tests. The right/left grip now renders at (518.76,834.36)/(201.24,834.36), and the crossbody shoulder at (283.14,483.48).
+
+`MuseData.defaultHair` selects the starter high bun. The base also supplies a high bun when hair is removed. Saved outfit IDs and wardrobe choices are preserved.
+
 ## Edit the source art
 
 Edit the vector paths in `js/art.js` and run `npm run assets`. This exports full clothing layers to `assets/items`, thumbnails to `assets/thumbs`, and four skin-tone bases to `assets/base`.
@@ -14,7 +22,7 @@ Edit its SVG in `assets/items` or `assets/base`, preserving the 720 × 1280 canv
 
 Do not run `npm run assets` after individual asset edits unless you intend to regenerate those files from the vector source. Commit custom edits and the embedded data together.
 
-## Art coordinates
+## Canonical art coordinates
 
 - Head: center (360, 230); neck: y 300–350.
 - Shoulder line: y 350; waist: y 600; hip: y 700.
@@ -22,7 +30,7 @@ Do not run `npm run assets` after individual asset edits unless you intend to re
 - Item anchor: (360, 640), the shared full-canvas center.
 - Base layer 10; bottoms 20; dress 25; top 30; shoes 50; hair 60; accessories 70.
 
-The base contains opaque studio basics: short hair, a rose camisole and sage shorts. Groups marked `data-basic="hair"`, `data-basic="top"`, and `data-basic="bottom"` are hidden only when that slot is covered by an equipped item (a dress covers both clothing slots). Keep these markers in custom base artwork. Basics are visual fallbacks, not collectible/scoring items. This prevents pale underlayers protruding around a fitted garment and makes removal an explicit complete appearance.
+The base contains opaque studio basics: a high bun, a rose camisole and sage shorts. Groups marked `data-basic="hair"`, `data-basic="top"`, and `data-basic="bottom"` are hidden only when that slot is covered by an equipped item (a dress covers both clothing slots). Keep these markers in custom base artwork. Basics are visual fallbacks, not collectible/scoring items. This prevents pale underlayers protruding around a fitted garment and makes removal an explicit complete appearance.
 
 Long sleeves cover both edges of the base arms through the wrists. Bodices share underarm/waist landmarks; fitted skirts cover the full hip contour. Check `npm run test:ui` after art changes: coverage assertions and 60 reviewed screenshots protect these seams. See [UI test guide](UI-TESTS.md) before deliberately updating baselines.
 

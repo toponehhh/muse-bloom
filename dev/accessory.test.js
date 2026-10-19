@@ -23,13 +23,13 @@ async function run(){
           if(!resting)throw Error('Missing independently drawn '+side+' hand');
           if((resting.getAttribute('display')==='none')!==!!carrying)throw Error('Relaxed and grip hands overlap, or both are hidden');
           const active=(carrying||resting).querySelector('[data-part="hand-outline"]');
-          const wrist=new DOMPoint(side==='left'?240:480,731).matrixTransform(scene.getScreenCTM()).matrixTransform(active.getScreenCTM().inverse());
+          const wrist=new DOMPoint(...MuseArt.rigPoint(side==='left'?240:480,731)).matrixTransform(scene.getScreenCTM()).matrixTransform(active.getScreenCTM().inverse());
           if(!active.isPointInFill(wrist))throw Error('Hand is disconnected at the wrist');
         }
         const hands=[...scene.querySelectorAll('[data-held-hand]')].map(n=>n.dataset.heldHand);
         if(new Set(hands).size!==hands.length)throw Error('Two props occupy the same hand');
         for(const prop of scene.querySelectorAll('[data-held-hand]')){
-          const hand=prop.dataset.heldHand,point=new DOMPoint(hand==='left'?234:486,776);
+          const hand=prop.dataset.heldHand,point=new DOMPoint(...MuseArt.rigPoint(hand==='left'?234:486,776));
           const handle=prop.querySelector('[data-part="handle"]');
           const local=point.matrixTransform(scene.getScreenCTM()).matrixTransform(handle.getScreenCTM().inverse());
           if(!handle.isPointInStroke(local))throw Error('Handle misses '+hand+' grip');
@@ -40,7 +40,8 @@ async function run(){
           const bounds=prop.getBBox();if(bounds.y+bounds.height>1280)throw Error('Prop below canvas');
         }
         for(const strap of scene.querySelectorAll('[data-part="shoulder-strap"]')){
-          if(!strap.isPointInStroke(new DOMPoint(299,368)))throw Error('Crossbody misses shoulder');
+          const shoulder=new DOMPoint(...MuseArt.rigPoint(299,368)).matrixTransform(scene.getScreenCTM()).matrixTransform(strap.getScreenCTM().inverse());
+          if(!strap.isPointInStroke(shoulder))throw Error('Crossbody misses shoulder');
         }
       };
     });
