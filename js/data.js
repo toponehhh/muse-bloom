@@ -226,5 +226,5 @@
     theme.entryItems = items.filter(i => i.unlockType === 'progress' && i.unlockLevel === theme.index && i.unlockOn === 'enter').map(i => i.id);
   }
   const skins = [{ id: 'porcelain', name: 'Porcelain', color: '#f2c8ad', shade: '#dca98c' }, { id: 'warm', name: 'Warm', color: '#dca379', shade: '#bd805d' }, { id: 'tan', name: 'Tan', color: '#ad7351', shade: '#895336' }, { id: 'deep', name: 'Deep', color: '#79503c', shade: '#57382d' }];
-  return { tags, categories, categoryNames, chapters, themes, items, skins, counts, version: 1, title: 'Muse Bloom' };
+  return { tags, categories, categoryNames, chapters, themes, items, skins, counts, defaultHair:'hair_chic_02', version: 1, title: 'Muse Bloom' };
 });

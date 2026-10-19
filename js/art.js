@@ -6,6 +6,12 @@
   'use strict';
   // Shared rig, original vector materials, and deterministic exportable lighting.
   const ink = '#645061';
+  // Canonical artwork keeps its editable 720 × 1280 rig. Presentation uses
+  // separate head/body proportions; every attached item follows the same rig.
+  const rig=Object.freeze({head:[1.27,1.27,-97.2,31.7],body:[1.26,.86,-93.6,167]});
+  const rigTransform=part=>{const [x,y,dx,dy]=rig[part];return `matrix(${x} 0 0 ${y} ${dx} ${dy})`;};
+  const rigPoint=(x,y,part='body')=>[x*rig[part][0]+rig[part][2],y*rig[part][1]+rig[part][3]];
+  const rigPart=item=>item.category==='hair'||item.category==='accessory'&&['glasses','earrings','clip','pin'].includes(item.shape)?'head':'body';
   function tint(hex, amount) {
     const value=hex.length===4?hex.slice(1).split('').map(c=>c+c).join(''):hex.slice(1);
     return '#'+[0,2,4].map(i=>Math.round(parseInt(value.slice(i,i+2),16)*(1-Math.abs(amount))+(amount>0?255:0)*Math.abs(amount)).toString(16).padStart(2,'0')).join('');
@@ -93,18 +99,17 @@
     const c = skin.color, sh = skin.shade;
     return hideBasics(svg(
       '<defs><filter id="skin-soft" x="-.15" y="-.15" width="1.3" height="1.3"><feGaussianBlur stdDeviation="5"/></filter><filter id="face-soft"><feGaussianBlur stdDeviation="2.5"/></filter></defs>'+
-      p('M307 654 Q282 707 298 828 L312 985 L310 1139 Q293 1159 288 1174 Q287 1187 307 1187 L348 1184 Q359 1180 351 1163 L353 994 L360 793 L367 995 L372 1160 Q368 1182 386 1185 L428 1186 Q442 1178 431 1168 L409 1143 L421 989 L426 829 Q443 712 414 655Z',c)+
+      '<g data-anatomy="body">'+p('M307 654 Q282 707 298 828 L312 985 L310 1139 Q293 1159 288 1174 Q287 1187 307 1187 L348 1184 Q359 1180 351 1163 L353 994 L360 793 L367 995 L372 1160 Q368 1182 386 1185 L428 1186 Q442 1178 431 1168 L409 1143 L421 989 L426 829 Q443 712 414 655Z',c)+
       p('M316 300 L314 344 Q285 354 277 370 Q263 388 255 439 L237 573 L223 730 L254 733 L278 590 L307 467 L310 567 L299 646 Q305 683 360 684 Q414 683 421 646 L410 566 L414 468 L442 592 L466 733 L498 730 L482 577 L466 437 Q455 377 443 366 Q430 353 406 344 L404 300Z',c)+
       p('M316 302 Q357 329 404 302 L403 333 Q358 354 315 333Z',sh,'stroke="none"')+
       // Round limbs with broad edge shadows and narrow bounced-light ribbons.
       p('M307 708 Q302 774 313 841 L324 970 L322 1129 M389 811 L389 989 L389 1133 M282 392 Q267 476 254 581 L241 716 M448 402 L467 573 L482 717','none','stroke="#fff5e8" stroke-width="18" opacity=".24" filter="url(#skin-soft)"')+
       p('M345 792 L337 984 L339 1140 M410 798 L407 978 L400 1137 M298 463 L271 590 L251 724 M465 476 L477 577 L490 715','none',`stroke="${sh}" stroke-width="12" opacity=".32" filter="url(#skin-soft)"`)+
       `<g data-hand="left">${hand(skin,true)}</g><g data-hand="right">${hand(skin)}</g>`+
-      face(skin)+
       basic('top',p('M321 349 L332 354 L329 391 Q360 408 391 391 L388 354 L399 349 L410 406 L405 482 L411 606 Q360 621 309 606 L315 482 L310 406Z','#c9b1b7')+line('M318 581 Q360 593 402 581',.22)+flower(360,443,13,'#ead5cf'))+
       basic('bottom',p('M306 600 Q360 612 414 600 Q429 660 426 726 L373 734 L360 686 L347 734 L294 726 Q291 660 306 600Z','#aebda3')+p('M306 600 Q360 612 414 600 L417 624 Q360 635 303 624Z','#c2cbb8')+line('M360 629 L360 683 M304 714 L341 721 M379 721 L416 714',.3))+
       line('M315 975 Q329 980 344 977 M379 976 Q395 981 410 974 M244 570 L251 569 M471 570 L477 574',.2)+
-      basic('hair',hairCap('#704c3b')+p('M284 173 Q295 127 339 124 M367 120 Q405 120 427 145','none','stroke="#d4ad8b" stroke-width="9" opacity=".2"')+line('M280 180 Q286 122 344 120 M365 119 Q418 115 437 160',.24))
+      '</g><g data-anatomy="head">'+face(skin)+basic('hair',hair({color:'#704c3b',shape:'bun'}))+'</g>'
     ,undefined,'skin'),covered,heldHands);
   }
   function hairShape(item) {
@@ -238,6 +243,7 @@
   const uri = value => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(value);
   const contents = value => value.replace(/^[\s\S]*?<svg\b[^>]*>/,'').replace(/<\/svg>\s*$/,'');
   const handheld = item => item.category==='accessory' && ['bag','tote','fan'].includes(item.shape);
+  function fittedItemSvg(item) {return svg(`<g transform="${rigTransform(rigPart(item))}">${contents(itemSvg(item))}</g>`);}
   function grip(skin, left) {
     return svg(hand(skin,left,'grip'),undefined,'skin');
   }
@@ -259,9 +265,15 @@
     layers.push(...watches.map(i=>[i.id,itemSvg(i)]));
     const scene=layers.map(([id,source])=>{
       const prefix=namespace+'-'+id+'-';
-      return `<g data-layer="${id}">${contents(source).replace(/\bid="([^"]+)"/g,(_,value)=>`id="${prefix+value}"`).replace(/url\(#([^)]+)\)/g,(_,value)=>`url(#${prefix+value})`)}</g>`;
+      let art=contents(source);
+      if(id==='base')art=art.replace(/data-anatomy="(head|body)"/g,(_,part)=>`data-anatomy="${part}" transform="${rigTransform(part)}"`);
+      else {
+        const part=id.startsWith('hand-')?'body':rigPart(items.find(i=>i.id===id));
+        art=`<g data-rig="${part}" transform="${rigTransform(part)}">${art}</g>`;
+      }
+      return `<g data-layer="${id}">${art.replace(/\bid="([^"]+)"/g,(_,value)=>`id="${prefix+value}"`).replace(/url\(#([^)]+)\)/g,(_,value)=>`url(#${prefix+value})`)}</g>`;
     }).join('');
     return `<svg xmlns="http://www.w3.org/2000/svg" data-scene="${namespace}" width="720" height="1280" viewBox="0 0 720 1280" fill="none">${scene}</svg>`;
   }
-  return { svg, body, itemSvg, avatarSvg, uri, flower, handheld };
+  return { svg, body, itemSvg, fittedItemSvg, avatarSvg, uri, flower, handheld, rigPoint };
 });

@@ -47,7 +47,7 @@
     // Motion runs on the whole composite through MuseFX after this synchronous update.
   }
   function demoOutfit(which=0) {
-    const looks=[['hair_casual_01','dress_elegant_02','shoes_glam_16','accessory_elegant_02','accessory_party_10'],['hair_silk_19','top_silk_23','bottom_silk_19','shoes_silk_18','accessory_silk_15'],['hair_summer_11','dress_glam_15','shoes_elegant_07','accessory_glam_08']];
+    const looks=[[D.defaultHair,'dress_elegant_02','shoes_glam_16','accessory_elegant_02','accessory_party_10'],['hair_silk_19','top_silk_23','bottom_silk_19','shoes_silk_18','accessory_silk_15'],['hair_sporty_04','dress_glam_15','shoes_elegant_07','accessory_glam_08']];
     const outfit=G.emptyOutfit();
     for(const id of looks[which%looks.length]) { const item=G.byId[id];item.category==='accessory'?outfit.accessory.push(id):outfit[item.category]=id; }
     return outfit;

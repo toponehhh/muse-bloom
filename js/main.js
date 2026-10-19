@@ -20,7 +20,10 @@
     const entry=G.enterLevel(state.save,index);if(!entry.allowed)return;
     state.save=entry.save;state.level=index;state.chapter=D.themes[index-1].chapter;state.result=null;state.shareCard=null;
     if(!retry && !G.equippedItems(state.outfit).length) {
-      for(const c of ['hair','top','bottom','shoes']) state.outfit[c]=D.items.find(i=>i.category===c&&state.save.unlockedItems.includes(i.id)).id;
+      for(const c of ['hair','top','bottom','shoes']) {
+        state.outfit[c]=c==='hair'&&state.save.unlockedItems.includes(D.defaultHair)
+          ?D.defaultHair:D.items.find(i=>i.category===c&&state.save.unlockedItems.includes(i.id)).id;
+      }
     }
     state.outfit=G.normalizeOutfit(state.outfit,state.save.unlockedItems);
     state.category=state.outfit.dress?'dress':'top';persist();navigate('dressing');
