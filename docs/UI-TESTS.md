@@ -1,4 +1,4 @@
-# UI regression — painted character release
+# UI regression — fitted cast and unobstructed stage
 
 Run `npm ci`, then the browser scripts in README. Windows uses installed Edge by default; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. CI uses Playwright Chromium. All suites except `test:browser` start their own temporary local server. The full journey needs `npm start` first.
 
@@ -14,6 +14,16 @@ Run `npm ci`, then the browser scripts in README. Windows uses installed Edge by
 
 `npm run test:ui:update` explicitly records new baselines. Inspect them before committing. The older vector-body anatomy/accessory test files and their 60 old screenshots were removed, rather than retaining tests for artwork no longer shipped. The `test:anatomy` and `test:accessories` aliases run the new character suite.
 
+## Full fitting suite: `npm run test:fitting`
+
+- 3 characters × 82 garments = 246 pixel checks against the actual painted bodies. Includes all tops, long/short sleeves, all dresses, skirt hips, pants, shorts and shoes. The lavender basics are also detected by colour so exposed straps or shorts cannot hide behind a skin-only test.
+- The arm/hip gap is measured separately, so skirts need not cover bare hands and sleeveless pieces need not cover arms. Open sandals intentionally expose parts of the feet. Covered regions allow at most 0.3% antialiasing misses and at most 3 consecutive pixels at the 360×640 test resolution.
+- Independent waist/hip ease and calf-width limits reject excessively wide or pinched fits. Test probes are separate from the renderer's authored paths.
+- All 23 × 21 × 3 = 1,449 top/bottom combinations check the waist seam by combining cached rendered alpha masks. This is a seam test, not a claim that every combination has a reviewed screenshot.
+- Nine viewports (320×568, 375×667, 390×844, 667×375, 768×1024, 1024×540, 1024×768, 1440×600, 1440×900) × three characters check that the selector is structurally outside the stage, never intersects it or the projected shoe region, and leaves score/character actions reachable.
+- Shifted trousers, a narrowed skirt, an oversized top and a selector deliberately placed over the stage must be detected as failures.
+- Reports and whole-screen captures are under `artifacts/fitting`. Actual pixel tests cover fitting regions, while screenshot review covers overall appearance.
+
 ## Retained suites
 
 - `npm test`: 14 rule/save tests plus all 36 levels solvable at 94 points. Includes legacy skin-only saves mapped to a new character without losing progress, unlocked items or outfits, plus identity roundtrips and invalid IDs.
@@ -23,4 +33,4 @@ Run `npm ci`, then the browser scripts in README. Windows uses installed Edge by
 - `test:experience`: nine distinct synthesized PCM effects, gesture unlock, mute/resume races, hidden-page suspension, idle breathing, reduced motion and rapid toggles.
 - `test:browser`: full 36-level real-input journey, 122 earned pieces, seven hidden rewards, touch, offline card export and denied/corrupt storage.
 
-Reports are under `artifacts/{characters,glam,lookbook,upload,experience}` plus `artifacts/browser-report-msedge.json`. Whole-page screenshots are manually inspected; they are not represented as automatic whole-page pixel tests. Browser emulation does not replace real iOS/Safari or CrazyGames platform QA.
+Reports are under `artifacts/{characters,fitting,glam,lookbook,upload,experience}` plus `artifacts/browser-report-msedge.json`. Whole-page screenshots are manually inspected; they are not represented as automatic whole-page pixel tests. Browser emulation does not replace real iOS/Safari or CrazyGames platform QA.

@@ -21,6 +21,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Wardrobe UI and visual regression
         run: npm run test:ui
+      - name: Clothing coverage, all separate combinations and unobstructed shoes
+        run: npm run test:fitting
       - name: Single-file portal upload and missing-resource regression
         run: npm run test:upload
       - name: Lookbook persistence, portrait export and responsive UI
@@ -37,6 +39,7 @@ jobs:
           path: |
             artifacts/ui/
             artifacts/characters/
+            artifacts/fitting/
             artifacts/upload/
             artifacts/lookbook/
             artifacts/experience/
