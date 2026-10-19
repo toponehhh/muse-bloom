@@ -10,7 +10,7 @@ npm run package:upload
 npm run test:upload
 ```
 
-在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标和矢量素材，不需要其他文件。当前版本为 **v1.2.0 Editorial Studio**，增加个人相册并更新全套界面；人物贴合、评分规则和存档键保持兼容。
+在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标、矢量素材和卧室背景，不需要其他文件。当前版本为 **v1.3.0 Bedroom Studio**，更新卡通角色、卧室场景、粉白界面、动画和原创音效；人物贴合、评分规则和存档键保持兼容。
 
 此前直接上传 ZIP 的说明不适用于用户当前的入口。`npm run package` 仍生成多文件 ZIP，供备份和其他静态托管使用。若使用多文件形式，须先解压，再保留相同层级上传 `index.html`、`css/`、`js/` 和 `assets/`；源码中的 `index.html` 不能单独上传。
 
@@ -23,8 +23,8 @@ npm run test:upload
 | `promo/cover-landscape.png` | 1920 × 1080 横版封面 |
 | `promo/cover-portrait.png` | 800 × 1200 竖版封面 |
 | `promo/cover-square.png` | 800 × 800 方形封面 |
-| `promo/preview-landscape.mp4` | 1920 × 1080、18.00 秒、无声、真实操作录像 |
-| `promo/preview-portrait.mp4` | 1080 × 1620、17.87 秒、无声、真实操作录像 |
+| `promo/preview-landscape.mp4` | 1920 × 1080、约 18 秒、无声、真实操作录像 |
+| `promo/preview-portrait.mp4` | 1080 × 1620、约 18 秒、无声、真实操作录像 |
 
 封面只包含游戏名，视频以对应封面开场。截图与视频展示本游戏真实角色和服装，不使用第三方品牌资产。
 
@@ -36,7 +36,7 @@ npm run test:upload
 
 **Description:**
 
-Muse Bloom is a dress-up and fashion puzzle game with a personal style studio. Match each brief, discover new pieces and build a lookbook that reflects your point of view. Explore 36 challenges across six collections, from everyday outfits and Y2K style to red carpet looks and modern Chinese fashion. Mix tops and bottoms, choose a dress, find the right shoes and finish with two accessories. Collect 122 pieces, including hanfu-inspired layers, mamian skirts and jade details. Earn S ranks to uncover secret items. Your best completed looks are saved with their outfits and skin tones, ready to revisit, restyle or download as portrait cards. There is no timer and no penalty for trying again. Every look. Entirely you.
+Muse Bloom is a dress-up and fashion puzzle game set in a cozy bedroom studio. Style an original cartoon character with a playful pink wardrobe, little sparkles and soft sound effects. Match each brief, discover new pieces and build a lookbook that reflects your point of view. Explore 36 challenges across six collections, from everyday outfits and Y2K style to red carpet looks and modern Chinese fashion. Mix tops and bottoms, choose a dress, find the right shoes and finish with two accessories. Collect 122 pieces, including hanfu-inspired layers, mamian skirts and jade details. Earn S ranks to uncover secret items. Your best completed looks are saved with their outfits and skin tones, ready to revisit, restyle or download as portrait cards. There is no timer and no penalty for trying again. Every look. Entirely you.
 
 **Controls:** Click or tap an item to wear it. Tap it again to remove it. Browse the categories, match the three mood tags and select Reveal your look. Open Lookbook to revisit a completed outfit, restyle it or save a portrait. Use Tab and Enter to select controls and the left and right arrow keys in category tabs. A dress replaces your top and bottom. You can wear two accessories.
 
