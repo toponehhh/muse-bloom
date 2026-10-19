@@ -72,7 +72,7 @@ test('save repair rejects fabricated ranks and progression gaps', () => {
   const save = G.sanitizeSave(raw);
   assert.equal(save.levels[first.id].rank, 'B');
   assert.equal(save.levels[D.themes[35].id], undefined);
-  assert.equal(save.skin, 'warm'); assert.equal(save.streak, 0);
+  assert.equal(save.skin, D.defaultSkin); assert.equal(save.streak, 0);
   assert.ok(!save.unlockedItems.includes('bad-id'));
 });
 test('corrupted, unavailable, quota-limited and future saves stay playable', () => {

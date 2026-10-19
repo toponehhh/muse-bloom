@@ -45,7 +45,7 @@ async function installPixelChecks(page) {
       const body=avatar.querySelector('[data-anatomy="body"]').getBoundingClientRect();
       const headToBody=face.height/body.height,bodyWidthToHeight=body.width/body.height;
       // Independent rendered measurements reject the previous tall, narrow rig.
-      if(headToBody<.31||headToBody>.36||bodyWidthToHeight<.43||bodyWidthToHeight>.51)
+      if(headToBody<.29||headToBody>.315||bodyWidthToHeight<.425||bodyWidthToHeight>.445)
         throw Error('Character proportions outside reviewed range: '+JSON.stringify({headToBody,bodyWidthToHeight}));
       return {headToBody,bodyWidthToHeight};
     };
@@ -69,6 +69,9 @@ async function installPixelChecks(page) {
       for (const [x,y] of [[360,245],[360,337],[360,450],[340,590],[380,590],[330,680],[390,680],[326,900],[394,900],[326,1110],[394,1110],[237,751],[483,751],[326,1178],[394,1178]]) {
         if (alpha(...MuseArt.rigPoint(x,y,y<330?'head':'body')) < 250) throw new Error(`Blank body at ${x},${y}, item=${itemId || 'empty'}`);
       }
+      const chin=MuseArt.rigPoint(360,312,'head'),neck=MuseArt.rigPoint(360,344);
+      for(let t=0;t<=1;t+=.1)if(alpha(chin[0]+(neck[0]-chin[0])*t,chin[1]+(neck[1]-chin[1])*t)<250)
+        throw new Error('Blank body between tilted head and neck');
       if (itemId) {
         const item = MuseGame.byId[itemId];
         const layer = svg.querySelector(`[data-layer="${itemId}"]`);
@@ -171,16 +174,23 @@ async function run() {
     browser=await chromium.launch({headless:true,channel:process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':undefined)});
     report.browser=await browser.version();
     const page=await newPage();
-    assert.equal(G.byId[D.defaultHair].shape,'bun');assert.ok(G.starterIds.includes(D.defaultHair));
+    assert.equal(G.byId[D.defaultHair].shape,'airypony');assert.ok(G.starterIds.includes(D.defaultHair));
     assert.equal(await page.locator(`#avatar-slot [data-layer="${D.defaultHair}"]`).count(),1);
     report.proportions=await page.evaluate(()=>uiProportionCheck());
     assert.ok(await page.evaluate(()=>{
       const nodes=[...document.querySelectorAll('#avatar-slot [data-anatomy]')];
-      const transforms=nodes.map(n=>n.getAttribute('transform'));nodes.forEach(n=>n.removeAttribute('transform'));
-      try{uiProportionCheck();return false;}catch(e){return e.message.includes('proportions');}
+      const transforms=nodes.map(n=>n.getAttribute('transform'));
+      try{
+        for(const prior of [null,{head:'matrix(1.27 0 0 1.27 -97.2 31.7)',body:'matrix(1.26 0 0 .86 -93.6 167)'}]){
+          nodes.forEach(n=>prior?n.setAttribute('transform',prior[n.dataset.anatomy]):n.removeAttribute('transform'));
+          let rejected=false;try{uiProportionCheck();}catch(e){rejected=e.message.includes('proportions');}
+          if(!rejected)return false;
+        }
+        return true;
+      }
       finally{nodes.forEach((n,i)=>n.setAttribute('transform',transforms[i]));}
-    }),'Restoring the tall, narrow proportions must fail');
-    pass('Default is an unlocked high bun; rendered head/body ratios match the reviewed shorter silhouette, and old proportions fail');
+    }),'Restoring either the tall original or broad v1.3.1 proportions must fail');
+    pass('Default is an unlocked ribbon ponytail; rendered head/body ratios match the reviewed softer silhouette, and old proportions fail');
     await page.evaluate(()=>{window.originalAvatar=document.querySelector('#avatar-slot .avatar');window.originalBase=originalAvatar.querySelector('[data-layer="base"]');});
     await page.locator('[data-action="clear"]').click();
     assert.ok(await page.evaluate(()=>originalAvatar===document.querySelector('#avatar-slot .avatar')),'Clearing must preserve the visible avatar DOM');

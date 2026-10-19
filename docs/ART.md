@@ -4,13 +4,13 @@ All illustration code is original to Muse Bloom. Version 1.3.0 adds one original
 
 `js/art.js` defines a 720 × 1280 layered character. `avatarSvg()` composes one inline SVG with keyed groups, ordered by item `z`. Dressing updates those groups synchronously and keeps the avatar and base mounted; removing clothes never waits for image decoding. The canvas exporter rasterizes the same composition. Offline `file://` play does not taint the export canvas.
 
-## Presentation proportions · v1.3.1
+## Presentation proportions · v1.3.2
 
-Editable paths remain in the canonical 720 × 1280 coordinates below. `avatarSvg()` fits the head with `matrix(1.27 0 0 1.27 -97.2 31.7)` and the body with `matrix(1.26 0 0 .86 -93.6 167)`. This enlarges the head, widens the shoulders and hips, and shortens the limbs while keeping the feet on the floor. Hair, glasses, earrings and clips/pins follow the head; garments, necklaces, shoes, watches, bags and carrying hands follow the body. Thumbnail bounds remain canonical.
+Editable paths remain in the canonical 720 × 1280 coordinates below. The body uses `matrix(1.12 0 .028 .88 -76.52 145)`: a narrower silhouette than v1.3.1, short limbs and a gentle lean. The head is scaled by 1.23 and rotated by 3 degrees around the shared neck anchor (335.92,435.4). The jaw and neck paths are redrawn for a softer, younger cartoon face; skin and hand shadows share the same lighter falloff.
 
-Keep `data-anatomy="head"` and `data-anatomy="body"` in custom base SVGs; do not bake presentation transforms into editable paths. `rigPoint()` maps attachment coordinates to the final canvas; `fittedItemSvg()` provides the corresponding clothing layer for coverage tests. The right/left grip now renders at (518.76,834.36)/(201.24,834.36), and the crossbody shoulder at (283.14,483.48).
+Keep `data-anatomy="head"` and `data-anatomy="body"` in custom bases. Hair, glasses, earrings and clips/pins follow the head; garments, necklaces, shoes, watches, bags and carrying hands follow the body. Thumbnail bounds remain canonical. `rigPoint()` applies the full affine matrix to attachment coordinates. `fittedItemSvg()` provides the corresponding garment for coverage tests. Right/left grips render at (489.528,827.88)/(207.288,827.88); the crossbody shoulder renders at (268.664,468.84).
 
-`MuseData.defaultHair` selects the starter high bun. The base also supplies a high bun when hair is removed. Saved outfit IDs and wardrobe choices are preserved.
+`MuseData.defaultHair` selects the starter ribbon ponytail (`airypony`), retaining item ID `hair_sporty_04`. The base uses the same hairstyle when hair is removed. `MuseData.defaultSkin` supplies the light showcase and fresh-save tone; it does not replace an existing player-selected gameplay tone or saved look. Homepage, empty-lookbook illustrations and covers use the showcase tone explicitly. Existing hairstyle IDs remain valid; the former High Pony now has the revised ribbon ponytail artwork.
 
 ## Edit the source art
 
@@ -30,7 +30,7 @@ Do not run `npm run assets` after individual asset edits unless you intend to re
 - Item anchor: (360, 640), the shared full-canvas center.
 - Base layer 10; bottoms 20; dress 25; top 30; shoes 50; hair 60; accessories 70.
 
-The base contains opaque studio basics: a high bun, a rose camisole and sage shorts. Groups marked `data-basic="hair"`, `data-basic="top"`, and `data-basic="bottom"` are hidden only when that slot is covered by an equipped item (a dress covers both clothing slots). Keep these markers in custom base artwork. Basics are visual fallbacks, not collectible/scoring items. This prevents pale underlayers protruding around a fitted garment and makes removal an explicit complete appearance.
+The base contains opaque studio basics: a ribbon ponytail, a rose camisole and sage shorts. Groups marked `data-basic="hair"`, `data-basic="top"`, and `data-basic="bottom"` are hidden only when that slot is covered by an equipped item (a dress covers both clothing slots). Keep these markers in custom base artwork. Basics are visual fallbacks, not collectible/scoring items. This prevents pale underlayers protruding around a fitted garment and makes removal an explicit complete appearance.
 
 Long sleeves cover both edges of the base arms through the wrists. Bodices share underarm/waist landmarks; fitted skirts cover the full hip contour. Check `npm run test:ui` after art changes: coverage assertions and 60 reviewed screenshots protect these seams. See [UI test guide](UI-TESTS.md) before deliberately updating baselines.
 
