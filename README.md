@@ -32,6 +32,10 @@ npm run test:pages        # build and verify the website at a repository subpath
 
 Tests start their own servers. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. Linux uses Playwright Chromium (`npx playwright install chromium`). Current UI coverage is in `dev/salon.test.js`; old v1.6 browser/character scripts and baselines are historical references, not current test commands.
 
+## Cloudflare online feedback
+
+The Cloudflare build adds voluntary online submissions backed by D1, saved drafts, confirmed receipts, safe retries and JSON backups. Run `npm run cf:dev` for the local Worker and database. Deployment commands, database setup, GitHub Actions secrets/variables and administrator queries are in [Cloudflare deployment](docs/CLOUDFLARE.md). Cloudflare publishing stays disabled until its account, D1 database and API token are configured. GitHub Pages and offline builds continue to download feedback locally.
+
 ## Private playtest
 
 Run `npm run package:playtest`, then open `dist/playtest-v1.7.0/index.html`. The folder contains the game, three neutral tasks, organizer instructions and an offline backup feedback form. Share the complete folder, or ZIP it for participants to extract. The ZIP is a human-sharing format, not a CrazyGames upload instruction.

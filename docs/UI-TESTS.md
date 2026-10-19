@@ -33,4 +33,6 @@ The old `dev/browser.test.js`, `dev/characters.test.js` and 24 v1.6 baselines re
 
 ## Limits
 
+Cloudflare feedback checks: `npm run test:feedback-api` exercises the real local Worker/D1 runtime (27 assertions covering concurrent retries, validation, origin, size, rate limits and unavailable storage). `npm run test:cloudflare` serves the actual Cloudflare build and checks mobile guide submission, consent, draft restoration, server failure, a lost response after the database commit, idempotent retry, receipts, backups, gameplay/action-log submission and revised answers. Evidence is saved to `artifacts/cloudflare/`. These use isolated local databases and are not production D1 tests.
+
 No human playtest results, real iOS/Safari, physical Android, low-memory Chromebook or CrazyGames portal QA are included. Hosted CI status and downloadable evidence are available in the repository Actions runs. Playtest records with `source: automated-check` must never count as human feedback. A passing local test cannot establish retention, artistic preference or platform approval.
