@@ -1,0 +1,27 @@
+{
+  "sourceArchive": "stitch_western_teen_dress_up_game.zip",
+  "usage": "User-provided editorial artwork. Full images converted to WebP; no pixel retouching or runtime remote requests. Not clothing layers.",
+  "assets": [
+    {
+      "file": "assets/editorial/rose-studio.webp",
+      "archiveEntry": "stitch_western_teen_dress_up_game/full_body_cute_cartoon_stylized_fashion_doll_avatar_for_an_html5_teen_dress_up/screen.png",
+      "sourceSHA256": "823a1e05d25ca963731dc4e7e582c154747732c12f773e31eae758892676671f",
+      "bytes": 48466,
+      "sha256": "d60a9b798494436e1c7f29b5ed13c453b2caa49c52b6f670d6f0f59fd01cca30"
+    },
+    {
+      "file": "assets/editorial/golden-hour.webp",
+      "archiveEntry": "stitch_western_teen_dress_up_game/full_body_cute_stylized_fashion_avatar_mannequin_of_a_sweet_black_teen_girl/screen.png",
+      "sourceSHA256": "4d1601fe1c7d65cf248d37d9b138bd6a401edb88ed7fdfe91e9b92175aa58be7",
+      "bytes": 40160,
+      "sha256": "f22405ca4cfda75a45d2c077b41d81ccb79f93795e88941ea3c0819f9948f03e"
+    },
+    {
+      "file": "assets/editorial/city-muse.webp",
+      "archiveEntry": "stitch_western_teen_dress_up_game/full_body_fashion_doll_avatar_mannequin_of_a_stylish_east_asian_teen_girl_for/screen.png",
+      "sourceSHA256": "86ed0d5e9280c13f5a901589423706f27c4b5aad0d9cc30ebba8968d1c07e855",
+      "bytes": 26992,
+      "sha256": "2ea047186b71bb1ca74a43e16437e122bc6a00a4487bcc0cb9e1abc177673865"
+    }
+  ]
+}

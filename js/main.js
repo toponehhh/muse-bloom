@@ -58,6 +58,8 @@
     if(!['mute','equip','score','share','export-look','clear','preview-sound'].includes(action))S.play(action==='category'?'tab':'click');
     switch(action) {
       case 'home':navigate('home');break;
+      case 'studio':startLevel(state.level);break;
+      case 'nav-map':navigate('map');break;
       case 'play':startLevel(G.nextLevel(state.save));break;
       case 'map':state.chapter=D.themes[(state.screen==='home'?G.nextLevel(state.save):state.level)-1].chapter;navigate('map');break;
       case 'chapter':state.chapter=Number(button.dataset.chapter);render();break;

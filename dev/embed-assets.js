@@ -11,5 +11,9 @@ const customCount=Object.keys(map).length;
 // Raster scenes are embedded too: file:// exports and portal folder uploads must
 // never depend on a separate image request or taint the portrait canvas.
 map['assets/scenes/bedroom.webp']='data:image/webp;base64,'+fs.readFileSync(path.join(root,'assets/scenes/bedroom.webp')).toString('base64');
+for(const name of fs.readdirSync(path.join(root,'assets/editorial')).sort()){
+  if(!name.endsWith('.webp'))continue;
+  map['assets/editorial/'+name]='data:image/webp;base64,'+fs.readFileSync(path.join(root,'assets/editorial',name)).toString('base64');
+}
 fs.writeFileSync(path.join(root,'js/asset-data.js'),'// Generated from local SVG files by dev/embed-assets.js. No network requests.\nwindow.MuseAssets='+JSON.stringify(map)+';\n');
 console.log(`Embedded ${customCount} custom layers and bedroom scene; ${files.length} defaults use compact vector source.`);
