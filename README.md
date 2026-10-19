@@ -2,7 +2,7 @@
 
 Every look. Entirely you.
 
-Version 1.3.2 refines the character with softer facial features, a narrower shoulder/neck silhouette, a gentle lean and a chestnut ribbon ponytail. The homepage and covers use light skin and casual outfits; a fresh game also starts with the light tone. Existing player-selected tones and saved outfit IDs remain intact. Clothing, hands and accessories share the adjusted rig. The bedroom, original sound effects and animation remain. Version 1.3.0 introduced a bright bedroom dressing room, an original big-eyed cartoon character, pink-and-white wardrobe cards and glossy category buttons. Blink, breathing, outfit sparkles and star reveals add motion; nine original synthesized effects bring clicks, clothes, rewards and the camera to life. The personal lookbook and existing v1 progress remain compatible.
+Version 1.4.0 redraws the character with bent elbows, tapered forearms, shaped knees/calves and a defined waist/hip silhouette. All 122 items use the same fitting profile. Separate limb lighting, face highlights, hair contact shadows and fabric folds create a 2.5D cartoon appearance; this remains an editable vector character, not a rotatable 3D model. The chestnut ribbon ponytail, light showcase tone, bedroom, original sound effects and animations remain. Existing player-selected tones, saved outfits and v1 progress are compatible.
 
 Muse Bloom is an original, offline-capable HTML5 fashion puzzle: match a brief, style a character, earn a grade, and grow your wardrobe. The first release targets **CrazyGames Basic Launch**.
 
@@ -29,7 +29,7 @@ Game source is in `js/`, presentation in `css/`, development tools in `dev/`. Th
 
 For the CrazyGames file/folder upload form, use `dist/crazygames-upload/index.html`. Its styles, scripts, SVG artwork and the bedroom image are embedded, so no sibling folders are required. `npm run test:upload` verifies this actual file on an otherwise empty server, at a nested URL, in a sandboxed iframe and offline. The ZIP from `npm run package` is a multi-file distribution backup; extract it first if using that format with the portal.
 
-For UI checks, run `npm ci`, install a test browser with `npx playwright install chromium`, then run `npm run test:ui`. This starts and stops its own server and checks all 122 items, removal, garment coverage, 28 accessory attachment cases, 88 hairstyle/skin checks, 60 visual baselines, responsive layouts and the standalone HTML. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. See [UI test guide](docs/UI-TESTS.md) for evidence, baseline review and limitations.
+For UI checks, run `npm ci`, install a test browser with `npx playwright install chromium`, then run `npm run test:ui`. This starts and stops its own servers and checks pixel-measured elbow bends, waist/hip widths, volume lighting, wrist seams, all 122 items, removal, garment coverage, 28 accessory attachment cases, 88 hairstyle/skin checks, 60 visual baselines, responsive layouts and the standalone HTML. `npm run test:anatomy` runs just the new silhouette/material checks and their negative controls. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. See [UI test guide](docs/UI-TESTS.md) for evidence, baseline review and limitations.
 
 Run `npm run test:experience` for real PCM audio, first-gesture playback, mute cancellation, page visibility, reduced motion, blinking and repeated outfit animations.
 

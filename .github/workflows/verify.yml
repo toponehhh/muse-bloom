@@ -34,6 +34,7 @@ jobs:
           name: ui-regression-evidence
           path: |
             artifacts/ui/
+            artifacts/anatomy/
             artifacts/upload/
             artifacts/lookbook/
             artifacts/experience/
