@@ -1,0 +1,11 @@
+# Bedroom scene · v1.3.0
+
+Mode: built-in imagegen. Generated on 2026-10-19. Original illustration created for Muse Bloom; no third-party game art was downloaded. The user's screenshot supplied the visual direction; the user's later request changed the setting to a room at home.
+
+Runtime asset: `assets/scenes/bedroom.webp`, 1024 × 1536, 185,926 bytes. The generated PNG was encoded to WebP at quality 86 without changing its composition. `dev/embed-assets.js` embeds the image in `js/asset-data.js`; the same image is used for the game stage and portrait export. Single-file builds need no external image request.
+
+Characters, clothes, category icons and animations are original editable SVG/CSS/JavaScript. The image generator was used only for the background.
+
+## Final generation prompt
+
+Create one original high-quality background illustration for a cozy fashion dress-up browser game. Portrait composition, approximately 2:3 aspect ratio. A bright stylish young woman's bedroom and dressing room, rendered as a polished anime mobile game environment with soft painterly 3D lighting, crisp detailed furnishings, sophisticated pastel blush pink, warm ivory and pale lavender palette. Large airy window on the back left with sheer curtains and warm morning sun, a small vanity with an oval illuminated mirror on the right, a wardrobe with a few neatly hanging garments along the back wall, a tidy bed partly visible along the far left edge, a little vase of flowers and tasteful small decorative accessories. Pale warm wood floor in perspective, subtle sunlight reflections, a plush pale pink rug low in the center. The CENTER FOREGROUND MUST BE OPEN AND UNOBSTRUCTED from top to bottom, leaving plenty of negative space for a full-body cartoon girl to be overlaid later; keep furniture behind her and near the edges. View from standing eye level, inviting realistic perspective, rich fine details and gentle shadows, no harsh dark areas. This is just an original game environment background: NO people, NO characters, NO mannequins, NO text, NO logos, NO lettering, NO UI, NO watermarks. Avoid excessive glitter or candy objects. The room should feel welcoming and fashionable rather than childish.
