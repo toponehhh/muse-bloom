@@ -22,7 +22,8 @@
     "package": "node dev/package.js",
     "test:glam": "node dev/glam.test.js",
     "test:characters": "node dev/characters.test.js",
-    "test:fitting": "node dev/fitting.test.js"
+    "test:fitting": "node dev/fitting.test.js",
+    "test:neckline": "node dev/neckline.test.js"
   },
   "engines": {
     "node": ">=20"

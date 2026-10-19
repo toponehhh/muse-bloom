@@ -39,6 +39,11 @@ async function screenshot(page,name){await page.screenshot({path:path.join(artif
     record('Real UI dress exclusivity, remove-to-restore and category keyboard navigation');
     for(let index=1;index<=36;index++){
       await dressWinning(page,index);
+      const briefVisible=await page.evaluate(index=>{
+        const p=document.querySelector('.brief-main p'),stage=document.querySelector('.fitting-stage').getBoundingClientRect();
+        return p.checkVisibility()&&p.textContent===MuseData.themes[index-1].description&&p.getBoundingClientRect().bottom<=stage.top&&!document.querySelector('.fitting-stage .scene-speech')&&document.querySelector('[data-action="score"]').getBoundingClientRect().bottom<=innerHeight;
+      },index);
+      assert.ok(briefVisible,'Brief and score remain visible for challenge '+index);
       if(index===1)await screenshot(page,'dressing-desktop.png');
       if(index===31)await screenshot(page,'silk-jade-desktop.png');
       await page.locator('[data-action="score"]').click();
@@ -64,6 +69,7 @@ async function screenshot(page,name){await page.screenshot({path:path.join(artif
     await page.locator('[data-action="map"]').click();await screenshot(page,'chapter-map-desktop.png');
     assert.equal(await page.locator('.map-progress>b').innerText(),'36 / 36');
     record('Complete 36-level UI journey, all 122 pieces earned, 7 hidden rewards');
+    record('All 36 challenge descriptions visible above the stage with score controls reachable');
     for(const viewport of [{width:375,height:667},{width:390,height:844},{width:667,height:375},{width:1920,height:1080}]){
       const ctx=await browser.newContext({viewport,hasTouch:viewport.width<768,reducedMotion:'reduce'});
       const p=await ctx.newPage();observe(p);await p.goto(base);await p.locator('[data-action="play"]').click();
@@ -92,7 +98,7 @@ async function screenshot(page,name){await page.screenshot({path:path.join(artif
     const corrupt=await corruptContext.newPage();observe(corrupt);await corrupt.goto(base);await corrupt.locator('[data-action="play"]').click();assert.ok(await corrupt.locator('[data-action="score"]').isVisible());record('Corrupt save recovery in a real browser');await corruptContext.close();
     assert.deepEqual(errors,[],'Browser console/page errors');assert.deepEqual(external,[],'External requests');
     record('Zero game console errors and zero external HTTP requests');
-    fs.writeFileSync(path.join(artifacts,`browser-report-${process.env.MUSE_BROWSER_CHANNEL||'msedge'}.json`),JSON.stringify({browser:await browser.version(),checks:report,errors,external},null,2));
+    fs.writeFileSync(path.join(artifacts,`browser-report-${process.env.MUSE_BROWSER_CHANNEL||'msedge'}.json`),JSON.stringify({version:require('../package.json').version,browser:await browser.version(),checks:report,errors,external},null,2));
     await context.close();
   }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

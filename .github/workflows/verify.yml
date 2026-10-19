@@ -23,6 +23,8 @@ jobs:
         run: npm run test:ui
       - name: Clothing coverage, all separate combinations and unobstructed shoes
         run: npm run test:fitting
+      - name: Neckline contact and covered basic straps on every character
+        run: npm run test:neckline
       - name: Single-file portal upload and missing-resource regression
         run: npm run test:upload
       - name: Lookbook persistence, portrait export and responsive UI
@@ -40,6 +42,7 @@ jobs:
             artifacts/ui/
             artifacts/characters/
             artifacts/fitting/
+            artifacts/neckline/
             artifacts/upload/
             artifacts/lookbook/
             artifacts/experience/

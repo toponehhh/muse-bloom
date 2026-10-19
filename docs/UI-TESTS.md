@@ -22,7 +22,15 @@ Run `npm ci`, then the browser scripts in README. Windows uses installed Edge by
 - All 23 × 21 × 3 = 1,449 top/bottom combinations check the waist seam by combining cached rendered alpha masks. This is a seam test, not a claim that every combination has a reviewed screenshot.
 - Nine viewports (320×568, 375×667, 390×844, 667×375, 768×1024, 1024×540, 1024×768, 1440×600, 1440×900) × three characters check that the selector is structurally outside the stage, never intersects it or the projected shoe region, and leaves score/character actions reachable.
 - Shifted trousers, a narrowed skirt, an oversized top and a selector deliberately placed over the stage must be detected as failures.
+- All 27 viewport/character cases also project the complete head into screen space and reject collisions with the brief, wardrobe or character dock. The brief must be readable above the stage. A recreated floating brief at the old position must collide with the head and be detected.
 - Reports and whole-screen captures are under `artifacts/fitting`. Actual pixel tests cover fitting regions, while screenshot review covers overall appearance.
+
+## Neckline contact suite: `npm run test:neckline`
+
+- 43 tops/dresses × 3 painted characters = 129 checks at native 720×1280 resolution. The first opaque neckline row is compared with the actual neck boundaries in the base sprite, independently of authored garment paths. Allowed total seam ease: −10 to +16 px; centering tolerance: 6 px.
+- The upper neck remains visible. Crew/collared openings expose skin below the neck root; intentionally standing collars use their own opening allowance. The lavender basic straps must be covered with no more than two antialiasing pixels at the shoulder edge.
+- Negative fixtures reproduce the old broad neckline and a garment extending onto the chin. Both must fail for every character.
+- Three enlarged sheets capture every neckline in `artifacts/neckline`; these complement the existing 24 full-body baselines. Pixel assertions test geometry/coverage, while humans review the art itself.
 
 ## Retained suites
 

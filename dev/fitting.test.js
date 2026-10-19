@@ -107,18 +107,25 @@ const pass=text=>{report.checks.push(text);console.log('PASS:',text);};
     const s=stage.getBoundingClientRect(),r=selector.getBoundingClientRect(),matrix=avatar.getScreenCTM();
     const a=new DOMPoint(250,1130).matrixTransform(matrix),b=new DOMPoint(470,1278).matrixTransform(matrix);
     const feet={left:a.x,top:a.y,right:b.x,bottom:b.y};
+    const h1=new DOMPoint(180,0).matrixTransform(matrix),h2=new DOMPoint(540,280).matrixTransform(matrix);
+    const head={left:h1.x,top:h1.y,right:h2.x,bottom:h2.y};
+    const brief=document.querySelector('.brief'),description=brief.querySelector('.brief-main p'),br=brief.getBoundingClientRect(),dr=description.getBoundingClientRect();
     const overlaps=(a,b)=>a.left<b.right&&b.left<a.right&&a.top<b.bottom&&b.top<a.bottom;
     const buttons=[...selector.querySelectorAll('button')];
-    return {outsideStage:!stage.contains(selector),noStageOverlap:!overlaps(s,r),feetVisible:feet.left>=s.left&&feet.right<=s.right&&feet.top>=s.top&&feet.bottom<=s.bottom,feetClear:!overlaps(feet,r),choicesVisible:buttons.every(n=>{const q=n.getBoundingClientRect();return q.width>=30&&q.height>=34&&q.left>=0&&q.right<=innerWidth&&q.top>=0&&q.bottom<=innerHeight;}),scoreVisible:document.querySelector('[data-action=score]').getBoundingClientRect().bottom<=innerHeight+1,noOverflow:document.documentElement.scrollWidth<=innerWidth+1,feet,selector:{left:r.left,top:r.top,right:r.right,bottom:r.bottom}};
+    const overlays=[...document.querySelectorAll('.brief,.character-selector,.wardrobe-panel,.scene-speech')];
+    return {outsideStage:!stage.contains(selector),noStageOverlap:!overlaps(s,r),feetVisible:feet.left>=s.left&&feet.right<=s.right&&feet.top>=s.top&&feet.bottom<=s.bottom,feetClear:!overlaps(feet,r),headVisible:head.left>=s.left&&head.right<=s.right&&head.top>=s.top&&head.bottom<=s.bottom,headClear:overlays.every(n=>!overlaps(head,n.getBoundingClientRect())),briefOutside:!stage.contains(brief)&&br.bottom<=s.top&&!stage.querySelector('.scene-speech'),descriptionVisible:description.checkVisibility()&&dr.height>=12&&dr.bottom<=s.top&&description.textContent===MuseData.themes[0].description,choicesVisible:buttons.every(n=>{const q=n.getBoundingClientRect();return q.width>=30&&q.height>=34&&q.left>=0&&q.right<=innerWidth&&q.top>=0&&q.bottom<=innerHeight;}),scoreVisible:document.querySelector('[data-action=score]').getBoundingClientRect().bottom<=innerHeight+1,noOverflow:document.documentElement.scrollWidth<=innerWidth+1,feet,head,selector:{left:r.left,top:r.top,right:r.right,bottom:r.bottom}};
    });
-   for(const key of ['outsideStage','noStageOverlap','feetVisible','feetClear','choicesVisible','scoreVisible','noOverflow'])assert.equal(layout[key],true,`${width}x${height}/${character}: ${key}`);
+   for(const key of ['outsideStage','noStageOverlap','feetVisible','feetClear','headVisible','headClear','briefOutside','descriptionVisible','choicesVisible','scoreVisible','noOverflow'])assert.equal(layout[key],true,`${width}x${height}/${character}: ${key}`);
    report.layouts.push({width,height,character,...layout});
   }
   await p.screenshot({path:path.join(out,`studio-${width}x${height}.png`)});
+  // Prove the head collision check catches a text panel at the old location.
+  if(width===768){const detected=await p.evaluate(()=>{const stage=document.querySelector('.fitting-stage'),svg=stage.querySelector('#avatar-slot svg'),m=svg.getScreenCTM(),a=new DOMPoint(180,0).matrixTransform(m),b=new DOMPoint(540,280).matrixTransform(m),n=document.createElement('div');n.className='scene-speech';n.textContent='THE STYLE BRIEF';n.style.cssText='position:absolute;left:20px;top:24px;width:130px;height:80px;z-index:99';stage.append(n);const r=n.getBoundingClientRect(),collision=a.x<r.right&&r.left<b.x&&a.y<r.bottom&&r.top<b.y;n.remove();return collision;});assert.ok(detected,'Old brief must collide with the head');}
   // Negative control: reproduce the old overlay and require rectangle collision.
   if(width===1440&&height===900){const detected=await p.evaluate(()=>{const n=document.querySelector('.character-selector'),s=document.querySelector('.fitting-stage');s.append(n);n.style.cssText='position:absolute;left:10%;right:10%;bottom:0;height:110px;z-index:99';const a=s.getBoundingClientRect(),b=n.getBoundingClientRect();return a.left<b.right&&b.left<a.right&&a.top<b.bottom&&b.top<a.bottom;});assert.ok(detected);}
   await p.close();
  }
  pass('27 character/viewport checks: selector outside stage, full shoes visible, controls and score reachable; old overlay negative control detected');
+ pass('27 head/brief checks: complete head visible, description readable above stage, old floating brief collision detected');
  assert.deepEqual(report.errors,[]);report.status='passed';
 })().catch(e=>{report.status='failed';report.errors.push(e.stack);console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();await new Promise(r=>server.close(r));fs.writeFileSync(path.join(out,'report-'+channel+'.json'),JSON.stringify(report,null,2));});
