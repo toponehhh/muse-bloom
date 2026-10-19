@@ -32,7 +32,7 @@
       '<div class="home-actions">'+b('play',(played?'Continue your story':'Style your first look')+' '+i('arrow'),'button primary')+
       b('characters','Choose your muse','text-button')+'</div><div class="occasion-pills"><span>☕ Coffee with friends</span><span>✧ Gallery opening</span><span>✿ Flower market</span></div>'+
       '<p class="home-note">Start with the 14-piece studio edit. Explore 36 challenges as you go.</p>'+
-      (root.MusePlaytest.active?'<p class="playtest-notice">Private playtest · actions and feedback stay on this device until you export them. Your usual game save is separate.</p>':'')+
+      (root.MusePlaytest.active?'<p class="playtest-notice">'+(root.MuseFeedback.online?'Online playtest · share anonymous answers and actions only when you submit feedback.':'Private playtest · actions and feedback stay on this device until you export them.')+' Your usual game save is separate.</p>':'')+
       '</div><div class="home-look">'+stage({...state,level:1},'campaign-stage',demo())+'<div class="look-label"><span>THE EVERYDAY EDIT / 01</span><strong>Soft knits. Blue skies.</strong></div></div></main>';
   }
   function visibleItems(state){

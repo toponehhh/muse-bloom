@@ -24,7 +24,7 @@ checkPublishFiles();
 standalone(path.join(out, 'index.html'));
 fs.mkdirSync(path.join(out, 'playtest'), { recursive: true });
 fs.copyFileSync(path.join(out, 'index.html'), path.join(out, 'playtest/Muse-Bloom.html'));
-const guide = fs.readFileSync(path.join(root, 'playtest/index.html'), 'utf8')
+const guide = require('./build-guide').buildGuide()
   .replaceAll('PRIVATE PLAYTEST', 'ONLINE PLAYTEST')
   .replaceAll('私人试玩', '在线试玩')
   .replace('</header>', '<p class="note">此试玩页通过公开链接访问。反馈仍只保存在本机并由你主动下载。<a href="../">返回普通游戏</a></p></header>');

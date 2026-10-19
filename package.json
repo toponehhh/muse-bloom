@@ -29,12 +29,20 @@
     "test:playtest": "node dev/package-playtest.js && node dev/playtest.test.js",
     "playtest:summary": "node dev/summarize-playtest.js",
     "package:pages": "node dev/package-pages.js",
-    "test:pages": "npm run package:pages && node dev/pages.test.js"
+    "test:pages": "npm run package:pages && node dev/pages.test.js",
+    "package:cloudflare": "node dev/package-cloudflare.js",
+    "test:feedback-api": "node dev/feedback-api.test.js",
+    "test:cloudflare": "npm run package:cloudflare && node dev/cloudflare.test.js",
+    "cf:dev": "npm run package:cloudflare && node dev/cloudflare-command.js dev",
+    "cf:configure": "node dev/cloudflare-command.js configure",
+    "cf:deploy": "npm run package:cloudflare && node dev/cloudflare-command.js deploy"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "devDependencies": {
-    "playwright": "1.62.1"
+    "miniflare": "5.20261019.0-beta",
+    "playwright": "1.62.1",
+    "wrangler": "4.151.2"
   }
 }

@@ -69,7 +69,7 @@
       case 'next':if(state.screen==='result'&&state.result.result.score>=35)startLevel(Math.min(36,state.level+1));break;
       case 'retry':startLevel(state.level,true);break;
       case 'style-brief':openDialog(U.styleBrief(state));break;
-      case 'feedback':if(P.active)openDialog(P.form());break;
+      case 'feedback':if(P.active){openDialog(P.form());P.mount();}break;
       case 'skip-guide':state.save.onboardingDone=true;persist();U.updateDressing(state);break;
       case 'replay-guide':state.save.onboardingDone=false;state.outfit=G.emptyOutfit();persist();startLevel(1,true);break;
       case 'coach-next':state.category=button.dataset.category;U.updateDressing(state);break;
