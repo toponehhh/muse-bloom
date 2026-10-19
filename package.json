@@ -1,6 +1,6 @@
 {
   "name": "muse-bloom",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "description": "A buildless dress-up puzzle game with 36 challenges and 122 collectible pieces.",
   "scripts": {
@@ -10,6 +10,7 @@
     "assets": "node dev/export-assets.js && node dev/embed-assets.js",
     "embed-assets": "node dev/embed-assets.js",
     "test:browser": "node dev/browser.test.js",
+    "test:lookbook": "node dev/lookbook.test.js",
     "standalone": "node dev/standalone.js",
     "package:upload": "node dev/standalone.js dist/crazygames-upload/index.html",
     "test:upload": "npm run package:upload && node dev/upload.test.js",

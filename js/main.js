@@ -34,16 +34,18 @@
     function tick(now) { if(!node.isConnected)return;if(!document.hidden)elapsed+=Math.min(now-last,50);last=now;const p=Math.min(1,elapsed/850);node.textContent=Math.round(target*(1-Math.pow(1-p,3)));if(p<1)raf=requestAnimationFrame(tick); }
     raf=requestAnimationFrame(tick);
   }
-  async function share() {
-    if(state.screen!=='result'||!['S','A'].includes(state.result.result.rank))return;
-    openDialog(`<div class="dialog-head"><h2 id="dialog-title">Your look, forever</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close look card"')}</div><p class="share-loading">Adding the finishing touches…</p>`);
+  async function share(look=null) {
+    if(!look&&(state.screen!=='result'||!['S','A'].includes(state.result.result.rank)))return;
+    const theme=D.themes[(look?.level||state.level)-1],outfit=look?.outfit||state.outfit,skin=look?.skin||state.save.skin;
+    const result=look?G.scoreBreakdown(theme,G.equippedItems(outfit)):state.result.result;
+    openDialog(`<div class="dialog-head"><h2 id="dialog-title">A portrait of your style</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close look card"')}</div><p class="share-loading">Preparing your portrait…</p>`);
     const token=++shareEpoch;
     try {
-      const data=state.shareCard||await root.MuseShare.makeCard(D.themes[state.level-1],state.outfit,state.save.skin,state.result.result);
+      const data=(!look&&state.shareCard)||await root.MuseShare.makeCard(theme,outfit,skin,result);
       if(token!==shareEpoch||!dialog.open)return;
-      state.shareCard=data;
-      dialog.innerHTML=`<div class="dialog-head"><h2 id="dialog-title">Your look, forever</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close look card"')}</div><img class="share-image" src="${data}" alt="Your Muse Bloom outfit card"><a class="button primary download-button" download="muse-bloom-${D.themes[state.level-1].id}.png" href="${data}">${U.icon('download')} Save image</a><p class="share-help">If download is blocked, long-press or right-click the image to save it.</p>`;
-    } catch(error) { if(token===shareEpoch&&dialog.open)dialog.innerHTML=`<h2 id="dialog-title">Let’s try that again</h2><p>${U.escape(error.message)}</p>${U.btn('share','Try again','button primary')}${U.btn('close','Back to your look','button secondary')}`; }
+      if(!look)state.shareCard=data;
+      dialog.innerHTML=`<div class="dialog-head"><h2 id="dialog-title">A portrait of your style</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close look card"')}</div><img class="share-image" src="${data}" alt="Your Muse Bloom outfit card"><a class="button primary download-button" download="muse-bloom-${theme.id}.png" href="${data}">${U.icon('download')} Save image</a><p class="share-help">If download is blocked, long-press or right-click the image to save it.</p>`;
+    } catch(error) { if(token===shareEpoch&&dialog.open)dialog.innerHTML=`<h2 id="dialog-title">Let’s try that again</h2><p>${U.escape(error.message)}</p>${U.btn(look?'export-look':'share','Try again','button primary',look?`data-level="${look.level}"`:'')}${U.btn('close','Back to your look','button secondary')}`; }
   }
   function refreshHeader(){document.querySelector('.app-header').outerHTML=U.header(state);}
   document.addEventListener('click',e=>{
@@ -77,13 +79,20 @@
       case 'settings':openDialog(U.settings(state));break;
       case 'close':closeDialog();break;
       case 'share':share();break;
-      case 'collection':if(state.screen!=='collection')state.previousScreen=state.screen;state.category='hair';navigate('collection');break;
+      case 'collection':case 'lookbook':if(!['collection','lookbook'].includes(state.screen))state.previousScreen=state.screen;if(action==='collection')state.category='hair';navigate(action);break;
+      case 'view-look':case 'wear-look':case 'export-look': {
+        const look=G.savedLooks(state.save).find(l=>l.level===Number(button.dataset.level));if(!look)break;
+        if(action==='view-look')openDialog(U.lookDetail(look));
+        else if(action==='export-look')share(look);
+        else {state.outfit=G.normalizeOutfit(look.outfit,state.save.unlockedItems);state.save.skin=look.skin;startLevel(look.level,true);}
+        break;
+      }
       case 'return':navigate(state.previousScreen);break;
       case 'inspect': {
         const item=G.byId[button.dataset.item],owned=state.save.unlockedItems.includes(item.id);
         openDialog(`<div class="dialog-head"><h2 id="dialog-title">${item.name}</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close item details"')}</div><div class="inspect-art">${U.thumbnail(item)}</div><p class="inspect-tags">${item.tags.join(' · ')}</p><p>${owned?'In your wardrobe. Ready for your next look.':item.unlockType==='streak'?'Keep earning S on different challenges in a row. Secret pieces unlock every three S looks.':`${item.unlockOn==='enter'?'Enter':'Pass'} look ${item.unlockLevel}: ${D.themes[item.unlockLevel-1].name}.`}</p>`);break;
       }
-      case 'reset-progress':openDialog(`<h2 id="dialog-title">Start a new story?</h2><p>This clears your scores, clothing unlocks and streak in this browser.</p><div class="confirm-actions">${U.btn('close','Keep my story','button primary')}${U.btn('confirm-reset','Start again','button secondary')}</div>`);break;
+      case 'reset-progress':openDialog(`<h2 id="dialog-title">Start a new story?</h2><p>This clears your scores, lookbook, clothing unlocks and streak in this browser.</p><div class="confirm-actions">${U.btn('close','Keep my story','button primary')}${U.btn('confirm-reset','Start again','button secondary')}</div>`);break;
       case 'confirm-reset':state.save=G.newSave();state.outfit=G.emptyOutfit();state.result=null;state.level=1;state.chapter=1;S.setMuted(false);persist();navigate('home');toast('A brand-new style story. Make it yours.');break;
     }
   });

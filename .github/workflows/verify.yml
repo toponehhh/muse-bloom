@@ -23,6 +23,8 @@ jobs:
         run: npm run test:ui
       - name: Single-file portal upload and missing-resource regression
         run: npm run test:upload
+      - name: Lookbook persistence, portrait export and responsive editorial UI
+        run: npm run test:lookbook
       - name: Keep UI evidence and failure diffs
         if: always()
         uses: actions/upload-artifact@v4
@@ -31,6 +33,7 @@ jobs:
           path: |
             artifacts/ui/
             artifacts/upload/
+            artifacts/lookbook/
       - name: Check generated art stays reproducible
         run: |
           npm run assets
