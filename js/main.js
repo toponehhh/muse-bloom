@@ -8,7 +8,7 @@
   function toast(message) { const el=document.getElementById('toast');el.textContent=message;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),3800); }
   function persist() { if(!storage.save(state.save)) toast(storage.notice); }
   function render(focus=true) {
-    cancelAnimationFrame(raf);U.render(state);
+    cancelAnimationFrame(raf);U.render(state);root.MuseFX.enter();
     if(focus) { const heading=document.querySelector('main h1,main h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
   }
   function navigate(screen) { closeDialog();clearTimeout(toastTimer);document.getElementById('toast').classList.remove('visible');state.screen=screen;render(); }
@@ -36,6 +36,7 @@
   }
   async function share(look=null) {
     if(!look&&(state.screen!=='result'||!['S','A'].includes(state.result.result.rank)))return;
+    S.play('shutter');root.MuseFX.shutter();
     const theme=D.themes[(look?.level||state.level)-1],outfit=look?.outfit||state.outfit,skin=look?.skin||state.save.skin;
     const result=look?G.scoreBreakdown(theme,G.equippedItems(outfit)):state.result.result;
     openDialog(`<div class="dialog-head"><h2 id="dialog-title">A portrait of your style</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close look card"')}</div><p class="share-loading">Preparing your portrait…</p>`);
@@ -51,7 +52,7 @@
   document.addEventListener('click',e=>{
     const button=e.target.closest('[data-action]');if(!button||button.disabled)return;
     const action=button.dataset.action;
-    if(!['mute','equip','score','share'].includes(action))S.play('click');
+    if(!['mute','equip','score','share','export-look','clear','preview-sound'].includes(action))S.play(action==='category'?'tab':'click');
     switch(action) {
       case 'home':navigate('home');break;
       case 'play':startLevel(G.nextLevel(state.save));break;
@@ -67,16 +68,17 @@
         if(!state.save.unlockedItems.includes(id)){toast(item.unlockType==='streak'?'Earn S on 3 different challenges in a row to unlock this piece.':`${item.unlockOn==='enter'?'Enter':'Pass'} look ${item.unlockLevel} to unlock ${item.name}.`);break;}
         const was=G.equippedItems(state.outfit).some(i=>i.id===id);
         state.outfit=G.toggleItem(state.outfit,id,state.save.unlockedItems);
-        S.play(was?'unequip':'equip');U.updateDressing(state,true);break;
+        S.play(was?'unequip':'equip');U.updateDressing(state,true);root.MuseFX.equip();break;
       }
-      case 'clear':if(state.screen==='dressing'){state.outfit=G.emptyOutfit();U.updateDressing(state);S.play('unequip');toast('Studio basics restored. Add your own pieces to earn points.');}break;
+      case 'clear':if(state.screen==='dressing'){state.outfit=G.emptyOutfit();U.updateDressing(state);root.MuseFX.equip();S.play('clear');toast('Studio basics restored. Add your own pieces to earn points.');}break;
       case 'score': {
         if(state.screen!=='dressing')break;
-        state.result=G.finishLevel(state.save,state.level,state.outfit);state.save=state.result.save;state.outfit=state.result.outfit;state.shareCard=null;persist();navigate('result');animateScore();S.play(state.result.result.rank==='S'?'rankS':'rankLow');break;
+        state.result=G.finishLevel(state.save,state.level,state.outfit);state.save=state.result.save;state.outfit=state.result.outfit;state.shareCard=null;persist();navigate('result');animateScore();root.MuseFX.reveal();S.play(state.result.result.rank==='S'?'rankS':'rankLow');break;
       }
       case 'mute':state.save.muted=!state.save.muted;S.setMuted(state.save.muted);if(!state.save.muted)S.play('click');persist();refreshHeader();if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector('[data-action="mute"]')?.focus();}break;
       case 'skin':state.save.skin=button.dataset.skin;state.shareCard=null;persist();if(state.screen==='dressing')U.updateDressing(state);else render(false);if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector(`[data-skin="${state.save.skin}"]`)?.focus();}break;
       case 'settings':openDialog(U.settings(state));break;
+      case 'preview-sound':S.play('equip');break;
       case 'close':closeDialog();break;
       case 'share':share();break;
       case 'collection':case 'lookbook':if(!['collection','lookbook'].includes(state.screen))state.previousScreen=state.screen;if(action==='collection')state.category='hair';navigate(action);break;

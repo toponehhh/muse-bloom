@@ -48,7 +48,7 @@ async function noOverflow(page, label) {
   assert.ok(header.controls.every(b => b.x >= 0 && b.right <= page.viewportSize().width + 1), label + ': header action outside viewport');
   if (await page.locator('.home-copy').count()) {
     assert.equal(await page.locator('.home-copy h1').innerText(), 'Every look.\nEntirely you.', label + ': headline lost its intended line break');
-    assert.match(await page.locator('.home-intro').innerText(), /details\.\nMake/, label + ': introductory sentences run together');
+    assert.match(await page.locator('.home-intro').innerText(), /wardrobe\.\nMake/, label + ': introductory sentences run together');
   }
 }
 async function equip(page, outfit) {
