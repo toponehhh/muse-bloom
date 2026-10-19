@@ -192,7 +192,7 @@
     ]
   };
   const counts = { hair: [4, 18, 1], top: [5, 20, 1], bottom: [4, 18, 1], dress: [3, 16, 1], shoes: [4, 16, 1], accessory: [4, 14, 2] };
-  const bounds = { hair: [235, 45, 275, 390], top: [195, 330, 330, 400], bottom: [225, 590, 280, 570], dress: [185, 330, 350, 850], shoes: [240, 1080, 260, 140], accessory: [175, 150, 385, 710] };
+  const bounds = { hair: [235, 45, 275, 390], top: [180, 330, 360, 400], bottom: [225, 590, 280, 570], dress: [185, 330, 350, 850], shoes: [240, 1080, 260, 140], accessory: [175, 150, 385, 710] };
   const items = categories.flatMap(category => rows[category].map((row, i) => {
     const [name, shape, color, tagString] = row.split('|');
     const [initial, regular, hidden] = counts[category];

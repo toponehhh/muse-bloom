@@ -5,7 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   // Shared rig, original vector materials, and deterministic exportable lighting.
-  const ink = '#645061';
+  const ink = '#796576';
   // Canonical artwork keeps its editable 720 × 1280 rig. Presentation uses
   // separate head/body proportions; every attached item follows the same rig.
   const headAngle=3*Math.PI/180,headScale=1.23;
@@ -13,8 +13,27 @@
   // A gentle body lean with a small counter-tilt of the head, joined at the neck.
   const rig=Object.freeze({body:[1.12,0,.028,.88,-76.52,145],head:[a,b,-b,a,335.92-360*a+330*b,435.4-360*b-330*a]});
   const rigTransform=part=>`matrix(${rig[part].join(' ')})`;
-  const rigPoint=(x,y,part='body')=>{const [a,b,c,d,e,f]=rig[part];return [a*x+c*y+e,b*x+d*y+f];};
+  // One continuous fitting map for the body, every garment and accessory.
+  // Elbows bend outwards while wrists stay fixed, so both grips still align.
+  const profile=(y,knots)=>{
+    if(y<=knots[0][0])return knots[0][1];
+    for(let i=1;i<knots.length;i++)if(y<=knots[i][0]){
+      const [lo,v]=knots[i-1],[hi,w]=knots[i],t=(y-lo)/(hi-lo),s=t*t*(3-2*t);
+      return v+(w-v)*s;
+    }
+    return knots[knots.length-1][1];
+  };
+  function contourPoint(x,y) {
+    const distance=Math.abs(x-360);
+    const waist=profile(y,[[330,1],[440,1.04],[540,.88],[592,.84],[645,1],[710,1.12],[805,1],[1280,1]]);
+    const bend=profile(y,[[330,0],[430,4],[555,27],[620,17],[700,2],[728,0],[1280,0]]);
+    const divide=profile(y,[[330,96],[440,55],[550,65],[620,75],[710,86],[800,120],[1280,120]]);
+    const blend=Math.max(0,Math.min(1,(distance-divide)/18)),arm=blend*blend*(3-2*blend);
+    return [360+(x-360)*(1+(waist-1)*(1-arm))+Math.sign(x-360)*bend*arm,y];
+  }
+  const rigPoint=(x,y,part='body')=>{if(part==='body')[x,y]=contourPoint(x,y);const [a,b,c,d,e,f]=rig[part];return [a*x+c*y+e,b*x+d*y+f];};
   const rigPart=item=>item.category==='hair'||item.category==='accessory'&&['glasses','earrings','clip','pin'].includes(item.shape)?'head':'body';
+  const baseCache=new Map(),itemCache=new Map();
   function tint(hex, amount) {
     const value=hex.length===4?hex.slice(1).split('').map(c=>c+c).join(''):hex.slice(1);
     return '#'+[0,2,4].map(i=>Math.round(parseInt(value.slice(i,i+2),16)*(1-Math.abs(amount))+(amount>0?255:0)*Math.abs(amount)).toString(16).padStart(2,'0')).join('');
@@ -27,14 +46,58 @@
       return `fill="url(#${colors.get(color)})"`;
     });
     const defs=[...colors].map(([color,id])=>material==='skin'
-      ?`<radialGradient id="${id}" cx="35%" cy="28%" r="78%"><stop stop-color="${tint(color,.21)}"/><stop offset=".5" stop-color="${color}"/><stop offset="1" stop-color="${tint(color,-.16)}"/></radialGradient>`
-      :`<linearGradient id="${id}" x1="0" y1="0" x2="1" y2=".35"><stop stop-color="${tint(color,-.2)}"/><stop offset=".22" stop-color="${tint(color,material==='hair'?.3:.23)}"/><stop offset=".42" stop-color="${tint(color,.1)}"/><stop offset=".7" stop-color="${color}"/><stop offset="1" stop-color="${tint(color,-.28)}"/></linearGradient>`).join('');
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${box.split(' ')[2]}" height="${box.split(' ')[3]}" viewBox="${box}" fill="none"><defs>${defs}</defs><g stroke="${ink}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${painted}</g></svg>`;
+      ?`<radialGradient id="${id}" cx="32%" cy="27%" r="74%"><stop stop-color="${tint(color,.34)}"/><stop offset=".42" stop-color="${tint(color,.13)}"/><stop offset=".68" stop-color="${color}"/><stop offset=".9" stop-color="${tint(color,-.22)}"/><stop offset="1" stop-color="${tint(color,-.3)}"/></radialGradient>`
+      :`<linearGradient id="${id}" x1="0" y1="0" x2="1" y2=".08"><stop stop-color="${tint(color,-.29)}"/><stop offset=".13" stop-color="${tint(color,-.08)}"/><stop offset=".34" stop-color="${tint(color,material==='hair'?.38:.22)}"/><stop offset=".53" stop-color="${tint(color,.13)}"/><stop offset=".76" stop-color="${color}"/><stop offset=".96" stop-color="${tint(color,-.3)}"/><stop offset="1" stop-color="${tint(color,-.18)}"/></linearGradient>`).join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${box.split(' ')[2]}" height="${box.split(' ')[3]}" viewBox="${box}" fill="none"><defs>${defs}</defs><g stroke="${ink}" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">${painted}</g></svg>`;
   }
   const p = (d, fill, attrs = '') => `<path d="${d}" fill="${fill}" ${attrs}/>`;
   const line = (d, opacity = .35) => `<path d="${d}" stroke="${ink}" opacity="${opacity}"/>`;
   const circle = (x, y, r, fill, attrs = '') => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${attrs}/>`;
   const rect = (x,y,w,h,r,fill,attrs='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" ${attrs}/>`;
+  const number=n=>+n.toFixed(3);
+  function contourPath(d) {
+    // Paths in our editable art use absolute M/L/Q/C/Z commands. Subdivision
+    // fits the entire curve, not just its control points, to the shared body.
+    const tokens=d.match(/[MLQCZ]|[-+]?(?:\d*\.)?\d+(?:e[-+]?\d+)?/gi)||[];
+    let at=0,command,x=0,y=0,start=[0,0],result='';
+    const emit=(letter,px,py)=>{const point=contourPoint(px,py);result+=letter+point.map(number).join(' ');};
+    while(at<tokens.length){
+      if(/^[MLQCZ]$/i.test(tokens[at]))command=tokens[at++].toUpperCase();
+      if(command==='Z'){result+='Z';[x,y]=start;continue;}
+      const count={M:2,L:2,Q:4,C:6}[command];
+      if(!count||at+count>tokens.length)throw Error('Unsupported artwork path: '+d);
+      const values=tokens.slice(at,at+count).map(Number);at+=count;
+      const [endX,endY]=values.slice(-2),oldX=x,oldY=y;
+      if(command==='M'){emit('M',endX,endY);start=[endX,endY];command='L';}
+      else {
+        const steps=Math.max(2,Math.ceil(Math.hypot(endX-x,endY-y)/9));
+        for(let step=1;step<=steps;step++){
+          const t=step/steps,u=1-t;
+          const px=command==='Q'?u*u*oldX+2*u*t*values[0]+t*t*endX:command==='C'?u*u*u*oldX+3*u*u*t*values[0]+3*u*t*t*values[2]+t*t*t*endX:oldX+(endX-oldX)*t;
+          const py=command==='Q'?u*u*oldY+2*u*t*values[1]+t*t*endY:command==='C'?u*u*u*oldY+3*u*u*t*values[1]+3*u*t*t*values[3]+t*t*t*endY:oldY+(endY-oldY)*t;
+          emit('L',px,py);
+        }
+      }
+      x=endX;y=endY;
+    }
+    return result;
+  }
+  function contourMarkup(markup) {
+    return markup.replace(/<path\b[^>]*\bd="([^"]+)"[^>]*>/g,(tag,d)=>tag.replace(`d="${d}"`,`d="${contourPath(d)}"`))
+      .replace(/<(circle|ellipse|rect)\b[^>]*\/>/g,(tag,type)=>{
+        const value=name=>+(tag.match(new RegExp('\\b'+name+'="([^"]+)"'))?.[1]||0);
+        const x=value(type==='rect'?'x':'cx'),y=value(type==='rect'?'y':'cy');
+        let d;
+        if(type==='rect'){
+          const w=value('width'),h=value('height'),r=Math.min(value('rx'),w/2,h/2);
+          d=`M${x+r} ${y} L${x+w-r} ${y} Q${x+w} ${y} ${x+w} ${y+r} L${x+w} ${y+h-r} Q${x+w} ${y+h} ${x+w-r} ${y+h} L${x+r} ${y+h} Q${x} ${y+h} ${x} ${y+h-r} L${x} ${y+r} Q${x} ${y} ${x+r} ${y}Z`;
+        }else{
+          const rx=type==='circle'?value('r'):value('rx'),ry=type==='circle'?rx:value('ry');
+          d=Array.from({length:49},(_,i)=>`${i?'L':'M'}${x+rx*Math.cos(i*Math.PI/24)} ${y+ry*Math.sin(i*Math.PI/24)}`).join('')+'Z';
+        }
+        return '<path d="'+contourPath(d)+'"'+tag.replace(/^<(?:circle|ellipse|rect)/,'').replace(/\s(?:cx|cy|r|rx|ry|x|y|width|height)="[^"]*"/g,'');
+      });
+  }
   function flower(x, y, size = 12, color = '#f3d9c0') {
     return `<g transform="translate(${x} ${y})" stroke-width="1.6">${[0,72,144,216,288].map(a => `<ellipse cx="0" cy="-${size*.58}" rx="${size*.38}" ry="${size*.62}" fill="${color}" transform="rotate(${a})"/>`).join('')}${circle(0,0,size*.23,'#d7ac65')}</g>`;
   }
@@ -51,7 +114,7 @@
   function hand(skin, left = false, pose = 'relaxed') {
     const tone='hand-tone-'+(left?'left':'right'),c=`url(#${tone})`,sh=skin.shade;
     // Fixed world-space lighting joins the shaded forearm without a glove seam.
-    const material=`<defs><radialGradient id="${tone}" gradientUnits="userSpaceOnUse" gradientTransform="translate(${left?497:223} 300) scale(${left?-275:275} 433)" cx=".35" cy=".28" r=".78"><stop stop-color="${tint(skin.color,.21)}"/><stop offset=".5" stop-color="${skin.color}"/><stop offset="1" stop-color="${tint(skin.color,-.16)}"/></radialGradient></defs>`;
+    const material=`<defs><linearGradient id="${tone}" x1="${left?1:0}" x2="${left?0:1}"><stop stop-color="${tint(skin.color,-.2)}"/><stop offset=".32" stop-color="${tint(skin.color,.24)}"/><stop offset=".63" stop-color="${skin.color}"/><stop offset="1" stop-color="${tint(skin.color,-.29)}"/></linearGradient></defs>`;
     const relaxed='M466 728 Q465 740 461 750 L456 762 Q454 767 458 769 Q462 770 465 763 L469 756 L470 775 L472 790 Q473 795 476 794 Q479 793 478 788 L478 774 L480 797 Q481 801 484 799 Q486 798 485 793 L485 775 L487 793 Q488 797 491 795 Q493 794 492 789 L492 772 L494 782 Q495 786 498 784 Q500 783 499 777 L500 760 Q500 747 497 738 L496 728';
     const carrying='M466 728 Q463 742 464 753 Q465 763 473 770 L476 781 Q479 787 485 787 Q494 788 499 781 Q502 775 499 766 L497 754 Q500 742 496 728';
     const outline=p(pose==='grip'?carrying:relaxed,c,'data-part="hand-outline" stroke-width="1.5"');
@@ -86,11 +149,12 @@
       `<ellipse cx="283" cy="244" rx="11" ry="18" fill="${c}"/><ellipse cx="437" cy="244" rx="11" ry="18" fill="${c}"/>`+
       p('M284 201 Q285 129 360 130 Q435 129 437 201 L432 250 Q427 278 401 296 Q379 312 360 314 Q341 312 319 296 Q293 278 288 250Z',c,'stroke-width="1.6"')+
       p('M289 200 Q353 177 433 205 L431 215 Q355 195 290 217Z',sh,'stroke="none" opacity=".13" filter="url(#face-soft)"')+
-      p('M404 279 Q416 270 426 257 Q419 284 398 300 Q379 313 360 314 Q388 301 404 279Z',sh,'stroke="none" opacity=".08"')+
+      p('M404 279 Q416 270 426 257 Q419 284 398 300 Q379 313 360 314 Q388 301 404 279Z',sh,'stroke="none" opacity=".2" filter="url(#face-soft)"')+
+      '<ellipse cx="314" cy="260" rx="16" ry="13" fill="url(#skin-bounce)" stroke="none"/><ellipse cx="400" cy="260" rx="15" ry="13" fill="url(#skin-bounce)" stroke="none"/>'+
       `<ellipse cx="311" cy="267" rx="17" ry="8" fill="#ed93a5" opacity=".24" stroke="none" filter="url(#face-soft)"/><ellipse cx="409" cy="267" rx="17" ry="8" fill="#ed93a5" opacity=".24" stroke="none" filter="url(#face-soft)"/>`+
       p('M303 205 Q323 199 343 205 M379 205 Q399 199 419 205','none','data-feature="brows" stroke="#87604d" stroke-width="2.3"')+
       eye('left',328)+eye('right',394)+
-      `<g data-feature="nose">`+p('M359 252 Q354 260 362 261','none',`stroke="${sh}" stroke-width="1.3" opacity=".65"`)+
+      `<g data-feature="nose">`+p('M358 242 Q370 252 368 262 Q360 270 351 262 Q359 259 358 242Z',sh,'stroke="none" opacity=".3" filter="url(#face-soft)"')+p('M359 252 Q354 260 362 261','none',`stroke="${sh}" stroke-width="1.3" opacity=".65"`)+
       p('M358 255 L361 254','none','stroke="#fff4e6" stroke-width="2.2" opacity=".55"')+'</g>'+
       `<g data-feature="lips">`+p('M349 282 Q361 292 374 280','none','stroke="#ac6576" stroke-width="1.8"')+
       p('M356 290 Q362 292 367 289','none','stroke="#e8a2ad" stroke-width="2.3" opacity=".65"')+'</g>'+'</g>';
@@ -98,21 +162,45 @@
   function body(skin, covered = [], heldHands = []) {
     const embedded = globalThis.MuseAssets?.[`assets/base/${skin.id}.svg`];
     if (embedded) return hideBasics(embedded,covered,heldHands);
+    const key=skin.id+skin.color+skin.shade;
+    if(baseCache.has(key))return hideBasics(baseCache.get(key),covered,heldHands);
     const c = skin.color, sh = skin.shade;
-    return hideBasics(svg(
-      '<defs><filter id="skin-soft" x="-.15" y="-.15" width="1.3" height="1.3"><feGaussianBlur stdDeviation="5"/></filter><filter id="face-soft"><feGaussianBlur stdDeviation="2.5"/></filter></defs>'+
-      '<g data-anatomy="body">'+p('M307 654 Q282 707 298 828 L312 985 L310 1139 Q293 1159 288 1174 Q287 1187 307 1187 L348 1184 Q359 1180 351 1163 L353 994 L360 793 L367 995 L372 1160 Q368 1182 386 1185 L428 1186 Q442 1178 431 1168 L409 1143 L421 989 L426 829 Q443 712 414 655Z',c)+
-      p('M329 300 L327 336 Q326 346 314 349 Q285 354 277 370 Q263 388 255 439 L237 573 L223 730 L254 733 L278 590 L307 467 L310 567 L299 646 Q305 683 360 684 Q414 683 421 646 L410 566 L414 468 L442 592 L466 733 L498 730 L482 577 L466 437 Q455 377 443 366 Q430 353 406 349 Q394 346 393 336 L391 300Z',c)+
-      p('M329 302 Q360 321 391 302 L392 329 Q360 344 328 329Z',sh,'stroke="none" opacity=".25"')+
-      // Round limbs with broad edge shadows and narrow bounced-light ribbons.
-      p('M307 708 Q302 774 313 841 L324 970 L322 1129 M389 811 L389 989 L389 1133 M282 392 Q267 476 254 581 L241 716 M448 402 L467 573 L482 717','none','stroke="#fff5e8" stroke-width="18" opacity=".24" filter="url(#skin-soft)"')+
-      p('M345 792 L337 984 L339 1140 M410 798 L407 978 L400 1137 M298 463 L271 590 L251 724 M465 476 L477 577 L490 715','none',`stroke="${sh}" stroke-width="12" opacity=".32" filter="url(#skin-soft)"`)+
+    const edge=tint(c,-.35),cylinder='url(#skin-cylinder)';
+    const volumes=`<defs><linearGradient id="skin-cylinder"><stop stop-color="${tint(c,-.28)}"/><stop offset=".12" stop-color="${tint(c,-.05)}"/><stop offset=".35" stop-color="${tint(c,.3)}"/><stop offset=".53" stop-color="${tint(c,.15)}"/><stop offset=".75" stop-color="${c}"/><stop offset=".94" stop-color="${tint(c,-.32)}"/><stop offset="1" stop-color="${tint(c,-.18)}"/></linearGradient><radialGradient id="skin-bounce"><stop stop-color="#fff8ee" stop-opacity=".55"/><stop offset="1" stop-color="#fff8ee" stop-opacity="0"/></radialGradient><radialGradient id="skin-contact"><stop stop-color="${tint(sh,-.3)}" stop-opacity=".38"/><stop offset="1" stop-color="${sh}" stop-opacity="0"/></radialGradient><filter id="skin-soft" x="-.3" y="-.2" width="1.6" height="1.4"><feGaussianBlur stdDeviation="4"/></filter><filter id="face-soft"><feGaussianBlur stdDeviation="3"/></filter></defs>`;
+    // Independently rounded thighs, knees, calves, shoulders and forearms.
+    // The silhouettes are continuous; small creases describe the elbow flexion.
+    const leg=(left)=>{
+      const d=left
+      ?'M307 654 Q282 714 295 812 Q299 891 313 951 Q309 974 311 995 Q303 1040 312 1104 L312 1139 Q294 1160 288 1174 Q287 1187 307 1187 L348 1184 Q358 1180 350 1163 L347 1138 Q356 1063 350 1011 Q349 989 350 975 Q355 894 360 793 L367 660Z'
+      :'M353 660 L360 793 Q365 894 370 975 Q371 989 370 1011 Q364 1063 373 1138 L370 1163 Q363 1180 373 1184 L414 1187 Q434 1187 432 1174 Q426 1160 408 1139 L408 1104 Q417 1040 409 995 Q411 974 407 951 Q421 891 425 812 Q438 714 413 654Z';
+      const side=left?'left':'right',x=left?306:368;
+      return '<defs><clipPath id="leg-'+side+'">'+p(d,'white')+'</clipPath><linearGradient id="calf-fade-'+side+'" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="970" y2="1140"><stop stop-color="white" stop-opacity="0"/><stop offset=".3" stop-color="white"/><stop offset=".82" stop-color="white"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient><mask id="calf-mask-'+side+'"><rect x="280" y="970" width="160" height="170" fill="url(#calf-fade-'+side+')"/></mask></defs>'+
+        p(d,cylinder,`data-volume="${side}-leg" stroke="${edge}" stroke-width="1"`)+
+        `<g clip-path="url(#leg-${side})" mask="url(#calf-mask-${side})"><rect x="${x}" y="970" width="46" height="170" fill="${cylinder}" stroke="none"/></g>`;
+    };
+    const arm=(left)=>{
+      const d='M290 360 Q265 367 255 438 Q247 489 237 546 Q232 562 238 582 Q246 620 223 728 L254 731 Q265 686 273 600 Q276 580 276 561 Q283 509 307 432 L316 379Z';
+      const mirror=path=>left?path:path.replace(/([MLQ])([^MLQZ]+)/g,(_,command,values)=>command+values.trim().split(/[ ,]+/).map((n,i)=>i%2?+n:720-Number(n)).join(' '));
+      const mirrored=mirror(d),id='arm-'+(left?'left':'right');
+      return '<defs><clipPath id="'+id+'">'+p(mirrored,'white')+'</clipPath></defs>'+p(mirrored,cylinder,`data-volume="${left?'left':'right'}-arm" stroke="${edge}" stroke-width="1.1"`)+
+        '<g clip-path="url(#'+id+')">'+p(mirror('M235 560 Q255 575 278 558 L282 612 Q274 675 254 732 L222 730 Q240 654 238 597Z'),cylinder,'stroke="none"')+'</g>';
+    };
+    const form=leg(true)+leg(false)+arm(true)+arm(false)+
+      p('M329 300 L327 336 Q326 346 314 349 Q286 354 278 372 Q291 389 304 430 Q301 470 308 504 Q315 540 309 570 L299 646 Q304 694 360 699 Q416 694 421 646 L411 570 Q405 540 412 504 Q419 470 416 430 Q429 389 442 372 Q434 354 406 349 Q394 346 393 336 L391 300Z',cylinder,`data-volume="torso" stroke="${edge}" stroke-width="1"`)+
+      p('M329 302 Q360 321 391 302 L392 333 Q360 346 328 333Z',sh,'stroke="none" opacity=".4"')+
+      p('M302 455 Q306 503 321 541 Q321 573 311 612 M415 448 Q405 501 400 536 Q398 576 409 622','none',`stroke="${tint(sh,-.2)}" stroke-width="9" opacity=".2" filter="url(#skin-soft)"`)+
+      '<ellipse cx="327" cy="957" rx="17" ry="24" fill="url(#skin-bounce)" stroke="none"/><ellipse cx="389" cy="957" rx="17" ry="24" fill="url(#skin-bounce)" stroke="none"/>'+
+      '<ellipse cx="336" cy="997" rx="18" ry="18" fill="url(#skin-contact)" stroke="none"/><ellipse cx="402" cy="997" rx="17" ry="18" fill="url(#skin-contact)" stroke="none"/>'+
+      p('M242 554 Q253 560 265 553 M455 553 Q467 561 478 555','none',`data-joint="elbows" stroke="${tint(sh,-.2)}" stroke-width="1.7" opacity=".52"`)+
+      p('M243 568 Q249 575 258 570 M462 570 Q470 575 477 568','none',`stroke="${tint(c,.36)}" stroke-width="4" opacity=".8"`)+
+      p('M320 350 Q337 355 346 350 M374 350 Q383 355 400 350','none',`stroke="${tint(sh,-.15)}" stroke-width="1.3" opacity=".38"`)+
       `<g data-hand="left">${hand(skin,true)}</g><g data-hand="right">${hand(skin)}</g>`+
       basic('top',p('M321 349 L332 354 L329 391 Q360 408 391 391 L388 354 L399 349 L410 406 L405 482 L411 606 Q360 621 309 606 L315 482 L310 406Z','#c9b1b7')+line('M318 581 Q360 593 402 581',.22)+flower(360,443,13,'#ead5cf'))+
       basic('bottom',p('M306 600 Q360 612 414 600 Q429 660 426 726 L373 734 L360 686 L347 734 L294 726 Q291 660 306 600Z','#aebda3')+p('M306 600 Q360 612 414 600 L417 624 Q360 635 303 624Z','#c2cbb8')+line('M360 629 L360 683 M304 714 L341 721 M379 721 L416 714',.3))+
-      line('M315 975 Q329 980 344 977 M379 976 Q395 981 410 974 M244 570 L251 569 M471 570 L477 574',.2)+
-      '</g><g data-anatomy="head">'+face(skin)+basic('hair',hair({color:'#865538',shape:'airypony'}))+'</g>'
-    ,undefined,'skin'),covered,heldHands);
+      p('M320 979 Q330 983 338 978 M382 978 Q392 983 400 979','none',`stroke="${sh}" stroke-width="1.1" opacity=".35"`);
+    const source=svg(volumes+'<g data-anatomy="body">'+contourMarkup(form)+
+      '</g><g data-anatomy="head">'+face(skin)+basic('hair',hair({color:'#865538',shape:'airypony'}))+'</g>',undefined,'skin');
+    baseCache.set(key,source);return hideBasics(source,covered,heldHands);
   }
   function hairShape(item) {
     const c = item.color, shape = item.shape;
@@ -241,6 +329,20 @@
       (tote?line('M449 840 L447 935 M526 840 L533 936'):p('M441 827 Q488 880 534 827','none')+rect(481,857,17,14,3,'#d8b879'))+
       (item.chinese?flower(488,898,13,'#e9cead'):tote?flower(488,892,17,'#e2ceb0'):'');
   }
+  function clothVolume(drawing,item) {
+    const pants=item.category==='bottom'&&!['pleats','midi','mamian'].includes(item.shape);
+    const defs='<defs><clipPath id="cloth-clip">'+drawing+'</clipPath><linearGradient id="cloth-round"><stop stop-color="#302039" stop-opacity=".24"/><stop offset=".3" stop-color="#fff" stop-opacity=".27"/><stop offset=".58" stop-color="#fff" stop-opacity="0"/><stop offset=".87" stop-color="#302039" stop-opacity=".26"/><stop offset="1" stop-color="#fff" stop-opacity=".1"/></linearGradient><radialGradient id="cloth-occlusion"><stop stop-color="#46304a" stop-opacity=".3"/><stop offset="1" stop-color="#46304a" stop-opacity="0"/></radialGradient><filter id="cloth-soft"><feGaussianBlur stdDeviation="4"/></filter></defs>';
+    let light='';
+    if(item.category!=='bottom')light+=
+      p('M313 374 Q292 420 306 481 Q320 526 310 573 L299 628 L324 628 Q330 562 329 536 Q311 477 323 415Z','#302039','stroke="none" opacity=".13" filter="url(#cloth-soft)"')+
+      p('M408 386 Q414 445 402 498 Q389 537 403 602 L419 623 L402 541 L418 455Z','#302039','stroke="none" opacity=".24" filter="url(#cloth-soft)"')+
+      p('M330 406 Q320 457 338 482','none','stroke="#fff" stroke-width="16" opacity=".22" filter="url(#cloth-soft)"')+
+      p('M269 438 L251 550 Q256 600 242 689 M448 439 L468 550 Q467 601 479 690','none','stroke="#fff" stroke-width="14" opacity=".2" filter="url(#cloth-soft)"')+
+      '<ellipse cx="361" cy="376" rx="55" ry="15" fill="url(#cloth-occlusion)" stroke="none"/>';
+    if(pants)light+='<defs><linearGradient id="trouser-fade" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="710" y2="810"><stop stop-color="white" stop-opacity="0"/><stop offset="1" stop-color="white"/></linearGradient><mask id="trouser-light-mask"><rect x="270" y="710" width="180" height="440" fill="url(#trouser-fade)"/></mask></defs><g mask="url(#trouser-light-mask)"><path d="M296 710 L360 710 L357 1144 L296 1144Z" fill="url(#cloth-round)" stroke="none"/><path d="M360 710 L427 710 L427 1144 L363 1144Z" fill="url(#cloth-round)" stroke="none"/></g>';
+    if(item.category!=='top')light+='<ellipse cx="361" cy="638" rx="66" ry="23" fill="url(#cloth-occlusion)" stroke="none"/>';
+    return defs+drawing+'<g data-material="cloth-volume" clip-path="url(#cloth-clip)">'+light+'</g>';
+  }
   function itemSvg(item, thumbnail = false) {
     const render = { hair, top, bottom, dress, shoes, accessory }[item.category];
     let box=item.bounds;
@@ -249,7 +351,14 @@
     if(item.category==='accessory'&&item.shape==='crossbody')box=[280,350,260,480];
     const embedded = globalThis.MuseAssets?.[item.img];
     if (embedded) return thumbnail ? embedded.replace(/width="720"/,`width="${box[2]}"`).replace(/height="1280"/,`height="${box[3]}"`).replace(/viewBox="0 0 720 1280"/,`viewBox="${box.join(' ')}"`) : embedded;
-    return svg(render(item),thumbnail?box.join(' '):undefined,item.category==='hair'?'hair':'fabric');
+    const key=JSON.stringify([item,thumbnail]);
+    if(itemCache.has(key))return itemCache.get(key);
+    let drawing=render(item);
+    if(['top','bottom','dress'].includes(item.category))drawing=clothVolume(drawing,item);
+    if(rigPart(item)==='body')drawing=contourMarkup(drawing);
+    if(item.category==='hair')drawing='<defs><filter id="hair-contact" x="-.15" y="-.1" width="1.3" height="1.2"><feDropShadow dx="2" dy="4" stdDeviation="2.8" flood-color="#492936" flood-opacity=".24"/></filter></defs><g filter="url(#hair-contact)">'+drawing+'</g>';
+    const source=svg(drawing,thumbnail?box.join(' '):undefined,item.category==='hair'?'hair':'fabric');
+    itemCache.set(key,source);return source;
   }
   const uri = value => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(value);
   const contents = value => value.replace(/^[\s\S]*?<svg\b[^>]*>/,'').replace(/<\/svg>\s*$/,'');
