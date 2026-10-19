@@ -16,6 +16,7 @@ let runtime,browser;
   browser=await chromium.launch({channel:channel==='chromium'?undefined:channel,headless:true});
   const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce',acceptDownloads:true});
   const page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));
+  page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('/api/feedback'))report.errors.push('HTTP '+r.status()+': '+r.url());});
   let posts=0;page.on('request',r=>{if(r.url().endsWith('/api/feedback')&&r.method()==='POST')posts++;});
   await page.goto(base+'/playtest/?qa=1');await fill(page);
   await page.locator('[name="friction"]').fill('测试：断线后保留答案 <script>not executable</script>');
