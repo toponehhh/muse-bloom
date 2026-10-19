@@ -15,12 +15,13 @@
     "standalone": "node dev/standalone.js",
     "package:upload": "node dev/standalone.js dist/crazygames-upload/index.html",
     "test:upload": "npm run package:upload && node dev/upload.test.js",
-    "test:accessories": "node dev/accessory.test.js",
-    "test:anatomy": "node dev/anatomy.test.js",
-    "test:ui": "node dev/standalone.js && node dev/anatomy.test.js && node dev/accessory.test.js && node dev/ui.test.js",
-    "test:ui:update": "node dev/standalone.js && node dev/ui.test.js --update-baselines",
+    "test:accessories": "node dev/characters.test.js",
+    "test:anatomy": "node dev/characters.test.js",
+    "test:ui": "node dev/standalone.js && node dev/characters.test.js",
+    "test:ui:update": "node dev/standalone.js && node dev/characters.test.js --update-baselines",
     "package": "node dev/package.js",
-    "test:glam": "node dev/glam.test.js"
+    "test:glam": "node dev/glam.test.js",
+    "test:characters": "node dev/characters.test.js"
   },
   "engines": {
     "node": ">=20"
