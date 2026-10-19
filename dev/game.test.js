@@ -68,11 +68,11 @@ test('chapter entry rewards are idempotent and available before scoring', () => 
   assert.deepEqual(G.enterLevel(firstEnter.save, 31).fresh, []);
 });
 test('save repair rejects fabricated ranks and progression gaps', () => {
-  const raw = { version: 1, levels: { [first.id]: { best: 55, rank: 'S' }, [D.themes[35].id]: { best: 94, rank: 'S' } }, unlockedItems: ['bad-id'], skin: 'unknown', streak: 100 };
+  const raw = { version: 1, levels: { [first.id]: { best: 55, rank: 'S' }, [D.themes[35].id]: { best: 94, rank: 'S' } }, unlockedItems: ['bad-id'], character: 'unknown', streak: 100 };
   const save = G.sanitizeSave(raw);
   assert.equal(save.levels[first.id].rank, 'B');
   assert.equal(save.levels[D.themes[35].id], undefined);
-  assert.equal(save.skin, D.defaultSkin); assert.equal(save.streak, 0);
+  assert.equal(save.character, D.defaultCharacter); assert.equal(save.streak, 0);
   assert.ok(!save.unlockedItems.includes('bad-id'));
 });
 test('corrupted, unavailable, quota-limited and future saves stay playable', () => {
@@ -86,31 +86,31 @@ test('corrupted, unavailable, quota-limited and future saves stay playable', () 
   const quota = G.createStorage(() => ({ getItem: () => null, setItem() { throw new Error('QuotaExceededError'); } }));
   assert.equal(quota.save(G.newSave()), false);
 });
-test('save roundtrip retains progress, skin, mute and streak', () => {
+test('save roundtrip retains progress, character, mute and streak', () => {
   let value;
   const storage = G.createStorage(() => ({ getItem: () => value, setItem: (_, v) => { value = v; } }));
   const result = G.finishLevel(G.newSave(), 1, winningOutfit(G.newSave(), 1));
-  result.save.skin = 'deep'; result.save.muted = true;
+  result.save.character = 'zoe'; result.save.muted = true;
   storage.save(result.save);
   assert.deepEqual(storage.load(), result.save);
 });
 
 test('lookbook keeps the best passing outfit and updates ties without duplicate entries', () => {
   const save = G.newSave(), outfit = winningOutfit(save, 1);
-  save.skin = 'deep';
+  save.character = 'zoe';
   const win = G.finishLevel(save, 1, outfit);
   assert.equal(win.savedLook, true);
-  assert.deepEqual(G.savedLooks(win.save)[0], { level: 1, outfit, skin: 'deep', score: 94, rank: 'S' });
+  assert.deepEqual(G.savedLooks(win.save)[0], { level: 1, outfit, character: 'zoe', score: 94, rank: 'S' });
   assert.equal(G.savedLooks(save).length, 0);
   outfit.hair = null;
   assert.notEqual(G.savedLooks(win.save)[0].outfit.hair, null);
   const lower = G.finishLevel(win.save, 1, outfit);
   assert.equal(lower.savedLook, false);
   assert.deepEqual(G.savedLooks(lower.save), G.savedLooks(win.save));
-  lower.save.skin = 'porcelain';
+  lower.save.character = 'bella';
   const tie = G.finishLevel(lower.save, 1, winningOutfit(lower.save, 1));
   assert.equal(G.savedLooks(tie.save).length, 1);
-  assert.equal(G.savedLooks(tie.save)[0].skin, 'porcelain');
+  assert.equal(G.savedLooks(tie.save)[0].character, 'bella');
   assert.equal(G.savedLooks(G.finishLevel(save, 1, G.emptyOutfit()).save).length, 0);
 });
 
@@ -130,10 +130,33 @@ test('legacy progress survives and can start a lookbook without beating its hist
 test('malformed lookbook data cannot create unlocked levels or fabricated scores', () => {
   const value = G.finishLevel(G.newSave(), 1, winningOutfit(G.newSave(), 1)).save;
   value.levels[first.id].look.outfit = G.emptyOutfit();
-  value.levels[D.themes[35].id] = { best: 94, rank: 'S', look: { outfit: {}, skin: 'warm', score: 94 } };
+  value.levels[D.themes[35].id] = { best: 94, rank: 'S', look: { outfit: {}, character: 'mika', score: 94 } };
   const repaired = G.sanitizeSave(value);
   assert.equal(G.savedLooks(repaired).length, 0);
   assert.equal(repaired.levels[first.id].best, 94);
   assert.equal(repaired.levels[D.themes[35].id], undefined);
   assert.equal(G.nextLevel(repaired), 2);
+});
+
+test('pre-character v1 saves migrate without losing scores, earned items or lookbook outfits', () => {
+  for(const [skin,expected] of [['porcelain','bella'],['warm','bella'],['tan','zoe'],['deep','zoe']]){
+    const old=G.finishLevel(G.newSave(),1,winningOutfit(G.newSave(),1)).save;
+    delete old.character;old.skin=skin;
+    const look=old.levels[first.id].look;delete look.character;look.skin=skin;
+    const restored=G.sanitizeSave(old);
+    assert.equal(restored.character,expected);assert.equal(restored.levels[first.id].look.character,expected);
+    assert.equal(restored.levels[first.id].best,94);assert.deepEqual(restored.unlockedItems,old.unlockedItems);
+    assert.deepEqual(restored.levels[first.id].look.outfit,look.outfit);assert.equal(restored.skin,undefined);
+  }
+});
+
+test('all three identities roundtrip in current saves and recorded looks; invalid IDs use the new default', () => {
+  for(const character of D.characters){
+    const save=G.newSave();save.character=character.id;
+    const win=G.finishLevel(save,1,winningOutfit(save,1)).save;
+    assert.deepEqual(G.sanitizeSave(JSON.parse(JSON.stringify(win))),win);
+    assert.equal(G.savedLooks(win)[0].character,character.id);
+  }
+  const bad=G.newSave();bad.character='retired-doll';bad.skin='deep';
+  assert.equal(G.sanitizeSave(bad).character,'bella');
 });

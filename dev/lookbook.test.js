@@ -65,11 +65,11 @@ async function equip(page, outfit) {
   report.browser = browser.version();
   const page = await open({ width: 1440, height: 900 });
   assert.deepEqual(await page.locator('.campaign-main img').getAttribute('data-editorial'),'rose-studio');
-  const savedTone=G.newSave();savedTone.skin='deep';
+  const savedTone=G.newSave();savedTone.character='zoe';
   const tonePage=await open({width:390,height:844},savedTone);
   assert.deepEqual(await tonePage.locator('.campaign-main img').getAttribute('data-editorial'),'rose-studio','Saved gameplay tone must not change the showcase');
   await tonePage.locator('[data-action="play"]').click();
-  assert.equal(await tonePage.locator('#avatar-slot .avatar').getAttribute('data-avatar-skin'),'deep','Keep the player-selected gameplay tone');
+  assert.equal(await tonePage.locator('#avatar-slot .avatar').getAttribute('data-avatar-character'),'zoe','Keep the player-selected gameplay tone');
   await tonePage.context().close();
   pass('Stitch showcase stays independent of saves while retaining the player-selected gameplay tone');
   await shot(page, 'home-desktop'); await noOverflow(page, 'Home');
@@ -78,9 +78,9 @@ async function equip(page, outfit) {
   assert.equal(await page.locator('.lookbook-card').count(), 0);
   await shot(page, 'empty-desktop');
   await page.locator('[data-action="play"]').click();
-  assert.equal(await page.locator(`#avatar-slot [data-layer="${D.defaultHair}"]`).count(),1,'Fresh save starts with the ribbon ponytail');
-  assert.equal(await page.locator('#avatar-slot .avatar').getAttribute('data-avatar-skin'),'porcelain','Fresh gameplay uses the light default');
-  await page.locator('.skin-selector [data-skin="porcelain"]').click();
+  assert.equal(await page.locator('#avatar-slot [data-layer]').count(),1,'Fresh save shows the new character in studio basics');
+  assert.equal(await page.locator('#avatar-slot .avatar').getAttribute('data-avatar-character'),'bella','Fresh gameplay uses the light default');
+  await page.locator('.character-selector [data-character="bella"]').click();
   const outfit = winning(G.newSave(), 1);
   await equip(page, outfit);
   await page.locator('[data-action="score"]').click();
@@ -108,7 +108,7 @@ async function equip(page, outfit) {
   await page.reload(); await page.locator('[data-action="lookbook"]').click();
   assert.equal(await page.locator('.lookbook-card').count(), 1);
   await page.locator('.lookbook-card').click(); await page.locator('[data-action="wear-look"]').click();
-  assert.equal(await page.locator('.skin-selector [aria-pressed="true"]').getAttribute('data-skin'), 'porcelain');
+  assert.equal(await page.locator('.character-selector [aria-pressed="true"]').getAttribute('data-character'), 'bella');
   const ids = await page.locator('#avatar-slot [data-layer]').evaluateAll(nodes => nodes.map(n => n.dataset.layer).filter(id => MuseGame.byId[id]).sort());
   assert.deepEqual(ids, G.equippedItems(outfit).map(i => i.id).sort());
   await page.locator('[data-action="clear"]').click(); await page.locator('[data-action="score"]').click();
@@ -121,7 +121,7 @@ async function equip(page, outfit) {
 
   let save = G.newSave(); save.muted = true;
   for (let index = 1; index <= 12; index++) {
-    save = G.enterLevel(save, index).save; save.skin = D.skins[(index - 1) % D.skins.length].id;
+    save = G.enterLevel(save, index).save; save.character = D.characters[(index - 1) % D.characters.length].id;
     save = G.finishLevel(save, index, winning(save, index)).save;
   }
   const legacy = JSON.parse(JSON.stringify(save));

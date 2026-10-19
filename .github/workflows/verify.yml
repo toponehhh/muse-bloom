@@ -25,9 +25,9 @@ jobs:
         run: npm run test:upload
       - name: Lookbook persistence, portrait export and responsive UI
         run: npm run test:lookbook
-      - name: Stitch artwork, dark UI contrast and seven responsive layouts
+      - name: Painted character artwork, dark UI contrast and seven responsive layouts
         run: npm run test:glam
-      - name: Cartoon motion and Web Audio lifecycle
+      - name: Character motion and Web Audio lifecycle
         run: npm run test:experience
       - name: Keep UI evidence and failure diffs
         if: always()
@@ -36,7 +36,7 @@ jobs:
           name: ui-regression-evidence
           path: |
             artifacts/ui/
-            artifacts/anatomy/
+            artifacts/characters/
             artifacts/upload/
             artifacts/lookbook/
             artifacts/experience/

@@ -1,99 +1,26 @@
-# UI 与视觉回归
+# UI regression — painted character release
 
-## Stitch Glam Studio v1.5.0
+Run `npm ci`, then the browser scripts in README. Windows uses installed Edge by default; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. CI uses Playwright Chromium. All suites except `test:browser` start their own temporary local server. The full journey needs `npm start` first.
 
-Run `npm run test:glam` for the new UI. Seven viewports (320×568, 375×667, 390×844, 667×375, 768×1024, 1024×768, 1440×900) exercise home, salon, result, wardrobe, lookbook, challenges and the settings dialog. Checks reject horizontal overflow, header collisions, clipped scoring actions, collapsed stages and missing editorial images. Clothing names and tag labels must have at least 4.5:1 contrast; deliberately hiding an image or lowering text contrast must fail. Reports and full-page screenshots are in `artifacts/glam`. These are layout/behavior assertions and manually reviewed screenshots, not full-page pixel baselines.
+## New character suite: `npm run test:ui`
 
-The three user-provided editorial WebP images are embedded in `MuseAssets`. Upload tests now decode all three in the actual single-file build, including nested URLs, a sandboxed iframe and offline file loading. Main gameplay keeps the existing layered vector avatar; flat editorial images are never used as interchangeable clothing layers.
+- 3 × 122 actual item equip/remove pairs. Every selected garment must change rendered pixels; every removal retains the mounted character and paints a nonempty body.
+- Three distinct raster hashes, body opacity and true transparent background / leg gap.
+- 60 pixel coverage checks for trousers, shorts and closed shoes across all three bodies. A deliberately shifted garment must fail the coverage threshold.
+- Empty-sprite negative control; retired body directory and old face/body/hand/hairstyle renderers must be absent.
+- 24 reviewed 360 × 640 canvas baselines: each character in basics, separates, shorts, trousers, skirt, gown, Chinese-inspired clothing and two handhelds. Comparison tolerates at most 0.6% pixels with channel difference >20 for cross-browser antialiasing; current measured ratios are in reports.
+- Switching characters retains equipped clothing; reload restores the chosen identity.
+- Seven viewports from 320 × 568 to 1440 × 900: visible selector choices, accessible score action, no horizontal overflow, dialog keyboard selection and Escape close.
 
-The 48 full-body baselines are reviewed again because the salon changes the rendered size; the 12 SVG closeups are also reviewed, with unchanged vector geometry. Save/progression IDs and scoring are unchanged. The 1.5.0 QA section records actual runs and separates them from configured CI.
+`npm run test:ui:update` explicitly records new baselines. Inspect them before committing. The older vector-body anatomy/accessory test files and their 60 old screenshots were removed, rather than retaining tests for artwork no longer shipped. The `test:anatomy` and `test:accessories` aliases run the new character suite.
 
+## Retained suites
 
-这套测试检查实际浏览器中的换装、卸装、人物覆盖和截图变化。`npm test` 只检查游戏规则，不能替代 UI 检查。
+- `npm test`: 14 rule/save tests plus all 36 levels solvable at 94 points. Includes legacy skin-only saves mapped to a new character without losing progress, unlocked items or outfits, plus identity roundtrips and invalid IDs.
+- `test:lookbook`: actual 1080 × 1920 download, exact restored outfit/identity, best look, legacy progress, keyboard focus and mobile gallery.
+- `test:upload`: unstyled missing-script negative control; self-contained root, nested mobile, sandboxed iframe and file:// startup, outfit changes and saved selection; no asset requests.
+- `test:glam`: decoded playable homepage artwork, seven responsive page layouts, 4.5:1 wardrobe text contrast with a low-contrast negative control.
+- `test:experience`: nine distinct synthesized PCM effects, gesture unlock, mute/resume races, hidden-page suspension, idle breathing, reduced motion and rapid toggles.
+- `test:browser`: full 36-level real-input journey, 122 earned pieces, seven hidden rewards, touch, offline card export and denied/corrupt storage.
 
-## 运行
-
-```sh
-npm ci
-npx playwright install chromium
-npm run test:ui
-```
-
-Windows 默认使用已安装的 Edge；也可设置 `MUSE_BROWSER_CHANNEL=chrome` 使用 Chrome。Linux/macOS 使用 Playwright Chromium。可选的 `MUSE_PLAYWRIGHT` 指向已有 Playwright 模块。游戏运行不依赖这些开发工具。
-
-脚本会自行启动随机端口的本地服务，创建独立浏览器上下文，写入测试用全解锁存档，并在结束后关闭浏览器与服务。它不会读取或修改日常浏览器存档。单文件 HTML 会先从当前源码重新生成，然后以 `file://` 打开测试。
-
-`npm run test:accessories` 可单独运行包和手部的连接测试，正常 UI 测试也会自动执行它。
-
-`npm run test:upload` 从当前源码生成 `dist/crazygames-upload/index.html`，再运行 `dev/upload.test.js`。服务端只提供生成的 HTML，不提供项目目录中的 CSS/JS/SVG；分别验证根路径桌面、嵌套路径 375×667 手机尺寸、带 sandbox 的 iframe 和 `file://` 离线打开。每个场景都检查样式、人物、穿脱、握包、空搭配计分、重试、刷新后保留肤色，且不能出现额外资源请求或运行时错误。负例故意只提供原始源码入口，使 CSS/JS 返回 404，必须检测到无样式启动页；这是故障模式复现，不代表已证实线上返回 404。报告和截图保存在 `artifacts/upload/`。
-
-## 覆盖内容
-
-### v1.4.0 关节、腰胯和体积明暗
-
-`npm run test:anatomy` 使用实际 SVG 栅格化后的像素，而不是直接断言骨架参数。四种肤色分别测量：双臂在肩、肘、腕三处的可见宽度与中心线；肘部弯折须为 20–38°，肘和腕依次变细；腰宽须为胯宽的 55–75%；小腿正面与边缘的亮度差至少为 18/255。15 件长袖在六个高度逐像素检查手臂内部，覆盖率须达到 99%。
-
-三项负例分别绘制直手臂、柱形躯干及把实际皮肤材质变为纯色，确认对应检测会失败。腕部连接两侧的实际颜色差须不大于 12/255，防止手掌出现手套式材质接缝。四肤色结果和逐件覆盖率写入 `artifacts/anatomy/anatomy-report-<browser>.json`。这验证固定视角 2.5D 画面的轮廓和明暗，不代表测试了三维模型、旋转视角或真实人体比例。
-
-`test:ui` 会先运行这套检查。60 张视觉基准在新轮廓、衣料和皮肤材质人工审阅后更新，然后必须再运行不更新基准的 Edge/Chrome 普通回归。缩略图边界检查还覆盖弯肘后加宽的汉服袖子。
-
-### v1.3.2 年轻化形象与浅肤色展示
-
-检查首页主图和插图在新存档、深肤色旧存档下均为浅肤色，同时进入游戏后仍保留玩家的旧肤色选择。新存档默认浅肤色及丝带马尾。覆盖采样额外检查轻偏头与颈部之间连续有像素；比例反例同时覆盖最初瘦长形和 v1.3.1 过宽形。
-
-### 比例与默认发型
-
-检查实际渲染的脸部高度/身体高度和身体宽高比，独立限定已审阅的卡通比例；故意去掉头身变换必须失败。首次进入关卡应选中已解锁丝带马尾；相册恢复仍精确保留原始发型。覆盖采样点随共同骨架映射，包、手和肩带使用屏幕变换后的路径交点验证。60 张人物与局部截图随新比例审阅更新，普通回归不能自动接受变化。
-
-### v1.3.0 动画、音效与房间
-
-运行 `npm run test:experience`。脚本使用真实浏览器及 Web Audio，验证：首次用户操作前不创建音频上下文；首次操作后真实 AnalyserNode 测到声音；九种效果通过同一合成函数离线渲染为实际 PCM，检查非静音、有限值、无削波、尾音归零及波形彼此不同。静音取消正在播放及已安排的音符；异步恢复音频时静音也会取消待播放声音，重新开启不补播。没有 Web Audio 的环境仍可正常换装。
-
-动画检查实际眨眼变换、完整人物呼吸、32 次快速换装期间 DOM 和基础层稳定、最多一组星光及结束清理、减少动态设置关闭全部动画、页面隐藏时暂停动画并关闭声音，以及零分/94 分分别显示 0/3 星。页面隐藏通过浏览器内 visibility 生命周期模拟，声音输出通过真实音频图测量；不是实体扬声器听感或真机后台系统验证。
-
-产物位于 `artifacts/experience/`：`experience-report.json` 和九种效果依次播放的 `sound-effects-sampler.wav`。本次角色设计发生变化，60 张人物基准经人工审阅后更新，之后执行普通回归；不是沿用旧版人物通过像素检查。
-
-
-### v1.2.0 相册与整页排版
-
-运行 `npm run test:lookbook`。独立服务与浏览器会验证首次通过后保存造型、键盘打开详情、实际下载 1080×1920 图片、关闭弹窗后的焦点归还、刷新保留、精确恢复服装和肤色、低分重试不覆盖最佳作品、跨衣橱/相册返回原页面，以及旧版 12 关存档兼容。
-
-375×667、390×844、667×375、1920×1080 分别检查首页、章节、12 张作品相册、详情弹窗和试衣间。检查无横向溢出、顶栏不重叠、品牌不换行、主标题与说明按语义断行、作品图不塌缩、导出/重搭按钮可达、提交按钮留在视口内。错误或外部请求会使测试失败。截图与 `lookbook-report-*.json` 位于 `artifacts/lookbook/`；截图需人工审阅，整页风格没有自动像素基准。
-
-规则测试另外验证同分替换作品、深拷贝隔离、旧成绩没有作品时补建相册、损坏作品数据不制造分数或解锁。存档版本及键保留 v1，新增字段是每个关卡可选的 `look: { outfit, skin, score }`。
-
-### 人物、服装与连续换装
-
-- 7 种手持/斜挎配饰 × 4 肤色 = 28 次实际点击检查：提手路径经过握持点、手指覆盖、绘制顺序正确；双配饰分配双手，卸下第一件后重新定位。故意平移包 40 px 的反例必须失败。
-- 放松手与握持手必须互相替换，不能叠出多余手指；两侧腕部连接不断开，手表不得被握持手遮住。
-- 22 种发型 × 4 肤色 = 88 个五官遮挡检查，故意隐藏左眼的反例必须失败。
-- 不同肤色人物的材质、滤镜和眼睛裁剪 ID 互不冲突，所有引用留在自己的 SVG 内；减少动态效果时不得保留运行中的装饰动画。
-- 122 件服饰逐件通过真实按钮穿上、脱下；检查选中标记、SVG 图层、人物各部位有像素、服装覆盖肩胸/腰臀/袖口关键点。卸装后的完整像素必须与基础造型一致。
-- 122 张衣橱缩略图的实际绘图边界必须落在 viewBox 内；用故意隐藏人物的反例确认空白检测确实会报错。
-- 人物及基础图层保持挂载；换装不等待图片解码。连衣裙互斥、卸下后分类恢复、第三个配饰替换最早配饰。
-- 基础丝带马尾、背心、短裤在对应类别缺少物品时显示；它们没有物品 ID，也不计入 6 个评分单位。
-- 12 种搭配 × 4 种肤色 = 48 张截图基准，包括用户反馈的背心、长袖、旗袍、空搭配，以及汉服、裙子、裤装、靴子、心形手袋、托特包、双手持物和斜挎包。
-- 额外 12 张放大基准（脸、双手放松、提包握持 × 4 肤色），合计 60 张；全身缩小截图不能代替局部解剖与五官审阅。
-- 375×667、390×844、667×375、1920×1080，分别启用和关闭减少动态效果；共采样 192 个连续切换帧，并检查人物未隐藏、提交按钮可达及水平溢出。
-- 屏幕 SVG 与分享导出使用相同尺寸、相同 Canvas 后端做逐字节像素对比；单文件打开也执行搭配/卸装/导出检查。
-- 任意浏览器运行时或控制台错误使测试失败。
-
-`npm run test:browser` 是另一套完整流程测试，需要先运行 `npm start`。它以正常解锁顺序通过 36 关，检查评分奖励、进度持久化、触控、键盘、分享下载、受限存储及 iframe。
-
-## 截图基准与失败证据
-
-基准位于 `dev/visual-baselines/` 并进入 Git。普通测试只读取基准；不自动接受新的画面。像素通道差大于 20 视为变化，变化面积超过 0.5% 就失败；这容许少量跨浏览器边缘抗锯齿差异。
-
-失败截图、粉色差异图和 `ui-report.json` 保存在 `artifacts/ui/`。CI 无论成功失败都保留这份证据。
-
-确实修改了人物或衣服设计时，运行：
-
-```sh
-npm run test:ui:update
-```
-
-然后逐张审阅截图、检查 Git 差异，再提交基准。生成基准不等于视觉验收通过；不要用更新基准来掩盖失败。
-
-## 已知边界
-
-这是有明确范围的回归防线，不能保证所有浏览器、设备和所有组合都没有视觉问题。覆盖点与人工审阅后的基准互相补充；不能仅凭按钮可点或分数正确判断衣服合身。真实 iOS/Safari 和 CrazyGames 平台预览仍需单独验收。
+Reports are under `artifacts/{characters,glam,lookbook,upload,experience}` plus `artifacts/browser-report-msedge.json`. Whole-page screenshots are manually inspected; they are not represented as automatic whole-page pixel tests. Browser emulation does not replace real iOS/Safari or CrazyGames platform QA.

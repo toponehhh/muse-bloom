@@ -22,11 +22,14 @@ async function recordVideo(browser,name,viewport,scale){
   const start=Date.now();
   async function at(ms,fn){await wait(Math.max(0,start+ms-Date.now()));if(fn)await fn();}
   await at(1100,()=>page.evaluate(()=>document.getElementById('record-cover').remove()));
+  await at(1500,()=>page.locator('.character-selector [data-character="mika"]').click());
   await at(2100,()=>page.locator('[data-item="top_cozy_02"]').click());
   await at(3900,()=>page.locator('[data-category="bottom"]').click());
   await at(5000,()=>page.locator('[data-item="bottom_cute_02"]').click());
+  await at(6000,()=>page.locator('.character-selector [data-character="zoe"]').click());
   await at(6800,()=>page.locator('[data-category="shoes"]').click());
   await at(7900,()=>page.locator('[data-item="shoes_summer_04"]').click());
+  await at(9000,()=>page.locator('.character-selector [data-character="bella"]').click());
   await at(9700,()=>page.locator('[data-category="accessory"]').click());
   await at(10800,()=>page.locator('[data-item="accessory_elegant_02"]').click());
   await at(12200,()=>page.locator('[data-item="accessory_cute_03"]').click());

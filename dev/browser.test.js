@@ -73,7 +73,7 @@ async function screenshot(page,name){await page.screenshot({path:path.join(artif
       if(viewport.width<768){await p.locator('[data-category="accessory"]').tap();await p.locator('[data-action="equip"]').first().tap();}
       else await p.locator('[data-category="accessory"]').click();
       await screenshot(p,`dressing-${viewport.width}x${viewport.height}.png`);
-      await p.locator('[data-action="settings"]').click();await p.locator('[data-skin="deep"]').last().click();
+      await p.locator('[data-action="settings"]').click();await p.locator('[data-character="zoe"]').last().click();
       await p.keyboard.press('Escape');assert.equal(await p.locator('dialog').isVisible(),false);
       record(`Viewport ${viewport.width} × ${viewport.height}: score reachable, no horizontal overflow, settings and input work`);
       await ctx.close();
@@ -83,7 +83,7 @@ async function screenshot(page,name){await page.screenshot({path:path.join(artif
     assert.equal(await filePage.locator('.share-image').evaluate(i=>i.naturalWidth),1080);record('Direct file:// play and canvas export without tainted canvas');await fileContext.close();
     const iframeContext=await browser.newContext({viewport:{width:1000,height:750},reducedMotion:'reduce'}),iframePage=await iframeContext.newPage();observe(iframePage);
     await iframePage.goto(base+'/dev/iframe.html');const frame=iframePage.frameLocator('iframe');
-    await frame.locator('[data-action="play"]').click();await frame.locator('[data-action="score"]').click();await frame.locator('[data-action="share"]').click();await frame.locator('.share-image').waitFor();
+    await frame.locator('[data-action="play"]').click();await dressWinning(iframePage.frames()[1],1);await frame.locator('[data-action="score"]').click();await frame.locator('[data-action="share"]').click();await frame.locator('.share-image').waitFor();
     assert.ok(await frame.locator('.share-help').isVisible());record('Sandboxed iframe play and visible image-save fallback');await iframeContext.close();
     const blockedContext=await browser.newContext({reducedMotion:'reduce'});
     await blockedContext.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw new DOMException('Blocked','SecurityError');}}));
