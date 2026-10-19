@@ -1,5 +1,14 @@
 # UI 与视觉回归
 
+## Stitch Glam Studio v1.5.0
+
+Run `npm run test:glam` for the new UI. Seven viewports (320×568, 375×667, 390×844, 667×375, 768×1024, 1024×768, 1440×900) exercise home, salon, result, wardrobe, lookbook, challenges and the settings dialog. Checks reject horizontal overflow, header collisions, clipped scoring actions, collapsed stages and missing editorial images. Clothing names and tag labels must have at least 4.5:1 contrast; deliberately hiding an image or lowering text contrast must fail. Reports and full-page screenshots are in `artifacts/glam`. These are layout/behavior assertions and manually reviewed screenshots, not full-page pixel baselines.
+
+The three user-provided editorial WebP images are embedded in `MuseAssets`. Upload tests now decode all three in the actual single-file build, including nested URLs, a sandboxed iframe and offline file loading. Main gameplay keeps the existing layered vector avatar; flat editorial images are never used as interchangeable clothing layers.
+
+The 48 full-body baselines are reviewed again because the salon changes the rendered size; the 12 SVG closeups are also reviewed, with unchanged vector geometry. Save/progression IDs and scoring are unchanged. The 1.5.0 QA section records actual runs and separates them from configured CI.
+
+
 这套测试检查实际浏览器中的换装、卸装、人物覆盖和截图变化。`npm test` 只检查游戏规则，不能替代 UI 检查。
 
 ## 运行

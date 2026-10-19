@@ -118,7 +118,7 @@ async function installPixelChecks(page) {
 async function paint(page, itemId) { await page.evaluate(id=>uiPaintCheck(id), itemId); report.rasterSamples++; }
 async function snapshot(page, name) {
   // Only the vector avatar: no platform-dependent font rendering in baselines.
-  const image = await page.locator('#avatar-slot .avatar').screenshot({ animations: 'disabled', style:'#avatar-slot .avatar{background:#f3edfa;filter:none}.toast,.skin-selector,.stage-label,.stage-spark,.stage-side,.studio-lights{visibility:hidden!important}' });
+  const image = await page.locator('#avatar-slot .avatar').screenshot({ animations: 'disabled', style:'#avatar-slot .avatar{background:#f3edfa;filter:none}.toast,.skin-selector,.stage-label,.stage-spark,.stage-side,.studio-lights,.scene-speech,.vanity-rim{visibility:hidden!important}' });
   return compareSnapshot(page,name,image);
 }
 async function closeup(page,name,box,width,height) {

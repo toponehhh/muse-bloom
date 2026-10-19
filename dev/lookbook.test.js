@@ -64,14 +64,14 @@ async function equip(page, outfit) {
   browser = await chromium.launch({ channel: channel === 'chromium' ? undefined : channel, headless: true });
   report.browser = browser.version();
   const page = await open({ width: 1440, height: 900 });
-  assert.deepEqual(await page.locator('.home-art .avatar').evaluateAll(nodes=>nodes.map(n=>n.dataset.avatarSkin)),['porcelain','porcelain']);
+  assert.deepEqual(await page.locator('.campaign-main img').getAttribute('data-editorial'),'rose-studio');
   const savedTone=G.newSave();savedTone.skin='deep';
   const tonePage=await open({width:390,height:844},savedTone);
-  assert.deepEqual(await tonePage.locator('.home-art .avatar').evaluateAll(nodes=>nodes.map(n=>n.dataset.avatarSkin)),['porcelain','porcelain'],'Saved gameplay tone must not change the showcase');
+  assert.deepEqual(await tonePage.locator('.campaign-main img').getAttribute('data-editorial'),'rose-studio','Saved gameplay tone must not change the showcase');
   await tonePage.locator('[data-action="play"]').click();
   assert.equal(await tonePage.locator('#avatar-slot .avatar').getAttribute('data-avatar-skin'),'deep','Keep the player-selected gameplay tone');
   await tonePage.context().close();
-  pass('Showcase uses light skin for fresh and existing saves while retaining the player-selected gameplay tone');
+  pass('Stitch showcase stays independent of saves while retaining the player-selected gameplay tone');
   await shot(page, 'home-desktop'); await noOverflow(page, 'Home');
   await page.locator('[data-action="lookbook"]').click();
   assert.ok(await page.locator('.lookbook-empty').isVisible());

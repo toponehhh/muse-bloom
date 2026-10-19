@@ -25,6 +25,8 @@ jobs:
         run: npm run test:upload
       - name: Lookbook persistence, portrait export and responsive UI
         run: npm run test:lookbook
+      - name: Stitch artwork, dark UI contrast and seven responsive layouts
+        run: npm run test:glam
       - name: Cartoon motion and Web Audio lifecycle
         run: npm run test:experience
       - name: Keep UI evidence and failure diffs
@@ -38,6 +40,7 @@ jobs:
             artifacts/upload/
             artifacts/lookbook/
             artifacts/experience/
+            artifacts/glam/
       - name: Check generated art stays reproducible
         run: |
           npm run assets
