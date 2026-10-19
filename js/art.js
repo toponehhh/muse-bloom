@@ -121,7 +121,9 @@
   }
   function bodice(color,hem=538) {
     const hip=hem>520?274:285;
-    return p(`M329 278 Q360 314 391 278 Q406 285 424 287 L443 305 Q432 345 459 384 Q455 415 438 440 Q424 462 426 486 Q426 504 ${720-hip} ${hem} Q360 ${hem+15} ${hip} ${hem} Q294 504 294 486 Q296 462 282 440 Q265 415 261 384 Q288 345 277 305 L296 287 Q314 285 329 278Z`,color);
+    // Keep two native pixels of ease at each waist edge. A flush fit leaves
+    // Zoe's base outline visible when Chromium rasterizes the scaled sprite.
+    return p(`M329 278 Q360 314 391 278 Q406 285 424 287 L443 305 Q432 345 459 384 Q455 415 438 440 Q426 462 428 486 Q428 504 ${720-hip} ${hem} Q360 ${hem+15} ${hip} ${hem} Q292 504 292 486 Q294 462 282 440 Q265 415 261 384 Q288 345 277 305 L296 287 Q314 285 329 278Z`,color);
   }
   const neckband=color=>p('M329 278 Q360 314 391 278 L395 285 Q360 323 325 285Z',color);
   const collar=()=>p('M329 278 Q338 295 360 301 L340 330 L312 298Z','#f6ecda')+p('M391 278 Q382 295 360 301 L380 330 L408 298Z','#f6ecda');

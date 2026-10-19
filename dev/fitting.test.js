@@ -44,7 +44,12 @@ const pass=text=>{report.checks.push(text);console.log('PASS:',text);};
   };
   const interval=(data,y,lo,hi)=>{const xs=[];for(let x=Math.ceil(lo/2);x<=Math.floor(hi/2);x++)if(data[(Math.floor(y/2)*W+x)*4+3]>230)xs.push(x*2);return xs.length?[xs[0],xs.at(-1)]:null;};
   const width=r=>r?r[1]-r[0]+2:0;
-  let nativeNegative,shiftNegative,wideNegative;
+  const waistCoverage=(base,a,b)=>{
+   let total=0,holes=0;const samples=[];
+   for(let y=245;y<278;y++)for(let x=132;x<228;x++){const p=(y*W+x)*4+3;if(base[p]>245){total++;if(Math.max(a[p],b[p])<230){holes++;if(samples.length<12)samples.push([x*2,y*2]);}}}
+   return {total,holes,samples};
+  };
+  let nativeNegative,shiftNegative,wideNegative,waistNegative;
   for(const character of MuseData.characters){
    const base=await paint(MuseArt.avatarSvg(character));
    for(const item of clothes){
@@ -68,10 +73,9 @@ const pass=text=>{report.checks.push(text);console.log('PASS:',text);};
    // All separate combinations must cover the waist seam; cache the two painted
    // alpha masks so this tests 1,449 combinations without taking 1,449 screenshots.
    for(const top of clothes.filter(i=>i.category==='top'))for(const bottom of clothes.filter(i=>i.category==='bottom')){
-    const a=arts.get(top.id),b=arts.get(bottom.id);let total=0,holes=0;
-    for(let y=245;y<278;y++)for(let x=132;x<228;x++){const p=(y*W+x)*4+3;if(base[p]>245){total++;if(Math.max(a[p],b[p])<230)holes++;}}
-    if(holes>2)failures.push(`${character.id}/${top.id}+${bottom.id} waist gap ${holes}`);
-    pairs.push({character:character.id,top:top.id,bottom:bottom.id,holes,total});
+    const seam=waistCoverage(base,arts.get(top.id),arts.get(bottom.id));
+    if(seam.holes>2)failures.push(`${character.id}/${top.id}+${bottom.id} waist gap ${seam.holes} at ${JSON.stringify(seam.samples)}`);
+    pairs.push({character:character.id,top:top.id,bottom:bottom.id,...seam});
    }
    if(character.id==='bella'){
     const item=MuseData.items.find(i=>i.id==='bottom_casual_01'),source=MuseArt.fittedItemSvg(item);
@@ -82,15 +86,18 @@ const pass=text=>{report.checks.push(text);console.log('PASS:',text);};
     nativeNegative=coverage(base,await paint(narrow),wanted(base,skirt));
     const wide=MuseArt.fittedItemSvg(MuseData.items.find(i=>i.id==='top_casual_01')).replace(/(<svg\b[^>]*>)/,'$1<g transform="translate(-180 0) scale(1.5 1)">').replace('</svg>','</g></svg>');
     wideNegative=width(interval(await paint(wide),480,240,480))-width(interval(base,480,280,440));
+    const raised=MuseArt.fittedItemSvg(MuseData.items.find(i=>i.id==='top_romantic_04')).replace(/(<svg\b[^>]*>)/,'$1<g transform="translate(0 -60)">').replace('</svg>','</g></svg>');
+    waistNegative=waistCoverage(base,await paint(raised),arts.get('bottom_casual_01'));
    }
   }
-  return {findings,pairs,failures,shiftNegative,nativeNegative,wideNegative};
+  return {findings,pairs,failures,shiftNegative,nativeNegative,wideNegative,waistNegative};
  });
  Object.assign(report,pixels);
  assert.ok(pixels.shiftNegative.ratio>.03,'Shifted trousers must fail coverage');
  assert.ok(pixels.nativeNegative.ratio>.003,'Narrow skirt must expose the hips');
  assert.ok(pixels.wideNegative>38,'Overwide top must fail the ease check');
- pass('Shifted trousers, narrow skirt and oversized top are rejected by independent pixel checks');
+ assert.ok(pixels.waistNegative.holes>40,'A raised top must expose the waist seam');
+ pass('Shifted trousers, narrow skirt, oversized top and an exposed waist seam are rejected by independent pixel checks');
  assert.deepEqual(pixels.failures,[]);
  pass(pixels.findings.length+' garment/body checks: all 82 garments on all three characters, including tops, sleeves, dresses, hips and footwear');
  pass(pixels.pairs.length+' top/bottom combinations have no waist gap');

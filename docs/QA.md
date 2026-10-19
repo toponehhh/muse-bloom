@@ -8,6 +8,8 @@
 
 已用 `toponehhh` 创建公开仓库并上传全部 50 次历史提交，启用 GitHub Actions 发布的 Pages。首轮远端运行：[39266073208](https://github.com/toponehhh/muse-bloom/actions/runs/39266073208)。后续运行查看 [Actions](https://github.com/toponehhh/muse-bloom/actions/workflows/verify.yml)，每次部署对应网站 `build.json` 中的源码 SHA。本地报告与远端运行分别保留，不能把本地结果视为已部署。
 
+首次 Linux / Chromium 运行发现 Zoe 的部分矢量上衣在腰缘有 5 个未完全覆盖的采样像素。修复衣服腰侧轮廓，两侧各增加 2 个原图像素余量；没有放宽原来最多 2 个像素的容差。新增上衣上移造成真实腰部缺口的失败控制，以及缺口坐标诊断。修复后本地 Edge 的 246 项服装覆盖、1,449 套上下装及 129 项领口检查通过；远端复验结果保存在后续 Actions 中。
+
 ## v1.7.0 The Studio Edit — 当前私人试玩候选版
 
 验收日期：2026-10-19。正式源码：`C:\Users\huangd\SourceCode\H5Apps\muse-bloom`。
