@@ -2,7 +2,7 @@
 
 Every look. Entirely you.
 
-Version 1.4.0 redraws the character with bent elbows, tapered forearms, shaped knees/calves and a defined waist/hip silhouette. All 122 items use the same fitting profile. Separate limb lighting, face highlights, hair contact shadows and fabric folds create a 2.5D cartoon appearance; this remains an editable vector character, not a rotatable 3D model. The chestnut ribbon ponytail, light showcase tone, bedroom, original sound effects and animations remain. Existing player-selected tones, saved outfits and v1 progress are compatible.
+Version 1.5.0 adapts the supplied Stitch Y2K Glam Star Studio design: midnight navy surfaces, pink/lavender glass panels, champagne accents, editorial artwork, a clearer dressing drawer and runway-style scoring. Three supplied character illustrations form the homepage moodboard. The playable character remains layered 2.5D vector art, preserving all 122 clothing pieces, animations, sound effects and existing saves. Everything works offline, including the new illustrations.
 
 Muse Bloom is an original, offline-capable HTML5 fashion puzzle: match a brief, style a character, earn a grade, and grow your wardrobe. The first release targets **CrazyGames Basic Launch**.
 
@@ -27,9 +27,11 @@ npm run package:upload  # self-contained index.html for the portal's file/folder
 
 Game source is in `js/`, presentation in `css/`, development tools in `dev/`. The upload archive contains only runtime files. Development dependencies are not needed by the game.
 
-For the CrazyGames file/folder upload form, use `dist/crazygames-upload/index.html`. Its styles, scripts, SVG artwork and the bedroom image are embedded, so no sibling folders are required. `npm run test:upload` verifies this actual file on an otherwise empty server, at a nested URL, in a sandboxed iframe and offline. The ZIP from `npm run package` is a multi-file distribution backup; extract it first if using that format with the portal.
+For the CrazyGames file/folder upload form, use `dist/crazygames-upload/index.html`. Its styles, scripts, SVG artwork, bedroom image and three editorial illustrations are embedded, so no sibling folders are required. `npm run test:upload` verifies this actual file on an otherwise empty server, at a nested URL, in a sandboxed iframe and offline. The ZIP from `npm run package` is a multi-file distribution backup; extract it first if using that format with the portal.
 
 For UI checks, run `npm ci`, install a test browser with `npx playwright install chromium`, then run `npm run test:ui`. This starts and stops its own servers and checks pixel-measured elbow bends, waist/hip widths, volume lighting, wrist seams, all 122 items, removal, garment coverage, 28 accessory attachment cases, 88 hairstyle/skin checks, 60 visual baselines, responsive layouts and the standalone HTML. `npm run test:anatomy` runs just the new silhouette/material checks and their negative controls. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. See [UI test guide](docs/UI-TESTS.md) for evidence, baseline review and limitations.
+
+Run `npm run test:glam` for seven viewport layouts, supplied artwork loading, working navigation, dark-theme text contrast and negative controls.
 
 Run `npm run test:experience` for real PCM audio, first-gesture playback, mute cancellation, page visibility, reduced motion, blinking and repeated outfit animations.
 
@@ -66,4 +68,4 @@ See `docs/CRAZYGAMES.md` for submission metadata, platform requirements, and the
 
 ## Rights
 
-Code, vectors and synthesized sound effects are original to this project. The bedroom background was created with the built-in image generator; see [scene prompt and provenance](docs/SCENE-PROMPT.md). No third-party game image, font, audio sample, clothing brand or character is bundled. No open-source license is granted by default; the project owner can choose a license before public distribution of source.
+Code, vectors and synthesized sound effects are original to this project. The bedroom background was created with the built-in image generator; see [scene prompt and provenance](docs/SCENE-PROMPT.md). Three editorial character illustrations and the UI direction were supplied by the owner in `stitch_western_teen_dress_up_game.zip`; file provenance and source hashes are in [STITCH-ASSETS.json](docs/STITCH-ASSETS.json). The ZIP does not contain a separate asset license, so no third-party ownership or publication rights are asserted here. No remote font, audio sample or network dependency is bundled. No open-source license is granted by default; the project owner can choose a license before public distribution of source.

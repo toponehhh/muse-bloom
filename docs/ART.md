@@ -1,6 +1,6 @@
 # Art pipeline
 
-All illustration code is original to Muse Bloom. Version 1.3.0 adds one original AI-generated bedroom background (`assets/scenes/bedroom.webp`). The character and all clothes remain editable vectors. See [scene provenance and exact prompt](SCENE-PROMPT.md).
+The vector illustration code is original to Muse Bloom. Version 1.5.0 adds three owner-supplied editorial illustrations from the Stitch ZIP; see STITCH-ASSETS.json for original archive paths and hashes. They remain full, unretouched images converted to WebP (quality 86), at 896×1200 pixels, and are used only for the opening moodboard. The supplied HTML/DESIGN.md informed the UI; its CDN scripts, remote URLs, placeholder metrics and nonfunctional controls are not included. Version 1.3.0 adds one original AI-generated bedroom background (`assets/scenes/bedroom.webp`). The character and all clothes remain editable vectors. See [scene provenance and exact prompt](SCENE-PROMPT.md).
 
 `js/art.js` defines a 720 × 1280 layered character. `avatarSvg()` composes one inline SVG with keyed groups, ordered by item `z`. Dressing updates those groups synchronously and keeps the avatar and base mounted; removing clothes never waits for image decoding. The canvas exporter rasterizes the same composition. Offline `file://` play does not taint the export canvas.
 
@@ -14,7 +14,7 @@ This is **2.5D vector illustration with volume lighting**, not a rotatable 3D mo
 
 Keep `data-anatomy="head"` and `data-anatomy="body"` in custom bases. Hair, glasses, earrings and clips/pins follow the head; garments, necklaces, shoes, watches, bags and carrying hands follow the body. `rigPoint()` applies both the contour map and affine matrix to body attachment coordinates. `fittedItemSvg()` provides the corresponding garment for coverage tests. Right/left grips remain at (489.528,827.88)/(207.288,827.88). Top thumbnail bounds now include bent, wide sleeves. Custom edits should start from the newly exported files, rather than the previous straight-body assets.
 
-`MuseData.defaultHair` selects the starter ribbon ponytail (`airypony`), retaining item ID `hair_sporty_04`. The base uses the same hairstyle when hair is removed. `MuseData.defaultSkin` supplies the light showcase and fresh-save tone; it does not replace an existing player-selected gameplay tone or saved look. Homepage, empty-lookbook illustrations and covers use the showcase tone explicitly. Existing hairstyle IDs remain valid; the former High Pony now has the revised ribbon ponytail artwork.
+`MuseData.defaultHair` selects the starter ribbon ponytail (`airypony`), retaining item ID `hair_sporty_04`. The base uses the same hairstyle when hair is removed. `MuseData.defaultSkin` supplies the light showcase and fresh-save tone; it does not replace an existing player-selected gameplay tone or saved look. Empty-lookbook illustrations and covers use the showcase tone explicitly. The homepage now uses the supplied rose-studio illustration, independently of the saved gameplay tone. Existing hairstyle IDs remain valid; the former High Pony now has the revised ribbon ponytail artwork.
 
 ## Edit the source art
 
@@ -22,7 +22,7 @@ Edit the vector paths in `js/art.js` and run `npm run assets`. This exports full
 
 ## Replace an individual illustration
 
-Edit its SVG in `assets/items` or `assets/base`, preserving the 720 × 1280 canvas and transparent background. Run `npm run embed-assets` **without** regenerating default art. The embedder includes custom SVG overrides and the bedroom WebP data URI in `js/asset-data.js`; untouched vector defaults use compact vector source. Thumbnail viewboxes are derived from each item's `bounds`, with separate bounds for accessories in `art.js`. Inspect both thumbnail and fitted layer after edits.
+Edit its SVG in `assets/items` or `assets/base`, preserving the 720 × 1280 canvas and transparent background. Run `npm run embed-assets` **without** regenerating default art. The embedder includes custom SVG overrides and the bedroom/editorial WebP data URIs in `js/asset-data.js`; untouched vector defaults use compact vector source. Thumbnail viewboxes are derived from each item's `bounds`, with separate bounds for accessories in `art.js`. Inspect both thumbnail and fitted layer after edits.
 
 Do not run `npm run assets` after individual asset edits unless you intend to regenerate those files from the vector source. Commit custom edits and the embedded data together.
 
