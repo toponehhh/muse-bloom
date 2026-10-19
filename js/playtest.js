@@ -7,6 +7,8 @@
     try{if(params.get('fresh')==='1'){localStorage.removeItem(key);localStorage.removeItem(saveKey);}
       record=JSON.parse(localStorage.getItem(key)||'null');}catch{}
     if(!record||record.version!=='1.7.0'||!Array.isArray(record.events)||!/^P-[A-Z0-9]{6}$/.test(record.participant)||!['participant-session','automated-check'].includes(record.source))record={version:'1.7.0',source:params.get('qa')==='1'?'automated-check':'participant-session',participant:'P-'+Math.random().toString(36).slice(2,8).padEnd(6,'0').toUpperCase(),startedAt:new Date().toISOString(),events:[],feedback:null};
+    // Continuing an existing session with qa=1 must not retain a human label.
+    if(params.get('qa')==='1'){record.source='automated-check';record.testType='automated';}
     if(params.has('fresh'))try{const clean=new URL(root.location.href);clean.searchParams.delete('fresh');history.replaceState(null,'',clean);}catch{}
   }
   const persist=()=>{if(active)try{localStorage.setItem(key,JSON.stringify(record));}catch{}};
@@ -29,8 +31,8 @@
   }
   function mount(){
     root.MuseFeedback.mount(document.getElementById('playtest-feedback'),{
-      storageKey:key+'_feedback_'+record.participant,initial:record.feedback||{},
-      getRecord:answers=>{record.feedback=answers;persist();return JSON.parse(JSON.stringify({...record,exportedAt:new Date().toISOString()}));}
+      storageKey:key+'_feedback_'+record.participant,initial:record.feedback||{},automated:record.source==='automated-check',
+      getRecord:answers=>{record.feedback=answers;record.testType=answers.testType;if(answers.testType==='automated')record.source='automated-check';persist();return JSON.parse(JSON.stringify({...record,exportedAt:new Date().toISOString()}));}
     });
   }
   if(active){

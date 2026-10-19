@@ -72,13 +72,12 @@ npm run cf:deploy
 
 在 Cloudflare **D1 → muse-bloom-feedback → Console** 中查询。不要将反馈导出文件提交到公开仓库。
 
-最近的真人标记反馈（来源是客户端提供的标签，并不证明真人身份）：
+最近的真人标记反馈（明确选择真人且没有模拟测试声明；这是自报类型，不是身份认证）。迁移 `0002_feedback_kind.sql` 增加 `test_type`：human / automated / unverified。旧记录默认待核实，旧自动化记录标为 automated；同一编号、版本有类型冲突时不进入真人视图。迁移不会删除反馈或改变已有回执：
 
 ```sql
 SELECT submission_id, received_at, participant_id, game_version,
        clarity, readability, visuals, enjoyment, would_continue, record_json
-FROM feedback_submissions
-WHERE source != 'automated-check'
+FROM human_feedback_submissions
 ORDER BY received_at DESC
 LIMIT 50;
 ```
@@ -91,7 +90,7 @@ WITH ranked AS (
     PARTITION BY participant_id, game_version
     ORDER BY received_at DESC, submission_id DESC
   ) AS position
-  FROM feedback_submissions WHERE source != 'automated-check'
+  FROM human_feedback_submissions
 )
 SELECT game_version, COUNT(*) AS participants,
        AVG(clarity) AS clarity, AVG(readability) AS readability,
@@ -100,11 +99,11 @@ SELECT game_version, COUNT(*) AS participants,
 FROM ranked WHERE position = 1 GROUP BY game_version;
 ```
 
-需要现有离线汇总工具时，将选中行的 `record_json` 分别保存成 JSON 文件到 `playtest-responses/`，运行 `npm run playtest:summary -- playtest-responses`。该目录已被 Git 忽略。游戏内表单与观察表使用同一编号，以免统计为两个人。
+需要现有离线汇总工具时，将选中行的 `record_json` 分别保存成 JSON 文件到 `playtest-responses/`，运行 `npm run playtest:summary -- playtest-responses`。该目录已被 Git 忽略。游戏内表单与观察表使用同一编号，以免统计为两个人。工具只统计 `testType: human` 且没有模拟测试声明的记录；`exclusionReasons` 列出自动化、待核实和编号冲突。原始文件保持不变。不要仅凭普通 source 或评分将旧数据改为真人；应由组织者核实来源，并在留存原件后更正记录。
 
 ## 接口契约与运维
 
-请求 JSON：`{schemaVersion:1, submissionId:UUID, consent:true, record:{version, source, participant, startedAt?, exportedAt, feedback, events}}`。四项评分必须为 1–5，`continue` 为 Yes/Maybe/No，每段文字最多 2000 字符，最多 2000 条操作，整个请求最多 512 KiB；未声明字段不会存储。
+请求 JSON：`{schemaVersion:1, submissionId:UUID, consent:true, record:{version, source, testType?, participant, startedAt?, exportedAt, feedback, events}}`。`testType` 可取 human / automated / unverified；缺省只用于兼容旧客户端，不会自动视为真人。四项评分必须为 1–5，`continue` 为 Yes/Maybe/No，每段文字最多 2000 字符，最多 2000 条操作，整个请求最多 512 KiB；未声明字段不会存储。
 
 成功返回 `201 {ok:true,receipt,receivedAt}`；原样重试返回 `200` 和原回执。同 ID 不同内容返回 409；非法数据 400、跨站来源 403、体积超限 413、类型错误 415、限流 429、数据库故障 503。错误响应不会泄露 SQL 或反馈内容。匿名提交采用每个 Cloudflare 节点每 IP 每分钟 60 次的基本限流；这不是账号认证或全局精确配额，共享网络用户共用计数。大规模公开推广前可按流量增加 Turnstile 等防刷措施。
 

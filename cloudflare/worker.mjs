@@ -1,3 +1,4 @@
+import '../js/feedback-kind.js';
 const MAX_BYTES = 512 * 1024;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const actions = new Set(['session-open', 'hidden', 'visible', 'screen', 'action', 'look-complete', 'reveal-blocked', 'feedback-export']);
@@ -59,6 +60,7 @@ export function validate(input) {
   const record = {
     version: text(r.version, 'version', 30, true),
     source: oneOf(r.source, 'source', ['participant-session', 'manual-feedback', 'automated-check']),
+    ...(r.testType===undefined?{}:{testType:oneOf(r.testType,'testType',['human','automated','unverified'])}),
     participant: r.participant,
     ...(r.startedAt ? { startedAt: timestamp(r.startedAt, 'startedAt') } : {}),
     exportedAt: timestamp(r.exportedAt, 'exportedAt'), feedback, events
@@ -102,10 +104,10 @@ export default {
       const receivedAt = new Date().toISOString(), f = record.feedback;
       const result = await env.DB.prepare(`INSERT INTO feedback_submissions
         (submission_id, payload_hash, received_at, participant_id, game_version, source,
-         clarity, readability, visuals, enjoyment, would_continue, record_json)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(submission_id) DO NOTHING`)
+         clarity, readability, visuals, enjoyment, would_continue, record_json, test_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(submission_id) DO NOTHING`)
         .bind(submissionId, hash, receivedAt, record.participant, record.version, record.source,
-          Number(f.clarity), Number(f.readability), Number(f.visuals), Number(f.enjoyment), f.continue, json).run();
+          Number(f.clarity), Number(f.readability), Number(f.visuals), Number(f.enjoyment), f.continue, json, globalThis.MuseFeedbackKind.classify(record).type).run();
       const saved = await env.DB.prepare('SELECT payload_hash, received_at FROM feedback_submissions WHERE submission_id = ?').bind(submissionId).first();
       if (!saved) throw new Error('Missing stored receipt');
       if (saved.payload_hash !== hash) return reply({ error: 'This submission ID has already been used for different answers.' }, 409);

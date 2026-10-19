@@ -29,6 +29,15 @@ const payload=()=>({schemaVersion:1,submissionId:crypto.randomUUID(),consent:tru
     const extra=payload();extra.record.email='not-for-storage@example.invalid';extra.record.events[0].ip='not-for-storage';
     const accepted=await status(await post(extra),201);assert.equal(accepted.headers.get('Cache-Control'),'no-store');assert.equal(accepted.headers.get('Access-Control-Allow-Origin'),null);
     const stored=await db.prepare('SELECT record_json FROM feedback_submissions WHERE submission_id=?').bind(extra.submissionId).first();assert.ok(!stored.record_json.includes('not-for-storage'));checks++;
+    for(const [id,testType,notes,expected] of [['legacy',undefined,'','unverified'],['simulated','human','AI 模拟试玩，非真人','unverified'],['real','human','','human'],['qa','automated','','automated']]){
+      const p=payload();p.record.source='manual-feedback';p.record.participant=id;p.record.testType=testType;p.record.feedback.observerNotes=notes;
+      await status(await post(p),201);
+      const classified=await db.prepare('SELECT test_type FROM feedback_submissions WHERE submission_id=?').bind(p.submissionId).first();assert.equal(classified.test_type,expected);
+    }
+    assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM human_feedback_submissions').first()).n,1);
+    const conflict=payload();conflict.record.participant='real';await status(await post(conflict),201);
+    assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM human_feedback_submissions').first()).n,0);
+    const badKind=payload();badKind.record.testType='probably-human';await status(await post(badKind),400);
     // Exercise the configured limiter without storing 60 extra records.
     let limited;
     for(let i=0;i<65;i++){limited=await post('{',{'CF-Connecting-IP':'192.0.2.250'});if(limited.status===429)break;}

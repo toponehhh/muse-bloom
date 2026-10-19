@@ -28,6 +28,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Feedback API against an isolated local D1
         run: npm run test:feedback-api
+      - name: Separate human feedback from simulations and unverified imports
+        run: npm run test:feedback-kind
       - name: Online feedback, D1 receipts and safe retries
         run: npm run test:cloudflare
       - name: Check Cloudflare Worker and asset bindings without deploying
