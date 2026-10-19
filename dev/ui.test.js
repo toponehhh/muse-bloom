@@ -45,7 +45,7 @@ async function installPixelChecks(page) {
       const body=avatar.querySelector('[data-anatomy="body"]').getBoundingClientRect();
       const headToBody=face.height/body.height,bodyWidthToHeight=body.width/body.height;
       // Independent rendered measurements reject the previous tall, narrow rig.
-      if(headToBody<.29||headToBody>.315||bodyWidthToHeight<.425||bodyWidthToHeight>.445)
+      if(headToBody<.29||headToBody>.315||bodyWidthToHeight<.46||bodyWidthToHeight>.49)
         throw Error('Character proportions outside reviewed range: '+JSON.stringify({headToBody,bodyWidthToHeight}));
       return {headToBody,bodyWidthToHeight};
     };

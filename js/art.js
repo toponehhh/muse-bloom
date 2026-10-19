@@ -114,7 +114,7 @@
   function hand(skin, left = false, pose = 'relaxed') {
     const tone='hand-tone-'+(left?'left':'right'),c=`url(#${tone})`,sh=skin.shade;
     // Fixed world-space lighting joins the shaded forearm without a glove seam.
-    const material=`<defs><linearGradient id="${tone}" x1="${left?1:0}" x2="${left?0:1}"><stop stop-color="${tint(skin.color,-.2)}"/><stop offset=".32" stop-color="${tint(skin.color,.24)}"/><stop offset=".63" stop-color="${skin.color}"/><stop offset="1" stop-color="${tint(skin.color,-.29)}"/></linearGradient></defs>`;
+    const material='<defs>'+wristGradient(tone,skin.color,left?500:464,left?464:500)+'</defs>';
     const relaxed='M466 728 Q465 740 461 750 L456 762 Q454 767 458 769 Q462 770 465 763 L469 756 L470 775 L472 790 Q473 795 476 794 Q479 793 478 788 L478 774 L480 797 Q481 801 484 799 Q486 798 485 793 L485 775 L487 793 Q488 797 491 795 Q493 794 492 789 L492 772 L494 782 Q495 786 498 784 Q500 783 499 777 L500 760 Q500 747 497 738 L496 728';
     const carrying='M466 728 Q463 742 464 753 Q465 763 473 770 L476 781 Q479 787 485 787 Q494 788 499 781 Q502 775 499 766 L497 754 Q500 742 496 728';
     const outline=p(pose==='grip'?carrying:relaxed,c,'data-part="hand-outline" stroke-width="1.5"');
@@ -128,6 +128,7 @@
        p('M496 747 L497 763 L495 775','none',`stroke="${sh}" stroke-width="2.3" opacity=".25"`);
     return `<g data-pose="${pose}"${left?' transform="translate(720 0) scale(-1 1)"':''}>${material+outline+details}</g>`;
   }
+  function wristGradient(id,color,x1,x2){return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${x1}" x2="${x2}"><stop stop-color="${tint(color,-.2)}"/><stop offset=".32" stop-color="${tint(color,.24)}"/><stop offset=".63" stop-color="${color}"/><stop offset="1" stop-color="${tint(color,-.29)}"/></linearGradient>`;}
   function face(skin) {
     const c=skin.color,sh=skin.shade;
     // Original cartoon portrait. Hair, glasses and neckline keep their shared rig.
@@ -182,8 +183,9 @@
       const d='M290 360 Q265 367 255 438 Q247 489 237 546 Q232 562 238 582 Q246 620 223 728 L254 731 Q265 686 273 600 Q276 580 276 561 Q283 509 307 432 L316 379Z';
       const mirror=path=>left?path:path.replace(/([MLQ])([^MLQZ]+)/g,(_,command,values)=>command+values.trim().split(/[ ,]+/).map((n,i)=>i%2?+n:720-Number(n)).join(' '));
       const mirrored=mirror(d),id='arm-'+(left?'left':'right');
-      return '<defs><clipPath id="'+id+'">'+p(mirrored,'white')+'</clipPath></defs>'+p(mirrored,cylinder,`data-volume="${left?'left':'right'}-arm" stroke="${edge}" stroke-width="1.1"`)+
-        '<g clip-path="url(#'+id+')">'+p(mirror('M235 560 Q255 575 278 558 L282 612 Q274 675 254 732 L222 730 Q240 654 238 597Z'),cylinder,'stroke="none"')+'</g>';
+      const wrist=left?220:464;
+      return '<defs><clipPath id="'+id+'">'+p(mirrored,'white')+'</clipPath>'+wristGradient(id+'-wrist',c,wrist,wrist+36)+`<linearGradient id="${id}-fade" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="680" y2="723"><stop stop-color="white" stop-opacity="0"/><stop offset="1" stop-color="white"/></linearGradient><mask id="${id}-wrist-mask"><rect x="210" y="680" width="300" height="55" fill="url(#${id}-fade)"/></mask></defs>`+p(mirrored,cylinder,`data-volume="${left?'left':'right'}-arm" stroke="${edge}" stroke-width="1.1"`)+
+        '<g clip-path="url(#'+id+')">'+p(mirror('M235 560 Q255 575 278 558 L282 612 Q274 675 254 732 L222 730 Q240 654 238 597Z'),cylinder,'stroke="none"')+`<rect x="${wrist}" y="680" width="36" height="55" fill="url(#${id}-wrist)" stroke="none" mask="url(#${id}-wrist-mask)"/></g>`;
     };
     const form=leg(true)+leg(false)+arm(true)+arm(false)+
       p('M329 300 L327 336 Q326 346 314 349 Q286 354 278 372 Q291 389 304 430 Q301 470 308 504 Q315 540 309 570 L299 646 Q304 694 360 699 Q416 694 421 646 L411 570 Q405 540 412 504 Q419 470 416 430 Q429 389 442 372 Q434 354 406 349 Q394 346 393 336 L391 300Z',cylinder,`data-volume="torso" stroke="${edge}" stroke-width="1"`)+

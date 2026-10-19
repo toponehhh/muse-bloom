@@ -4,11 +4,15 @@ All illustration code is original to Muse Bloom. Version 1.3.0 adds one original
 
 `js/art.js` defines a 720 × 1280 layered character. `avatarSvg()` composes one inline SVG with keyed groups, ordered by item `z`. Dressing updates those groups synchronously and keeps the avatar and base mounted; removing clothes never waits for image decoding. The canvas exporter rasterizes the same composition. Offline `file://` play does not taint the export canvas.
 
-## Presentation proportions · v1.3.2
+## Sculpted silhouette and volume · v1.4.0
 
-Editable paths remain in the canonical 720 × 1280 coordinates below. The body uses `matrix(1.12 0 .028 .88 -76.52 145)`: a narrower silhouette than v1.3.1, short limbs and a gentle lean. The head is scaled by 1.23 and rotated by 3 degrees around the shared neck anchor (335.92,435.4). The jaw and neck paths are redrawn for a softer, younger cartoon face; skin and hand shadows share the same lighter falloff.
+Editable source paths remain in the canonical 720 × 1280 coordinates below. `contourPoint()` first fits the body and clothing to one waist/hip profile and outward elbow bend. `contourPath()` subdivides M/L/Q/C curves before fitting, so their interiors follow the same contour as their endpoints. The fitting transition is smooth; wrists, grips and feet keep their attachment locations. Rectangles and ellipses become fitted paths too. Generated SVG overrides are already fitted and must not be fitted a second time.
 
-Keep `data-anatomy="head"` and `data-anatomy="body"` in custom bases. Hair, glasses, earrings and clips/pins follow the head; garments, necklaces, shoes, watches, bags and carrying hands follow the body. Thumbnail bounds remain canonical. `rigPoint()` applies the full affine matrix to attachment coordinates. `fittedItemSvg()` provides the corresponding garment for coverage tests. Right/left grips render at (489.528,827.88)/(207.288,827.88); the crossbody shoulder renders at (268.664,468.84).
+The body then uses `matrix(1.12 0 .028 .88 -76.52 145)`, retaining short limbs and a gentle lean. The head is scaled by 1.23 and rotated by 3 degrees around the shared neck anchor (335.92,435.4). Shoulder, upper arm, elbow crease, tapered forearm, wrist, thigh, knee and calf now have separate contours or lighting regions. The measured unposed silhouette has an 86-pixel waist and 146-pixel hips; these are illustration widths, not anthropometric measurements.
+
+This is **2.5D vector illustration with volume lighting**, not a rotatable 3D model or WebGL renderer. Cylindrical limb gradients, spherical face lighting, hair contact shadows, cloth occlusion and soft transitions give the fixed front-facing character depth. Calf and trouser highlights fade at their joins to avoid rectangular bands. Materials remain deterministic in gameplay, offline files and exported portraits. Cached default artwork avoids re-subdividing unchanged paths on every outfit change.
+
+Keep `data-anatomy="head"` and `data-anatomy="body"` in custom bases. Hair, glasses, earrings and clips/pins follow the head; garments, necklaces, shoes, watches, bags and carrying hands follow the body. `rigPoint()` applies both the contour map and affine matrix to body attachment coordinates. `fittedItemSvg()` provides the corresponding garment for coverage tests. Right/left grips remain at (489.528,827.88)/(207.288,827.88). Top thumbnail bounds now include bent, wide sleeves. Custom edits should start from the newly exported files, rather than the previous straight-body assets.
 
 `MuseData.defaultHair` selects the starter ribbon ponytail (`airypony`), retaining item ID `hair_sporty_04`. The base uses the same hairstyle when hair is removed. `MuseData.defaultSkin` supplies the light showcase and fresh-save tone; it does not replace an existing player-selected gameplay tone or saved look. Homepage, empty-lookbook illustrations and covers use the showcase tone explicitly. Existing hairstyle IDs remain valid; the former High Pony now has the revised ribbon ponytail artwork.
 
@@ -40,7 +44,7 @@ The promotional illustrations use the same character, clothing and rendering cod
 
 ## Character materials and handheld rig
 
-Colors are converted to deterministic SVG gradients. Soft skin lighting, hair highlights and fabric shading retain the existing fit coordinates. Each inline avatar has an independent namespace for its gradients and filters, including during keyed updates. This prevents cross-instance skin/material collisions.
+Colors are converted to deterministic SVG gradients. Each inline avatar has an independent namespace for gradients, masks, clips and filters, including during keyed updates. This prevents cross-instance skin/material collisions. `npm run test:anatomy` measures actual rasterized arm outlines, torso width, calf luminance and long-sleeve coverage. Straight arms, a column-shaped torso and flattened skin gradients are tested as negative controls; ordinary UI tests additionally protect all 122 items and pixel-identical exports.
 
 Handheld props attach at (486, 776), with a second prop mirrored to (234, 776). Full carrying hands paint after the props and replace the relaxed hands. Watches paint last so the cuff remains visible. Crossbody straps start at the shoulder (299, 368). Keep `data-part="handle"` and `data-part="shoulder-strap"` when overriding these accessory assets; these identify paths checked by the attachment tests. The game and card exporter use the same hand allocation and compositing.
 
