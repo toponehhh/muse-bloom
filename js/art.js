@@ -8,9 +8,12 @@
   const ink = '#645061';
   // Canonical artwork keeps its editable 720 × 1280 rig. Presentation uses
   // separate head/body proportions; every attached item follows the same rig.
-  const rig=Object.freeze({head:[1.27,1.27,-97.2,31.7],body:[1.26,.86,-93.6,167]});
-  const rigTransform=part=>{const [x,y,dx,dy]=rig[part];return `matrix(${x} 0 0 ${y} ${dx} ${dy})`;};
-  const rigPoint=(x,y,part='body')=>[x*rig[part][0]+rig[part][2],y*rig[part][1]+rig[part][3]];
+  const headAngle=3*Math.PI/180,headScale=1.23;
+  const a=headScale*Math.cos(headAngle),b=headScale*Math.sin(headAngle);
+  // A gentle body lean with a small counter-tilt of the head, joined at the neck.
+  const rig=Object.freeze({body:[1.12,0,.028,.88,-76.52,145],head:[a,b,-b,a,335.92-360*a+330*b,435.4-360*b-330*a]});
+  const rigTransform=part=>`matrix(${rig[part].join(' ')})`;
+  const rigPoint=(x,y,part='body')=>{const [a,b,c,d,e,f]=rig[part];return [a*x+c*y+e,b*x+d*y+f];};
   const rigPart=item=>item.category==='hair'||item.category==='accessory'&&['glasses','earrings','clip','pin'].includes(item.shape)?'head':'body';
   function tint(hex, amount) {
     const value=hex.length===4?hex.slice(1).split('').map(c=>c+c).join(''):hex.slice(1);
@@ -24,7 +27,7 @@
       return `fill="url(#${colors.get(color)})"`;
     });
     const defs=[...colors].map(([color,id])=>material==='skin'
-      ?`<radialGradient id="${id}" cx="35%" cy="28%" r="78%"><stop stop-color="${tint(color,.21)}"/><stop offset=".5" stop-color="${color}"/><stop offset="1" stop-color="${tint(color,-.25)}"/></radialGradient>`
+      ?`<radialGradient id="${id}" cx="35%" cy="28%" r="78%"><stop stop-color="${tint(color,.21)}"/><stop offset=".5" stop-color="${color}"/><stop offset="1" stop-color="${tint(color,-.16)}"/></radialGradient>`
       :`<linearGradient id="${id}" x1="0" y1="0" x2="1" y2=".35"><stop stop-color="${tint(color,-.2)}"/><stop offset=".22" stop-color="${tint(color,material==='hair'?.3:.23)}"/><stop offset=".42" stop-color="${tint(color,.1)}"/><stop offset=".7" stop-color="${color}"/><stop offset="1" stop-color="${tint(color,-.28)}"/></linearGradient>`).join('');
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${box.split(' ')[2]}" height="${box.split(' ')[3]}" viewBox="${box}" fill="none"><defs>${defs}</defs><g stroke="${ink}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${painted}</g></svg>`;
   }
@@ -48,7 +51,7 @@
   function hand(skin, left = false, pose = 'relaxed') {
     const tone='hand-tone-'+(left?'left':'right'),c=`url(#${tone})`,sh=skin.shade;
     // Fixed world-space lighting joins the shaded forearm without a glove seam.
-    const material=`<defs><radialGradient id="${tone}" gradientUnits="userSpaceOnUse" gradientTransform="translate(${left?497:223} 300) scale(${left?-275:275} 433)" cx=".35" cy=".28" r=".78"><stop stop-color="${tint(skin.color,.21)}"/><stop offset=".5" stop-color="${skin.color}"/><stop offset="1" stop-color="${tint(skin.color,-.25)}"/></radialGradient></defs>`;
+    const material=`<defs><radialGradient id="${tone}" gradientUnits="userSpaceOnUse" gradientTransform="translate(${left?497:223} 300) scale(${left?-275:275} 433)" cx=".35" cy=".28" r=".78"><stop stop-color="${tint(skin.color,.21)}"/><stop offset=".5" stop-color="${skin.color}"/><stop offset="1" stop-color="${tint(skin.color,-.16)}"/></radialGradient></defs>`;
     const relaxed='M466 728 Q465 740 461 750 L456 762 Q454 767 458 769 Q462 770 465 763 L469 756 L470 775 L472 790 Q473 795 476 794 Q479 793 478 788 L478 774 L480 797 Q481 801 484 799 Q486 798 485 793 L485 775 L487 793 Q488 797 491 795 Q493 794 492 789 L492 772 L494 782 Q495 786 498 784 Q500 783 499 777 L500 760 Q500 747 497 738 L496 728';
     const carrying='M466 728 Q463 742 464 753 Q465 763 473 770 L476 781 Q479 787 485 787 Q494 788 499 781 Q502 775 499 766 L497 754 Q500 742 496 728';
     const outline=p(pose==='grip'?carrying:relaxed,c,'data-part="hand-outline" stroke-width="1.5"');
@@ -67,31 +70,30 @@
     // Original cartoon portrait. Hair, glasses and neckline keep their shared rig.
     const eye=(side,cx)=>{
       const left=side==='left',d=left
-        ?'M299 237 Q308 218 326 220 Q343 219 351 238 Q334 255 314 249 Q304 247 299 237Z'
-        :'M371 238 Q379 219 396 220 Q414 218 423 237 Q417 248 407 250 Q388 255 371 238Z';
+        ?'M300 234 Q307 213 326 214 Q345 213 352 233 Q342 254 322 253 Q307 251 300 234Z'
+        :'M370 233 Q377 213 396 214 Q415 213 422 234 Q415 251 400 253 Q380 254 370 233Z';
       return `<g data-feature="eye-${side}" class="toon-eye"><defs><clipPath id="eye-${side}"><path d="${d}" fill="white"/></clipPath></defs>`+
         p(d,'#fffdf9','stroke="none"')+`<g clip-path="url(#eye-${side})">`+
-        circle(cx,237.5,13,'#9e633c','data-part="iris" stroke="#593c35" stroke-width="1.5"')+
+        circle(cx,236,15,'#a66b46','data-part="iris" stroke="#674638" stroke-width="1.2"')+
         p(`M${cx-8} 242 Q${cx} 252 ${cx+8} 242`,'none','stroke="#e5b877" stroke-width="3" opacity=".9"')+
-        circle(cx,236,6.8,'#342733','stroke="none"')+
+        circle(cx,234.5,7.7,'#342733','stroke="none"')+
         circle(cx-3.3,231,4.2,'#fff','stroke="none"')+circle(cx+5.2,242.3,2,'#fff','stroke="none"')+'</g>'+
-        p(left?'M299 237 Q308 216 326 219 Q343 218 351 237':'M371 237 Q379 218 396 219 Q414 216 423 237','none','stroke="#49354f" stroke-width="3.5"')+
+        p(left?'M300 234 Q307 212 326 213 Q345 212 352 233':'M370 233 Q377 212 396 213 Q415 212 422 234','none','stroke="#654451" stroke-width="2.8"')+
         p(left?'M301 233 Q296 231 294 226 M306 226 L302 220 M313 222 L311 216':'M421 233 Q426 231 428 226 M416 226 L420 220 M409 222 L411 216','none','stroke="#49354f" stroke-width="2.4"')+
         p(left?'M309 247 Q329 258 347 242':'M375 242 Q393 258 413 247','none','stroke="#956875" stroke-width="1.2" opacity=".65"')+'</g>';
     };
     return `<g data-feature="face">`+
       `<ellipse cx="283" cy="244" rx="11" ry="18" fill="${c}"/><ellipse cx="437" cy="244" rx="11" ry="18" fill="${c}"/>`+
-      p('M284 201 Q285 129 360 130 Q435 129 437 201 L433 254 Q431 285 405 309 Q384 328 360 328 Q336 327 314 308 Q289 286 287 254Z',c,'stroke-width="1.9"')+
+      p('M284 201 Q285 129 360 130 Q435 129 437 201 L432 250 Q427 278 401 296 Q379 312 360 314 Q341 312 319 296 Q293 278 288 250Z',c,'stroke-width="1.6"')+
       p('M289 200 Q353 177 433 205 L431 215 Q355 195 290 217Z',sh,'stroke="none" opacity=".13" filter="url(#face-soft)"')+
-      p('M404 282 Q416 272 427 259 Q424 295 398 314 Q380 328 360 328 Q387 314 404 282Z',sh,'stroke="none" opacity=".15"')+
-      `<ellipse cx="307" cy="272" rx="18" ry="10" fill="#eb829b" opacity=".32" stroke="none" filter="url(#face-soft)"/><ellipse cx="413" cy="272" rx="18" ry="10" fill="#eb829b" opacity=".32" stroke="none" filter="url(#face-soft)"/>`+
-      p('M301 210 Q322 198 344 209 M378 209 Q399 198 420 210','none','data-feature="brows" stroke="#6b4652" stroke-width="3.5"')+
+      p('M404 279 Q416 270 426 257 Q419 284 398 300 Q379 313 360 314 Q388 301 404 279Z',sh,'stroke="none" opacity=".08"')+
+      `<ellipse cx="311" cy="267" rx="17" ry="8" fill="#ed93a5" opacity=".24" stroke="none" filter="url(#face-soft)"/><ellipse cx="409" cy="267" rx="17" ry="8" fill="#ed93a5" opacity=".24" stroke="none" filter="url(#face-soft)"/>`+
+      p('M303 205 Q323 199 343 205 M379 205 Q399 199 419 205','none','data-feature="brows" stroke="#87604d" stroke-width="2.3"')+
       eye('left',328)+eye('right',394)+
-      `<g data-feature="nose">`+p('M359 250 Q358 258 355 261 Q356 266 363 266 Q368 266 370 263','none',`stroke="${sh}" stroke-width="1.7" opacity=".75"`)+
-      p('M358 256 Q360 254 363 256','none','stroke="#fff4e6" stroke-width="3" opacity=".5"')+'</g>'+
-      `<g data-feature="lips">`+p('M346 288 Q360 297 376 287 Q369 303 360 302 Q351 301 346 288Z','#d98394','stroke="none"')+
-      p('M345 288 Q360 299 377 287','none','stroke="#8b505b" stroke-width="1.8"')+
-      p('M353 301 Q360 304 367 301','none','stroke="#ffe0d6" stroke-width="2" opacity=".7"')+'</g>'+'</g>';
+      `<g data-feature="nose">`+p('M359 252 Q354 260 362 261','none',`stroke="${sh}" stroke-width="1.3" opacity=".65"`)+
+      p('M358 255 L361 254','none','stroke="#fff4e6" stroke-width="2.2" opacity=".55"')+'</g>'+
+      `<g data-feature="lips">`+p('M349 282 Q361 292 374 280','none','stroke="#ac6576" stroke-width="1.8"')+
+      p('M356 290 Q362 292 367 289','none','stroke="#e8a2ad" stroke-width="2.3" opacity=".65"')+'</g>'+'</g>';
   }
   function body(skin, covered = [], heldHands = []) {
     const embedded = globalThis.MuseAssets?.[`assets/base/${skin.id}.svg`];
@@ -100,8 +102,8 @@
     return hideBasics(svg(
       '<defs><filter id="skin-soft" x="-.15" y="-.15" width="1.3" height="1.3"><feGaussianBlur stdDeviation="5"/></filter><filter id="face-soft"><feGaussianBlur stdDeviation="2.5"/></filter></defs>'+
       '<g data-anatomy="body">'+p('M307 654 Q282 707 298 828 L312 985 L310 1139 Q293 1159 288 1174 Q287 1187 307 1187 L348 1184 Q359 1180 351 1163 L353 994 L360 793 L367 995 L372 1160 Q368 1182 386 1185 L428 1186 Q442 1178 431 1168 L409 1143 L421 989 L426 829 Q443 712 414 655Z',c)+
-      p('M316 300 L314 344 Q285 354 277 370 Q263 388 255 439 L237 573 L223 730 L254 733 L278 590 L307 467 L310 567 L299 646 Q305 683 360 684 Q414 683 421 646 L410 566 L414 468 L442 592 L466 733 L498 730 L482 577 L466 437 Q455 377 443 366 Q430 353 406 344 L404 300Z',c)+
-      p('M316 302 Q357 329 404 302 L403 333 Q358 354 315 333Z',sh,'stroke="none"')+
+      p('M329 300 L327 336 Q326 346 314 349 Q285 354 277 370 Q263 388 255 439 L237 573 L223 730 L254 733 L278 590 L307 467 L310 567 L299 646 Q305 683 360 684 Q414 683 421 646 L410 566 L414 468 L442 592 L466 733 L498 730 L482 577 L466 437 Q455 377 443 366 Q430 353 406 349 Q394 346 393 336 L391 300Z',c)+
+      p('M329 302 Q360 321 391 302 L392 329 Q360 344 328 329Z',sh,'stroke="none" opacity=".25"')+
       // Round limbs with broad edge shadows and narrow bounced-light ribbons.
       p('M307 708 Q302 774 313 841 L324 970 L322 1129 M389 811 L389 989 L389 1133 M282 392 Q267 476 254 581 L241 716 M448 402 L467 573 L482 717','none','stroke="#fff5e8" stroke-width="18" opacity=".24" filter="url(#skin-soft)"')+
       p('M345 792 L337 984 L339 1140 M410 798 L407 978 L400 1137 M298 463 L271 590 L251 724 M465 476 L477 577 L490 715','none',`stroke="${sh}" stroke-width="12" opacity=".32" filter="url(#skin-soft)"`)+
@@ -109,13 +111,21 @@
       basic('top',p('M321 349 L332 354 L329 391 Q360 408 391 391 L388 354 L399 349 L410 406 L405 482 L411 606 Q360 621 309 606 L315 482 L310 406Z','#c9b1b7')+line('M318 581 Q360 593 402 581',.22)+flower(360,443,13,'#ead5cf'))+
       basic('bottom',p('M306 600 Q360 612 414 600 Q429 660 426 726 L373 734 L360 686 L347 734 L294 726 Q291 660 306 600Z','#aebda3')+p('M306 600 Q360 612 414 600 L417 624 Q360 635 303 624Z','#c2cbb8')+line('M360 629 L360 683 M304 714 L341 721 M379 721 L416 714',.3))+
       line('M315 975 Q329 980 344 977 M379 976 Q395 981 410 974 M244 570 L251 569 M471 570 L477 574',.2)+
-      '</g><g data-anatomy="head">'+face(skin)+basic('hair',hair({color:'#704c3b',shape:'bun'}))+'</g>'
+      '</g><g data-anatomy="head">'+face(skin)+basic('hair',hair({color:'#865538',shape:'airypony'}))+'</g>'
     ,undefined,'skin'),covered,heldHands);
   }
   function hairShape(item) {
     const c = item.color, shape = item.shape;
     const cap = hairCap(c);
     const highlights = p('M280 179 Q290 131 332 126 M367 120 Q407 119 431 152','none',`stroke="${tint(c,.58)}" stroke-width="5" opacity=".15"`)+p('M290 174 Q300 147 324 139 M378 131 Q407 135 421 151','none',`stroke="${tint(c,.65)}" stroke-width="2" opacity=".3"`);
+    if(shape==='airypony') return `<g data-hair-style="airypony">`+
+      p('M422 134 Q454 97 478 133 Q501 167 486 217 Q472 258 482 296 Q495 331 477 355 Q464 373 443 358 Q462 334 450 297 Q434 268 448 225 Q465 178 424 170Z',c)+
+      p('M280 228 Q263 192 274 155 Q287 115 330 104 Q385 91 421 117 Q458 145 444 207 L435 233 L425 198 Q399 180 382 158 Q370 181 352 186 L360 159 Q344 184 326 193 L332 169 Q316 197 296 205 L288 234Z',c)+
+      p('M286 198 Q274 238 289 264 L297 276 Q285 247 298 218Z',c)+p('M432 197 Q448 236 437 267 L425 279 Q436 248 425 215Z',c)+
+      p('M288 164 Q312 116 354 115 M369 111 Q412 116 433 153','none',`stroke="${tint(c,.55)}" stroke-width="7" opacity=".19"`)+
+      Array.from({length:6},(_,i)=>p(`M${303+i*5} ${184-i*4} Q${308+i*5} ${140-i*2} ${348+i*5} ${114+i}`,'none',`stroke="${tint(c,i%2?.28:-.22)}" stroke-width="1.3" opacity=".45"`)).join('')+
+      Array.from({length:5},(_,i)=>p(`M${455+i*4} 155 Q${484+i} 202 ${459+i*3} 258 Q${450+i*3} 297 ${469+i} 346`,'none',`stroke="${tint(c,i%2?.4:-.24)}" stroke-width="1.5" opacity=".36"`)).join('')+
+      p('M436 143 Q443 124 457 128 Q463 139 448 147 Q464 145 473 156 Q465 167 445 153 L453 177 L443 174 L439 154 L426 170 L422 164 L433 150 Q414 149 418 135 Q426 128 436 143Z','#e7a9c0','stroke="#b67595" stroke-width="1.4"')+circle(440,148,4,'#f7d5e3','stroke="none"')+'</g>';
     if (shape === 'bun' || shape === 'pinbun') return circle(361,111,49,c)+cap+highlights+line('M335 91 Q368 66 392 106 M338 106 Q356 86 381 113',.35)+(shape==='pinbun' ? p('M302 115 L412 94','none','stroke="#c6aa6a" stroke-width="7"')+circle(415,93,9,'#91b29a')+p('M408 100 L417 142','none','stroke="#d8ba75"')+circle(417,145,5,'#d8ba75') : '');
     if (shape === 'bob') return p('M279 182 Q257 230 268 319 Q303 342 310 318 L293 210Z',c)+p('M428 181 Q461 240 449 319 Q417 339 413 316 L428 213Z',c)+cap+highlights+line('M279 233 L285 309 M438 232 L436 309',.25);
     if (shape === 'pony' || shape === 'ribbon') return p('M421 137 Q478 119 486 180 Q483 231 467 284 Q455 327 480 356 Q441 354 433 314 Q422 282 442 218 Q452 174 418 174Z',c)+cap+highlights+(shape==='ribbon' ? p('M439 153 Q475 116 485 138 Q482 165 444 163 Q470 196 461 204 L436 164 Q423 198 417 194 L426 163 Q401 162 403 143 Q416 128 439 153Z','#d7a2a8') : circle(439,154,9,'#d4ae7d'));
@@ -125,6 +135,7 @@
   }
   function hair(item) {
     const {shape,color}=item;
+    if(shape==='airypony')return hairShape(item);
     const paths=[];
     for(let i=0;i<7;i++) {
       if(shape==='bun'||shape==='pinbun') paths.push(`M${331+i*3} ${85+i} Q${355+i*3} ${67+i*3} ${394-i*2} ${101+i*2}`);

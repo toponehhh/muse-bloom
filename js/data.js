@@ -60,7 +60,7 @@
       'Sunday Waves|waves|#6a4032|casual cute minimalist',
       'Sleek Bun|bun|#29282c|chic elegant formal',
       'Honey Bob|bob|#c18a50|cozy preppy vintage',
-      'High Pony|pony|#704c3b|sporty bold summer',
+      'Ribbon Ponytail|airypony|#865538|sporty bold summer',
       'Rose Bob|bob|#b76f7c|y2k cute party',
       'Midnight Waves|waves|#34353d|edgy street bold',
       'Cocoa Curls|curls|#55372b|romantic boho casual',
@@ -83,7 +83,7 @@
     top: [
       'Cloud Tee|tee|#fff5dc|casual minimalist cute',
       'Matcha Cardigan|cardigan|#9eaf91|cozy chic vintage',
-      'Court Club|polo|#e0c6a9|preppy sporty casual',
+      'Court Club|polo|#f5f0fa|preppy sporty casual',
       'Ribbon Blouse|blouse|#e6a5b1|romantic elegant cute',
       'Night Out Vest|vest|#484052|edgy bold party',
       'Baby Tee|tee|#c9b5df|y2k cute summer',
@@ -107,7 +107,7 @@
     ],
     bottom: [
       'Everyday Denim|jeans|#8296a3|casual minimalist chic',
-      'Tennis Skirt|pleats|#ecceba|cute sporty preppy',
+      'Tennis Skirt|pleats|#f0bfd3|cute sporty preppy',
       'Weekend Trousers|trousers|#c0b098|cozy vintage elegant',
       'Sunset Shorts|shorts|#cc9d81|summer boho bold',
       'Rose Midi|midi|#c98091|romantic cute chic',
@@ -226,5 +226,5 @@
     theme.entryItems = items.filter(i => i.unlockType === 'progress' && i.unlockLevel === theme.index && i.unlockOn === 'enter').map(i => i.id);
   }
   const skins = [{ id: 'porcelain', name: 'Porcelain', color: '#f2c8ad', shade: '#dca98c' }, { id: 'warm', name: 'Warm', color: '#dca379', shade: '#bd805d' }, { id: 'tan', name: 'Tan', color: '#ad7351', shade: '#895336' }, { id: 'deep', name: 'Deep', color: '#79503c', shade: '#57382d' }];
-  return { tags, categories, categoryNames, chapters, themes, items, skins, counts, defaultHair:'hair_chic_02', version: 1, title: 'Muse Bloom' };
+  return { tags, categories, categoryNames, chapters, themes, items, skins, counts, defaultHair:'hair_sporty_04', defaultSkin:'porcelain', version: 1, title: 'Muse Bloom' };
 });

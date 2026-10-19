@@ -8,7 +8,7 @@
   const byId = Object.fromEntries(D.items.map(i => [i.id, i]));
   const starterIds = D.items.filter(i => i.unlockType === 'progress' && i.unlockLevel === null).map(i => i.id);
   function emptyOutfit() { return { hair: null, top: null, bottom: null, dress: null, shoes: null, accessory: [] }; }
-  function newSave() { return { version: 1, levels: {}, unlockedItems: [...starterIds], streak: 0, streakLevels: [], skin: 'warm', muted: false }; }
+  function newSave() { return { version: 1, levels: {}, unlockedItems: [...starterIds], streak: 0, streakLevels: [], skin: D.defaultSkin, muted: false }; }
   function rankOf(score) { return score >= 85 ? 'S' : score >= 70 ? 'A' : score >= 55 ? 'B' : score >= 35 ? 'C' : 'D'; }
   function scoreBreakdown(theme, equipped) {
     const tags = new Set(equipped.flatMap(i => i.tags));

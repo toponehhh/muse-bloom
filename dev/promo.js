@@ -9,8 +9,8 @@ globalThis.makeCover=async function(width,height){
   const title=c.createLinearGradient(0,0,width*.5,height*.5);title.addColorStop(0,'#ed6cad');title.addColorStop(1,'#c93686');
   if(landscape){
     await MuseShare.drawAvatar(c,MuseUI.demoOutfit(1),'porcelain',720,185,470,836);
-    await MuseShare.drawAvatar(c,MuseUI.demoOutfit(2),'deep',1370,160,490,871);
-    await MuseShare.drawAvatar(c,MuseUI.demoOutfit(0),'warm',1020,100,515,916);
+    await MuseShare.drawAvatar(c,MuseUI.demoOutfit(2),MuseData.defaultSkin,1370,160,490,871);
+    await MuseShare.drawAvatar(c,MuseUI.demoOutfit(0),MuseData.defaultSkin,1020,100,515,916);
     c.textAlign='left';c.fillStyle='#824b74';c.font='bold 172px "Trebuchet MS", sans-serif';c.fillText('Muse',100,475);
     c.fillStyle=title;c.font='bold 177px "Trebuchet MS", sans-serif';c.fillText('Bloom',100,658);
   }else{
@@ -18,8 +18,8 @@ globalThis.makeCover=async function(width,height){
     c.fillStyle=title;c.font='bold '+(portrait?140:110)+'px "Trebuchet MS", sans-serif';c.fillText('Bloom',width*.5,portrait?313:230);
     const y=portrait?447:260,h=portrait?720:515,w=h*720/1280;
     await MuseShare.drawAvatar(c,MuseUI.demoOutfit(1),'porcelain',width*.19-w*.5,y,w,h);
-    await MuseShare.drawAvatar(c,MuseUI.demoOutfit(2),'deep',width*.81-w*.5,y,w,h);
-    await MuseShare.drawAvatar(c,MuseUI.demoOutfit(0),'warm',width*.5-w*.55,y-(portrait?68:30),w*1.1,h*1.1);
+    await MuseShare.drawAvatar(c,MuseUI.demoOutfit(2),MuseData.defaultSkin,width*.81-w*.5,y,w,h);
+    await MuseShare.drawAvatar(c,MuseUI.demoOutfit(0),MuseData.defaultSkin,width*.5-w*.55,y-(portrait?68:30),w*1.1,h*1.1);
   }
   return canvas.toDataURL('image/png');
 };
