@@ -1,21 +1,11 @@
-# Muse Bloom · Glam Studio · v1.5.0
+# Muse Bloom — Meet Your Muse
 
-本次以用户提供的 stitch_western_teen_dress_up_game.zip 为视觉来源，主要参考 Hollywood Glam 试衣间、Runway Showcase 结算稿及 Y2K Glam Star Studio/DESIGN.md。保留 Muse Bloom 名称与实际玩法，不沿用参考稿中虚构的 VIP、用户身份、分数或尚未实现的操作。
+Version 1.6.0 carries the supplied Stitch studio palette forward: midnight navy, lavender glass, pink accents and small champagne highlights, with a softly lit bedroom backdrop.
 
-## UI 与素材
+The cast is now playable rather than only editorial. Bella's honey bob, Mika's midnight bob and Zoe's curly puffs each have a distinct face and painted complexion, with a shared frontal pose for clothing fit. The default is Bella. All have compact fashion-doll proportions, natural hand details, visible joints and painted depth. There is no old vector-doll mode.
 
-午夜蓝 #0B0D19、玻璃面板 #181A2C、粉色 #F472B6、薰衣草紫 #CEBDFF 与香槟金 #F6E05E 构成新主题。首页使用三张用户原画，保留整图，仅转为 WebP；素材清单和来源 SHA-256 见 STITCH-ASSETS.json。粉色双丸子头为主图，另外两张作为灵感卡片。标题与界面采用本地系统字体，无 CDN 或远程素材请求。
+Home shows the actual cast, the stage offers labelled portrait buttons, and Meet the muses opens larger character cards. Mobile uses a compact side selector that stays inside the stage even at 320px. Changing a character retains the outfit and updates the save. The lookbook and portrait export preserve the chosen character.
 
-试衣间延续家中卧室，添加深色环境光和梳妆镜灯框。衣橱以清楚的单色分类图标、浅底服装缩略图、粉色选中状态和文字标签呈现。金色只强调评价与主要按钮。结算页采用大片式造型框与真实评分；导出照片与推广封面同步使用深色主题。
+Hair details now contains bows, clips, ribbons, pearls and headbands. Base hairstyles are attached to character identity. The 22 existing item IDs retain progress and scoring. All 122 pieces remain collectible, and clearing them restores the painted lavender studio basics.
 
-桌面左右分栏；手机竖屏上下分区，横屏左右布局。衣橱独立滚动，评分按钮固定可达；小屏通过现有入口访问章节、相册与收藏。全局音效、设置、键盘焦点及减少动态偏好保留。
-
-## 可换装角色
-
-素材包的人物为已合成的背景加人物插画，没有对应的衣服分层。它们用于首页灵感展示；实际换装使用既有 2.5D SVG 角色，122 件衣服仍共享轮廓及握持坐标。此轮没有替换游戏人物骨架、引入 WebGL 或将整张插画伪装成可换装角色。新存档仍默认浅肤色和栗棕色丝带马尾；既有肤色选择与相册作品保留。
-
-眨眼、呼吸、换装星光、奖励动画及九种原创 Web Audio 效果继续使用现有实现。首个操作后启动音频，静音与页面隐藏会取消排队声音。
-
-## 验证
-
-新增 test:glam 覆盖七种视口、主要页面、导航、素材缺失负例和 4.5:1 文字对比度。上传测试验证三张原画在实际单文件构建中可离线解码。继续运行穿脱、贴合、相册、导出、动画和音效测试；结果及未执行的验证见 QA.md。
+Motion uses the whole character composite, keeping clothes aligned. Sound and reduced-motion controls remain available. Painted depth is a fixed-view 2.5D treatment, not a live 3D scene.

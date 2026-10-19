@@ -1,65 +1,21 @@
-# Art pipeline
+# Art pipeline — v1.6.0
 
-The vector illustration code is original to Muse Bloom. Version 1.5.0 adds three owner-supplied editorial illustrations from the Stitch ZIP; see STITCH-ASSETS.json for original archive paths and hashes. They remain full, unretouched images converted to WebP (quality 86), at 896×1200 pixels, and are used only for the opening moodboard. The supplied HTML/DESIGN.md informed the UI; its CDN scripts, remote URLs, placeholder metrics and nonfunctional controls are not included. Version 1.3.0 adds one original AI-generated bedroom background (`assets/scenes/bedroom.webp`). The character and all clothes remain editable vectors. See [scene provenance and exact prompt](SCENE-PROMPT.md).
+## Playable cast
 
-`js/art.js` defines a 720 × 1280 layered character. `avatarSvg()` composes one inline SVG with keyed groups, ordered by item `z`. Dressing updates those groups synchronously and keeps the avatar and base mounted; removing clothes never waits for image decoding. The canvas exporter rasterizes the same composition. Offline `file://` play does not taint the export canvas.
+`assets/characters/bella.webp`, `mika.webp` and `zoe.webp` are the only playable base characters. Each is a 768 × 1152 transparent painted sprite, in the same pose and lavender studio basics. The three files total 298,232 bytes. `CHARACTER-ASSETS.json` records source generation names and SHA-256 hashes. The original generated PNGs are retained by the image tool; delivery files are encoded WebP with preserved alpha.
 
-## Sculpted silhouette and volume · v1.4.0
+The four `assets/base/*.svg` files have been removed. `js/art.js` no longer draws a face, body, hands, hair cap or legacy hairstyle. The 22 hair items are new decorative details, keeping the same saved item IDs and scoring tags. The supplied editorial artwork remains source material in `assets/editorial`; the home screen now displays the actual new playable sprites.
 
-Editable source paths remain in the canonical 720 × 1280 coordinates below. `contourPoint()` first fits the body and clothing to one waist/hip profile and outward elbow bend. `contourPath()` subdivides M/L/Q/C curves before fitting, so their interiors follow the same contour as their endpoints. The fitting transition is smooth; wrists, grips and feet keep their attachment locations. Rectangles and ellipses become fitted paths too. Generated SVG overrides are already fitted and must not be fitted a second time.
+## Composition
 
-The body then uses `matrix(1.12 0 .028 .88 -76.52 145)`, retaining short limbs and a gentle lean. The head is scaled by 1.23 and rotated by 3 degrees around the shared neck anchor (335.92,435.4). Shoulder, upper arm, elbow crease, tapered forearm, wrist, thigh, knee and calf now have separate contours or lighting regions. The measured unposed silhouette has an 86-pixel waist and 146-pixel hips; these are illustration widths, not anthropometric measurements.
+`avatarSvg(character, items, namespace)` creates one 720 × 1280 composite. The painted image retains its original aspect ratio using x=-66.667, width=853.333 and height=1280. Each item is projected from canonical coordinates by `contourPoint`; head details use a separate head transform. Clothing colours, highlights, seams and embroidery remain editable SVG. Absolute embroidery paths follow the clothing projection.
 
-This is **2.5D vector illustration with volume lighting**, not a rotatable 3D model or WebGL renderer. Cylindrical limb gradients, spherical face lighting, hair contact shadows, cloth occlusion and soft transitions give the fixed front-facing character depth. Calf and trouser highlights fade at their joins to avoid rectangular bands. Materials remain deterministic in gameplay, offline files and exported portraits. Cached default artwork avoids re-subdividing unchanged paths on every outfit change.
+The character layer remains mounted during ordinary equip/remove operations. Choosing a different character updates its image and identity attributes, while retaining the equipped items. Sprites are preloaded. Bags and fans use the same grip coordinates; a second handheld is mirrored. Small clipped copies of the actual painted fingertips overlay handles. No vector hand substitute is used.
 
-Keep `data-anatomy="head"` and `data-anatomy="body"` in custom bases. Hair, glasses, earrings and clips/pins follow the head; garments, necklaces, shoes, watches, bags and carrying hands follow the body. `rigPoint()` applies both the contour map and affine matrix to body attachment coordinates. `fittedItemSvg()` provides the corresponding garment for coverage tests. Right/left grips remain at (489.528,827.88)/(207.288,827.88). Top thumbnail bounds now include bent, wide sleeves. Custom edits should start from the newly exported files, rather than the previous straight-body assets.
+Body proportions, shoulders, elbows, waist, hips and hands are painted into each base. They are not morphable meshes. This is fixed-view 2.5D illustration rather than real-time 3D.
 
-`MuseData.defaultHair` selects the starter ribbon ponytail (`airypony`), retaining item ID `hair_sporty_04`. The base uses the same hairstyle when hair is removed. `MuseData.defaultSkin` supplies the light showcase and fresh-save tone; it does not replace an existing player-selected gameplay tone or saved look. Empty-lookbook illustrations and covers use the showcase tone explicitly. The homepage now uses the supplied rose-studio illustration, independently of the saved gameplay tone. Existing hairstyle IDs remain valid; the former High Pony now has the revised ribbon ponytail artwork.
+## Build and export
 
-## Edit the source art
+`npm run assets` regenerates 122 garment SVGs and 122 thumbnails, then embeds all character sprites, room artwork and custom garment overrides in `js/asset-data.js`. The garment source is otherwise generated compactly at runtime. It never recreates retired bodies. `standalone.js` embeds the CSS and scripts into one HTML. `share.js` rasterizes the identical avatar composite into a 1080 × 1920 card; no external image request or tainted canvas is needed.
 
-Edit the vector paths in `js/art.js` and run `npm run assets`. This exports full clothing layers to `assets/items`, thumbnails to `assets/thumbs`, and four skin-tone bases to `assets/base`.
-
-## Replace an individual illustration
-
-Edit its SVG in `assets/items` or `assets/base`, preserving the 720 × 1280 canvas and transparent background. Run `npm run embed-assets` **without** regenerating default art. The embedder includes custom SVG overrides and the bedroom/editorial WebP data URIs in `js/asset-data.js`; untouched vector defaults use compact vector source. Thumbnail viewboxes are derived from each item's `bounds`, with separate bounds for accessories in `art.js`. Inspect both thumbnail and fitted layer after edits.
-
-Do not run `npm run assets` after individual asset edits unless you intend to regenerate those files from the vector source. Commit custom edits and the embedded data together.
-
-## Canonical art coordinates
-
-- Head: center (360, 230); neck: y 300–350.
-- Shoulder line: y 350; waist: y 600; hip: y 700.
-- Feet: y 1140–1200. Dress artwork has two slot units.
-- Item anchor: (360, 640), the shared full-canvas center.
-- Base layer 10; bottoms 20; dress 25; top 30; shoes 50; hair 60; accessories 70.
-
-The base contains opaque studio basics: a ribbon ponytail, a rose camisole and sage shorts. Groups marked `data-basic="hair"`, `data-basic="top"`, and `data-basic="bottom"` are hidden only when that slot is covered by an equipped item (a dress covers both clothing slots). Keep these markers in custom base artwork. Basics are visual fallbacks, not collectible/scoring items. This prevents pale underlayers protruding around a fitted garment and makes removal an explicit complete appearance.
-
-Long sleeves cover both edges of the base arms through the wrists. Bodices share underarm/waist landmarks; fitted skirts cover the full hip contour. Check `npm run test:ui` after art changes: coverage assertions and 60 reviewed screenshots protect these seams. See [UI test guide](UI-TESTS.md) before deliberately updating baselines.
-
-Chinese-inspired pieces use lapels, frog buttons, pleated mamian panels, embroidery, jade, hairpins, silk fans and brocade; no brand names or logos are used.
-
-The promotional illustrations use the same character, clothing and rendering code as gameplay. Cover art contains only the game title as text.
-
-## Character materials and handheld rig
-
-Colors are converted to deterministic SVG gradients. Each inline avatar has an independent namespace for gradients, masks, clips and filters, including during keyed updates. This prevents cross-instance skin/material collisions. `npm run test:anatomy` measures actual rasterized arm outlines, torso width, calf luminance and long-sleeve coverage. Straight arms, a column-shaped torso and flattened skin gradients are tested as negative controls; ordinary UI tests additionally protect all 122 items and pixel-identical exports.
-
-Handheld props attach at (486, 776), with a second prop mirrored to (234, 776). Full carrying hands paint after the props and replace the relaxed hands. Watches paint last so the cuff remains visible. Crossbody straps start at the shoulder (299, 368). Keep `data-part="handle"` and `data-part="shoulder-strap"` when overriding these accessory assets; these identify paths checked by the attachment tests. The game and card exporter use the same hand allocation and compositing.
-
-See [Visual direction](VISUAL-DESIGN.md) and `dev/accessory.test.js`.
-
-## Face and hands (v1.1.1)
-
-The base arms end at the wrist. Keep independent `data-hand="left"` and `data-hand="right"` groups in custom bases: a handheld prop hides the relaxed hand on that side, then the complete carrying pose is rendered above the handle. Never retain a second hand silhouette inside the arm path. The four fingertips and thumb have separate contours; palm samples, wrist joins, grip occlusion and close-up baselines protect both poses.
-
-Hand lighting uses the same world coordinates as the torso radial gradient (bounds 223, 300, 275, 433), mirrored for the left hand. Update these together if the torso bounds change to avoid a visible wrist seam.
-
-The face has separately marked eyes, brows, nose and lips. Iris clips remain local to each avatar namespace. Hair, glasses, earrings and hairpins retain existing attachment coordinates. Check the 12 enlarged detail baselines in addition to the 48 full-body looks; all 22 hairstyles are checked in four skin tones.
-
-## Cartoon portrait and motion · v1.3.0
-
-Brown irises, clear eye highlights, rounded features, a small smile and fine hair strands use the original head coordinate system. Eyes carry `.toon-eye` for CSS blinking. Breathing moves the entire composite; outfit animation never moves clothing separately from the character. Exported SVG/Canvas portraits are static, with open eyes. Four skin tones, 22 hairstyles, glasses, hair ornaments and handheld anchors retain their fit.
-
-The bedroom data URI is used in stage `<img>` elements and Canvas portrait rendering. It remains available offline and cannot taint the export canvas. `dev/embed-assets.js` must run after changing the scene asset.
+See `UI-TESTS.md` for body-coverage checks and the 24 manually reviewed snapshots. Aesthetic judgement and arbitrary combinations still benefit from human review; tests do not prove every artistic detail correct.

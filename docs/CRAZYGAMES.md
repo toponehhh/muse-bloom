@@ -10,7 +10,7 @@ npm run package:upload
 npm run test:upload
 ```
 
-在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标、矢量素材和卧室背景，不需要其他文件。当前版本为 **v1.5.0 Glam Studio**，采用用户提供的 Stitch 原画和深色粉金 UI。首页展示三张素材包插画；游戏内保留 2.5D 分层换装人物、卧室、动画与原创音效。三张原画也已内嵌，无需额外上传图片；评分与旧存档保持兼容。
+在 CrazyGames Developer Portal 的文件/文件夹上传入口中，上传 **`dist/crazygames-upload/index.html`**。如果需要选择文件夹，就选择 `dist/crazygames-upload`。确认上传列表的入口是 `index.html`。该文件已内嵌 CSS、JavaScript、图标、矢量素材和卧室背景，不需要其他文件。当前版本为 **v1.6.0 Meet Your Muse**。实际游戏、角色选择、首页、相册和导出卡片均使用 Bella、Mika、Zoe 三位新绘制人物。旧人物绘制和四个旧身体 SVG 已移除。三位角色与卧室均已内嵌；上传目录只需此一个 index.html。切换人物保留服装，旧进度自动迁移。
 
 此前直接上传 ZIP 的说明不适用于用户当前的入口。`npm run package` 仍生成多文件 ZIP，供备份和其他静态托管使用。若使用多文件形式，须先解压，再保留相同层级上传 `index.html`、`css/`、`js/` 和 `assets/`；源码中的 `index.html` 不能单独上传。
 
@@ -36,9 +36,9 @@ npm run test:upload
 
 **Description:**
 
-Muse Bloom is a dress-up and fashion puzzle game set in a cozy bedroom studio. Style an original cartoon character with a playful pink wardrobe, little sparkles and soft sound effects. Match each brief, discover new pieces and build a lookbook that reflects your point of view. Explore 36 challenges across six collections, from everyday outfits and Y2K style to red carpet looks and modern Chinese fashion. Mix tops and bottoms, choose a dress, find the right shoes and finish with two accessories. Collect 122 pieces, including hanfu-inspired layers, mamian skirts and jade details. Earn S ranks to uncover secret items. Your best completed looks are saved with their outfits and skin tones, ready to revisit, restyle or download as portrait cards. There is no timer and no penalty for trying again. Every look. Entirely you.
+Muse Bloom is a dress-up and fashion puzzle game set in a cozy bedroom studio. Choose Bella, Mika or Zoe and style your painted fashion character in a midnight-pink studio with subtle sparkles and soft sound effects. Match each brief, discover new pieces and build a lookbook that reflects your point of view. Explore 36 challenges across six collections, from everyday outfits and Y2K style to red carpet looks and modern Chinese fashion. Mix tops and bottoms, choose a dress, find the right shoes and finish with two accessories. Collect 122 pieces, including hanfu-inspired layers, mamian skirts and jade details. Earn S ranks to uncover secret items. Your best completed looks are saved with their outfits and chosen characters, ready to revisit, restyle or download as portrait cards. There is no timer and no penalty for trying again. Every look. Entirely you.
 
-**Controls:** Click or tap an item to wear it. Tap it again to remove it. Browse the categories, match the three mood tags and select Reveal your look. Open Lookbook to revisit a completed outfit, restyle it or save a portrait. Use Tab and Enter to select controls and the left and right arrow keys in category tabs. A dress replaces your top and bottom. You can wear two accessories.
+**Controls:** Choose a character using the stage portraits or Meet the muses. Click or tap an item to wear it. Tap it again to remove it. Browse the categories, match the three mood tags and select Walk the runway. Open Lookbook to revisit a completed outfit, restyle it or save a portrait. Use Tab and Enter to select controls and the left and right arrow keys in category tabs. A dress replaces your top and bottom. You can wear two accessories.
 
 **Suggested categories:** Dress Up, Fashion, Casual, Puzzle.
 
@@ -48,7 +48,7 @@ Muse Bloom is a dress-up and fashion puzzle game set in a cozy bedroom studio. S
 
 ## 核对过的官方要求
 
-核对日期：2026-10-19；上传形式结合用户当前门户实际反馈修正。
+以下为前一轮在 2026-10-19 记录的官方要求；本轮只验证本地角色更新和上传文件，未重新联网核对。上传形式沿用用户当前门户的文件/文件夹入口。
 
 - [Launch requirements](https://docs.crazygames.com/requirements/intro/)：Basic Launch 的 SDK 可选、广告变现不可用；Full Launch 需要 SDK 及相应完整接入。
 - [Technical requirements](https://docs.crazygames.com/requirements/technical/)：无 SDK 时总文件上限 50 MB，移动首页初始下载上限 20 MB，文件上限 1,500，使用相对路径，支持 Chrome/Edge。

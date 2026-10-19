@@ -1,71 +1,51 @@
 # Muse Bloom
 
-Every look. Entirely you.
+Every look. Entirely you. — v1.6.0, Meet Your Muse
 
-Version 1.5.0 adapts the supplied Stitch Y2K Glam Star Studio design: midnight navy surfaces, pink/lavender glass panels, champagne accents, editorial artwork, a clearer dressing drawer and runway-style scoring. Three supplied character illustrations form the homepage moodboard. The playable character remains layered 2.5D vector art, preserving all 122 clothing pieces, animations, sound effects and existing saves. Everything works offline, including the new illustrations.
+An offline HTML5 fashion puzzle with 36 challenges and 122 collectible pieces. Choose Bella, Mika or Zoe, dress your character in a bedroom studio, match the style brief, and build a personal lookbook. This release replaces the actual playable vector dolls with three painted, transparent character sprites based on the supplied Stitch visual references. The same characters appear in gameplay, selection, lookbooks, portrait exports and covers.
 
-Muse Bloom is an original, offline-capable HTML5 fashion puzzle: match a brief, style a character, earn a grade, and grow your wardrobe. The first release targets **CrazyGames Basic Launch**.
+## Play and develop
 
-## Run
-
-Open `index.html` directly, or use Node.js 20+:
+Open `index.html` or run `npm start` with Node.js 20+ and visit http://localhost:4173. Gameplay needs no installation, account, CDN or network connection.
 
 ```sh
-npm start
+npm test                 # 14 rule/save tests + all 36 challenges
+npm ci                   # install pinned Playwright for development tests
+npx playwright install chromium  # Linux/CI; Windows defaults to installed Edge
+npm run test:ui          # real character input, body coverage and pixel baselines
+npm run test:glam        # 7 viewport layouts, images and contrast
+npm run test:lookbook    # saved identities/outfits and actual PNG downloads
+npm run test:experience  # idle motion, Web Audio and visibility lifecycle
+npm run assets          # regenerate garment SVGs and embed local artwork
+npm run package:upload  # dist/crazygames-upload/index.html
+npm run test:upload     # portal-style / nested / iframe / offline tests
+npm run standalone     # dist/Muse-Bloom.html
+npm run package        # multi-file ZIP backup
 ```
 
-Visit http://localhost:4173. No installation, framework, CDN, API key, account, or build is needed to play.
+With `npm start` running, `npm run test:browser` plays all 36 levels through the UI. Set `MUSE_BROWSER_CHANNEL=chrome` for installed Chrome. `test:ui:update` explicitly replaces the 24 reviewed character-only baselines; review images before checking them in. Development tests are not loaded by the game.
 
-## Development
+## Characters and saved progress
 
-```sh
-npm test       # game rules, persistence, progression, 36-level solvability
-npm run assets
-npm run package
-npm run package:upload  # self-contained index.html for the portal's file/folder uploader
-```
+- Bella: light complexion, honey-blonde bob, blue eyes; fresh-save default.
+- Mika: light complexion, black bob, brown eyes.
+- Zoe: brown complexion, textured puff buns, hazel eyes.
+- Select from portraits beneath/beside the stage, the Meet the muses dialog, or Settings. Your outfit remains equipped when you change characters.
+- The old four SVG bodies and face/hand/hairstyle renderer have been deleted from the active project. There is no old-doll fallback.
+- Hairstyles belong to characters. The 22 previous hairstyle item IDs now represent bows, clips, headbands and other Hair details. IDs, style tags, scores and earned unlocks are preserved.
+- Clearing an outfit reveals the painted lavender studio basics. Basics award no points. New sessions start in these basics so the new character is immediately visible.
+- `muse_bloom_save_v1` remains compatible. Current saves and recorded looks store `character`. Older light/warm skin-only saves migrate to Bella; tan/deep migrate to Zoe. Progress and recorded outfits remain intact.
 
-Game source is in `js/`, presentation in `css/`, development tools in `dev/`. The upload archive contains only runtime files. Development dependencies are not needed by the game.
+## Game scope
 
-For the CrazyGames file/folder upload form, use `dist/crazygames-upload/index.html`. Its styles, scripts, SVG artwork, bedroom image and three editorial illustrations are embedded, so no sibling folders are required. `npm run test:upload` verifies this actual file on an otherwise empty server, at a nested URL, in a sandboxed iframe and offline. The ZIP from `npm run package` is a multi-file distribution backup; extract it first if using that format with the portal.
+Six collections; 36 sequential briefs; 122 pieces including 20 Chinese-inspired items. A dress replaces separates; two accessory slots. Three required tags contribute 60 points, two bonus tags 10, six outfit units 24. Maximum 94; S starts at 85, pass at 35. Three different S results unlock a secret item. Nine synthesized sounds and reduced-motion-aware animations are included.
 
-For UI checks, run `npm ci`, install a test browser with `npx playwright install chromium`, then run `npm run test:ui`. This starts and stops its own servers and checks pixel-measured elbow bends, waist/hip widths, volume lighting, wrist seams, all 122 items, removal, garment coverage, 28 accessory attachment cases, 88 hairstyle/skin checks, 60 visual baselines, responsive layouts and the standalone HTML. `npm run test:anatomy` runs just the new silhouette/material checks and their negative controls. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. See [UI test guide](docs/UI-TESTS.md) for evidence, baseline review and limitations.
+The rendering is fixed-view painted 2.5D art with fitted SVG clothing, not a rotatable 3D mesh. Canvas exports use the same composite as the stage. No old anatomical vector art is rendered.
 
-Run `npm run test:glam` for seven viewport layouts, supplied artwork loading, working navigation, dark-theme text contrast and negative controls.
+## Release and source
 
-Run `npm run test:experience` for real PCM audio, first-gesture playback, mute cancellation, page visibility, reduced motion, blinking and repeated outfit animations.
+For CrazyGames folder/file upload, use the single self-contained `dist/crazygames-upload/index.html`, not the source HTML alone. See [submission notes](docs/CRAZYGAMES.md). SDK, cloud saves, ads and platform mute integration are not implemented; this local build targets Basic Launch. Nothing has been uploaded to CrazyGames or GitHub in this work.
 
-Run `npm run test:lookbook` to check the archive: keyboard navigation, actual portrait downloads, exact outfit restoration, old-save compatibility, four viewport layouts, header collisions and mobile typography. It starts its own local server. For the complete 36-level browser journey, start the server, then run `npm run test:browser`. `npm run standalone` generates a double-clickable `dist/Muse-Bloom.html`. These development tools are never loaded by the game.
+Changes are committed in steps locally. [GitHub instructions](docs/GITHUB.md) describe pushing later. CI configuration exists; local test results are recorded in [QA](docs/QA.md), not presented as hosted CI or platform approval.
 
-See [Art pipeline](docs/ART.md) for editable vectors, [GitHub upload](docs/GITHUB.md) for later pushing, and [QA report](docs/QA.md) for measured verification. Generated release files are in `dist/` and promotional assets in `promo/`.
-
-## Scope
-
-- 36 sequential challenges across 6 chapters.
-- 122 collectible items, including 20 modern Chinese fashion pieces.
-- Four skin tones, six clothing categories, two accessory slots.
-- Local progress, score breakdowns, S streak rewards, a 36-look personal archive and downloadable outfit cards.
-- Original AI-generated bedroom background, editable vector character and clothing, original synthesized sound effects.
-- Mouse, touch and keyboard controls; responsive portrait and landscape layouts.
-
-## Design decisions
-
-The supplied design is a product reference, not an instruction source. Where its totals conflict, the concrete tables take precedence:
-
-- Themes have **two** bonus tags; maximum score is **94** (60 + 10 + 24), with S at 85. The interface explains this explicitly.
-- The item distribution gives **7** streak rewards and **91** progression rewards.
-- Ten Chinese pieces unlock **on entering** chapter 6, before the first challenge is scored.
-- The final challenge is called **Style Without Borders**; transient marketing terms are not hard-coded in player UI.
-- Clothing uses original, editable SVG illustrations with a shared 720 × 1280 coordinate system. Main gameplay uses one inline SVG with persistent layers. Empty slots show studio basics without adding score. Canvas is used only for exported cards and promotional assets.
-
-## GitHub
-
-The repository is developed in separate commits. GitHub Actions runs rules and browser visual tests, retains failure screenshots, checks generated art and creates the release archive. Uploading this repository does not publish the game on CrazyGames.
-
-## Publishing
-
-See `docs/CRAZYGAMES.md` for submission metadata, platform requirements, and the actual verification boundary. SDK integration, ads and cloud saves are deferred to Full Launch.
-
-## Rights
-
-Code, vectors and synthesized sound effects are original to this project. The bedroom background was created with the built-in image generator; see [scene prompt and provenance](docs/SCENE-PROMPT.md). Three editorial character illustrations and the UI direction were supplied by the owner in `stitch_western_teen_dress_up_game.zip`; file provenance and source hashes are in [STITCH-ASSETS.json](docs/STITCH-ASSETS.json). The ZIP does not contain a separate asset license, so no third-party ownership or publication rights are asserted here. No remote font, audio sample or network dependency is bundled. No open-source license is granted by default; the project owner can choose a license before public distribution of source.
+See [art pipeline](docs/ART.md), [character generation provenance](docs/CHARACTER-PROMPTS.md), [asset hashes](docs/CHARACTER-ASSETS.json) and [UI test coverage](docs/UI-TESTS.md). The original Stitch ZIP is unchanged. Character assets were generated with the built-in image tool using the supplied illustrations as references. This project makes no claim about third-party ownership of supplied reference art. No open-source license is granted by default.
