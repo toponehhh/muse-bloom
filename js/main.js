@@ -1,17 +1,17 @@
 (function (root) {
   'use strict';
-  const D=root.MuseData,G=root.MuseGame,U=root.MuseUI,S=root.MuseAudio;
-  const storage=G.createStorage(()=>root.localStorage);
+  const D=root.MuseData,G=root.MuseGame,U=root.MuseUI,S=root.MuseAudio,E=root.MuseEdit,P=root.MusePlaytest;
+  const storage=G.createStorage(()=>root.localStorage,P.active?P.saveKey:G.SAVE_KEY);
   const state={save:storage.load(),storage,screen:'home',previousScreen:'home',level:1,chapter:1,category:'top',outfit:G.emptyOutfit(),showLocked:false,result:null,shareCard:null};
   const dialog=document.getElementById('dialog');
-  let toastTimer,raf=0,shareEpoch=0,dialogFocus=null;
+  let toastTimer,raf=0,shareEpoch=0,dialogFocus=null,revealEpoch=0;
   function toast(message) { const el=document.getElementById('toast');el.textContent=message;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),3800); }
   function persist() { if(!storage.save(state.save)) toast(storage.notice); }
   function render(focus=true) {
     cancelAnimationFrame(raf);U.render(state);root.MuseFX.enter();
     if(focus) { const heading=document.querySelector('main h1,main h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
   }
-  function navigate(screen) { closeDialog();clearTimeout(toastTimer);document.getElementById('toast').classList.remove('visible');state.screen=screen;render(); }
+  function navigate(screen) { revealEpoch++;closeDialog();clearTimeout(toastTimer);document.getElementById('toast').classList.remove('visible');state.screen=screen;P.event('screen',{screen,level:state.level});render(); }
   function openDialog(html) { dialogFocus=document.activeElement;dialog.innerHTML=html;if(!dialog.open)dialog.showModal();document.body.classList.add('modal-open'); }
   function closeDialog() { shareEpoch++;if(dialog.open)dialog.close();document.body.classList.remove('modal-open'); }
   dialog.addEventListener('close',()=>{shareEpoch++;document.body.classList.remove('modal-open');if(dialogFocus?.isConnected)dialogFocus.focus();});
@@ -20,8 +20,15 @@
     const entry=G.enterLevel(state.save,index);if(!entry.allowed)return;
     state.save=entry.save;state.level=index;state.chapter=D.themes[index-1].chapter;state.result=null;state.shareCard=null;
     state.outfit=G.normalizeOutfit(state.outfit,state.save.unlockedItems);
-    state.category=state.outfit.dress?'dress':'top';persist();navigate('dressing');
+    state.beforeOutfit=JSON.parse(JSON.stringify(state.outfit));state.compareBefore=false;
+    state.category=(!retry&&E.brief(index)?.focus)||(state.outfit.dress?'dress':'top');persist();navigate('dressing');
     if(entry.fresh.length) { S.play('unlock');toast(`${entry.fresh.length} fresh pieces unlocked. Your new chapter is here!`); }
+  }
+  function finishReveal() {
+    if(state.screen!=='reveal')return;
+    navigate('result');animateScore();root.MuseFX.reveal();
+    S.play(state.result.result.rank==='S'?'rankS':'rankLow');
+    P.event('look-complete',{level:state.level,score:state.result.result.score,items:G.equippedItems(state.outfit).map(i=>i.id)});
   }
   function animateScore() {
     const node=document.getElementById('score-number');if(!node)return;
@@ -35,7 +42,7 @@
     if(!look&&(state.screen!=='result'||!['S','A'].includes(state.result.result.rank)))return;
     S.play('shutter');root.MuseFX.shutter();
     const theme=D.themes[(look?.level||state.level)-1],outfit=look?.outfit||state.outfit,character=look?.character||state.save.character;
-    const result=look?G.scoreBreakdown(theme,G.equippedItems(outfit)):state.result.result;
+    const result=look?(look.ruleset===1?G.classicBreakdown:G.scoreBreakdown)(theme,G.equippedItems(outfit)):state.result.result;
     openDialog(`<div class="dialog-head"><h2 id="dialog-title">A portrait of your style</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close look card"')}</div><p class="share-loading">Preparing your portrait…</p>`);
     const token=++shareEpoch;
     try {
@@ -49,6 +56,7 @@
   document.addEventListener('click',e=>{
     const button=e.target.closest('[data-action]');if(!button||button.disabled)return;
     const action=button.dataset.action;
+    P.event('action',{action,screen:state.screen,level:state.level,...(button.dataset.item?{item:button.dataset.item}:{}),...(button.dataset.category?{category:button.dataset.category}:{})});
     if(!['mute','equip','score','share','export-look','clear','preview-sound'].includes(action))S.play(action==='category'?'tab':'click');
     switch(action) {
       case 'home':navigate('home');break;
@@ -60,6 +68,15 @@
       case 'level':startLevel(Number(button.dataset.level));break;
       case 'next':if(state.screen==='result'&&state.result.result.score>=35)startLevel(Math.min(36,state.level+1));break;
       case 'retry':startLevel(state.level,true);break;
+      case 'style-brief':openDialog(U.styleBrief(state));break;
+      case 'feedback':if(P.active)openDialog(P.form());break;
+      case 'skip-guide':state.save.onboardingDone=true;persist();U.updateDressing(state);break;
+      case 'replay-guide':state.save.onboardingDone=false;state.outfit=G.emptyOutfit();persist();startLevel(1,true);break;
+      case 'coach-next':state.category=button.dataset.category;U.updateDressing(state);break;
+      case 'skip-reveal':finishReveal();break;
+      case 'compare-before':case 'compare-after':
+        if(state.screen==='result'){state.compareBefore=action==='compare-before';render(false);document.querySelector('[data-action="'+action+'"]')?.focus({preventScroll:true});}
+        break;
       case 'category':state.category=button.dataset.category;if(state.screen==='dressing'){U.updateDressing(state);document.getElementById('item-grid').scrollTop=0;document.querySelector(`[data-category="${state.category}"]`)?.focus();}else render(false);break;
       case 'equip': {
         if(state.screen!=='dressing')break;
@@ -72,7 +89,11 @@
       case 'clear':if(state.screen==='dressing'){state.outfit=G.emptyOutfit();U.updateDressing(state);root.MuseFX.equip();S.play('clear');toast('Studio basics restored. Add your own pieces to earn points.');}break;
       case 'score': {
         if(state.screen!=='dressing')break;
-        state.result=G.finishLevel(state.save,state.level,state.outfit);state.save=state.result.save;state.outfit=state.result.outfit;state.shareCard=null;persist();navigate('result');animateScore();root.MuseFX.reveal();S.play(state.result.result.rank==='S'?'rankS':'rankLow');break;
+        const edit=E.evaluate(state.level,G.equippedItems(state.outfit));
+        if(edit&&!edit.ready){toast('Add a dress or a top and bottom, then shoes, before revealing your look.');P.event('reveal-blocked',{level:state.level});break;}
+        state.result=G.finishLevel(state.save,state.level,state.outfit);state.save=state.result.save;state.outfit=state.result.outfit;state.shareCard=null;state.compareBefore=false;persist();
+        navigate('reveal');S.play('shutter');const ticket=revealEpoch;
+        root.MuseFX.presentation(()=>{if(ticket===revealEpoch)finishReveal();});break;
       }
       case 'mute':state.save.muted=!state.save.muted;S.setMuted(state.save.muted);if(!state.save.muted)S.play('click');persist();refreshHeader();if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector('[data-action="mute"]')?.focus();}break;
       case 'characters':openDialog(U.characters(state));break;

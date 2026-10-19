@@ -225,10 +225,18 @@
     theme.unlockItems = items.filter(i => i.unlockType === 'progress' && i.unlockLevel === theme.index && i.unlockOn === 'clear').map(i => i.id);
     theme.entryItems = items.filter(i => i.unlockType === 'progress' && i.unlockLevel === theme.index && i.unlockOn === 'enter').map(i => i.id);
   }
+  const capsuleNames = {
+    top_cozy_02:['Rose Knit Cardigan','#c78587'], top_preppy_03:['Sky Club Polo','#a5bddb'],
+    bottom_cute_02:['Ivory Pleats','#eadcc6'], bottom_summer_04:['Sage Weekend Shorts','#939e7c'],
+    dress_cute_01:['Rose Satin Midi','#d9a69b'], dress_elegant_02:['Lavender Day Dress','#b6a0de'],
+    shoes_chic_03:['Sage City Loafers','#87906c'], accessory_casual_01:['Caramel Top Handle','#ad703f'],
+    accessory_cute_03:['Ivory Quilted Bag','#e9d8bd']
+  };
+  for(const item of items)if(capsuleNames[item.id]) [item.name,item.color]=capsuleNames[item.id];
   const characters = [
     {id:'bella',name:'Bella',note:'Honey bob · blue eyes',color:'#f2c8ad',asset:'assets/characters/bella.webp'},
     {id:'mika',name:'Mika',note:'Midnight bob · brown eyes',color:'#edbd9f',asset:'assets/characters/mika.webp'},
     {id:'zoe',name:'Zoe',note:'Curly puffs · hazel eyes',color:'#ad6c3d',asset:'assets/characters/zoe.webp'}
   ];
-  return {tags,categories,categoryNames,chapters,themes,items,characters,counts,defaultHair:'hair_sporty_04',defaultCharacter:'bella',version:1,title:'Muse Bloom'};
+  return {tags,categories,categoryNames,chapters,themes,items,characters,counts,defaultHair:'hair_casual_01',defaultCharacter:'bella',version:1,title:'Muse Bloom'};
 });

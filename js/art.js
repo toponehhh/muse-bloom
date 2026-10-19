@@ -128,7 +128,7 @@
   const standCollar=color=>p('M328 283 L333 270 Q360 285 387 270 L392 283 Q360 316 328 283Z',color);
   const crossedCollar=()=>p('M329 278 L393 388 L391 278 L420 292 L398 416 L300 292Z','#f3e7cf');
   function top(item) {
-    const c=item.color,s=item.shape,long=!['tee','polo','vest'].includes(s);
+    const c=item.color,s=item.shape,long=!['tee','polo','vest'].includes(s)&&item.id!=='top_cozy_02';
     let content=(s==='vest'?'':sleeves(c,s==='hanfu'?'flowing':long?'long':'short'))+bodice(c);
     content+=neckband(s==='tee'?tint(c,-.08):c);
     if(s==='vest')content+=p('M329 278 Q360 314 391 278 L405 300 L360 351 L315 300Z','#f3e8d6')+p('M323 290 L360 332 L397 290 L405 300 L360 351 L315 300Z',c)+line('M282 525 Q360 540 438 525',.55);
@@ -181,7 +181,7 @@
     const lower=s==='qipao'
       ?'M285 504 Q360 521 435 504 Q480 550 493 614 Q500 668 484 735 Q475 835 474 944 Q471 1095 450 1178 Q360 1207 270 1178 Q249 1095 246 944 Q245 835 236 735 Q220 668 227 614 Q240 550 285 504Z'
       :`M285 504 Q360 521 435 504 Q475 549 494 612 L${360+spread} ${end} Q360 ${end+24} ${360-spread} ${end} L226 612 Q245 549 285 504Z`;
-    let content=(s==='hanfu'?sleeves(c,'flowing'):s==='puff'?sleeves(c,'puff'):s==='knit'?sleeves(c):s==='pinafore'?sleeves('#f6eadc','short'):'')+p(lower,c)+bodice(c,506);
+    let content=(s==='hanfu'?sleeves(c,'flowing'):s==='puff'?sleeves(c,'puff'):s==='knit'?sleeves(c):s==='pinafore'?sleeves('#f6eadc','short'):item.id==='dress_elegant_02'?sleeves(c,'short'):'')+p(lower,c)+bodice(c,506);
     content+=neckband(c)+line('M285 506 Q360 523 435 506',.32);
     if(s==='gown')content+=p('M329 278 Q360 314 391 278 L397 290 Q386 316 360 329 Q334 316 323 290Z','#ead4af')+embroidery([[282,704],[447,852],[255,1060],[458,1144]],'#dfc796');
     if(s==='sundress'||s==='slip')content+=p('M303 295 L296 352 M417 295 L424 352','none','stroke-width="7" stroke="#e6cdb3"')+line('M296 352 Q360 375 424 352',.5);
@@ -241,7 +241,18 @@
     if(item.category!=='top')light+='<ellipse cx="360" cy="543" rx="94" ry="21" fill="url(#cloth-contact)" stroke="none"/>';
     return defs+drawing+'<g data-material="cloth-volume" clip-path="url(#cloth-clip)">'+light+'</g>';
   }
-  function itemSvg(item, thumbnail = false) {
+  function paintedItem(item, fit, thumbnail) {
+    const source=globalThis.MuseAssets?.[fit.asset]||fit.asset;
+    const box=thumbnail?fit.target.join(' '):'0 0 720 1280';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="'+box.split(' ')[2]+'" height="'+box.split(' ')[3]+'" viewBox="'+box+'" fill="none"><image data-painted-material="'+item.id+'" href="'+source+'" width="720" height="1280"/></svg>';
+  }
+  function itemSvg(item, thumbnail = false, nativeOnly = false) {
+    const fit=!nativeOnly&&globalThis.MuseCapsule?.[item.id];
+    if(fit){
+      const key='paint-'+item.id+'-'+thumbnail;
+      if(!itemCache.has(key))itemCache.set(key,paintedItem(item,fit,thumbnail));
+      return itemCache.get(key);
+    }
     const render = { hair, top, bottom, dress, shoes, accessory }[item.category];
     let box=item.bounds;
     if(item.category==='hair')box=[230,85,270,210];
@@ -265,8 +276,9 @@
   const uri = value => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(value);
   const contents = value => value.replace(/^[\s\S]*?<svg\b[^>]*>/,'').replace(/<\/svg>\s*$/,'');
   const handheld = item => item.category==='accessory' && ['bag','tote','fan'].includes(item.shape);
-  function fittedItemSvg(item) {
-    const raw=contents(itemSvg(item));
+  function fittedItemSvg(item, nativeOnly=false) {
+    if(!nativeOnly&&globalThis.MuseCapsule?.[item.id])return itemSvg(item);
+    const raw=contents(itemSvg(item,false,nativeOnly));
     if(['top','bottom','dress','shoes'].includes(item.category))return svg(raw);
     const fitted=rigPart(item)==='head'?`<g transform="translate(-28.8 -65) scale(1.08 1)">${raw}</g>`:contourMarkup(raw);
     return svg(fitted);
@@ -296,7 +308,7 @@
     }
     const scene=layers.map(([id,source])=>{
       const prefix=namespace+'-'+id+'-';
-      return `<g data-layer="${id}">${source.replace(/\bid="([^"]+)"/g,(_,v)=>`id="${prefix+v}"`).replace(/url\(#([^)]+)\)/g,(_,v)=>`url(#${prefix+v})`)}</g>`;
+      return `<g data-layer="${id}">${source.replace(/\bid="([^"]+)"/g,(_,v)=>`id="${prefix+v}"`).replace(/url\(#([^)]+)\)/g,(_,v)=>`url(#${prefix+v})`).replace(/href="#([^"]+)"/g,(_,v)=>`href="#${prefix+v}"`)}</g>`;
     }).join('');
     return `<svg xmlns="http://www.w3.org/2000/svg" data-scene="${namespace}" data-character="${character.id}" width="720" height="1280" viewBox="0 0 720 1280" fill="none">${scene}</svg>`;
   }

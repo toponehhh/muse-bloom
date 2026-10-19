@@ -127,5 +127,5 @@
     document.getElementById('dress-notice').hidden=!state.outfit.dress;
     document.querySelector('.character-selector').innerHTML=swatches(state)+btn('characters','Meet the muses','character-more');
   }
-  root.MuseUI={characters,lookDetail,render,updateDressing,header,icon,btn,escape,avatar,thumbnail,settings,swatches,demoOutfit};
+  root.MuseUI={updateAvatar,characters,lookDetail,render,updateDressing,header,icon,btn,escape,avatar,thumbnail,settings,swatches,demoOutfit};
 })(globalThis);

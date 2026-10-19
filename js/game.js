@@ -1,16 +1,25 @@
 (function (root, factory) {
-  const game = factory(typeof module !== 'undefined' && module.exports ? require('./data.js') : root.MuseData);
+  const game = factory(typeof module !== 'undefined' && module.exports ? require('./data.js') : root.MuseData, typeof module !== 'undefined' && module.exports ? require('./edit.js') : root.MuseEdit);
   if (typeof module !== 'undefined' && module.exports) module.exports = game;
   else root.MuseGame = game;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (D) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (D, E) {
   'use strict';
   const SAVE_KEY = 'muse_bloom_save_v1';
   const byId = Object.fromEntries(D.items.map(i => [i.id, i]));
   const starterIds = D.items.filter(i => i.unlockType === 'progress' && i.unlockLevel === null).map(i => i.id);
   function emptyOutfit() { return { hair: null, top: null, bottom: null, dress: null, shoes: null, accessory: [] }; }
-  function newSave() { return { version: 1, levels: {}, unlockedItems: [...starterIds], streak: 0, streakLevels: [], character: D.defaultCharacter, muted: false }; }
+  function newSave() { return { version: 1, ruleset: 2, onboardingDone: false, levels: {}, unlockedItems: [...starterIds], streak: 0, streakLevels: [], character: D.defaultCharacter, muted: false }; }
   function rankOf(score) { return score >= 85 ? 'S' : score >= 70 ? 'A' : score >= 55 ? 'B' : score >= 35 ? 'C' : 'D'; }
   function scoreBreakdown(theme, equipped) {
+    const edit = E.evaluate(theme.index, equipped);
+    if (edit) {
+      return { ...edit, rank: rankOf(edit.score), maximum: 94, required: [], bonus: [],
+        units: Math.min(6, equipped.reduce((n, i) => n + i.slotUnit, 0)),
+        requiredPoints: edit.score, bonusPoints: 0, outfitPoints: 0 };
+    }
+    return classicBreakdown(theme, equipped);
+  }
+  function classicBreakdown(theme, equipped) {
     const tags = new Set(equipped.flatMap(i => i.tags));
     const required = theme.required.filter(t => tags.has(t));
     const bonus = theme.bonus.filter(t => tags.has(t));
@@ -35,7 +44,7 @@
     const outfit = normalizeOutfit(value, unlocked), item = byId[itemId];
     if (!item || !unlocked.includes(itemId)) return outfit;
     const c = item.category;
-    if (outfit.dress && (c === 'top' || c === 'bottom')) return outfit;
+    if (outfit.dress && (c === 'top' || c === 'bottom')) outfit.dress = null;
     if (c === 'accessory') {
       if (outfit.accessory.includes(itemId)) outfit.accessory = outfit.accessory.filter(id => id !== itemId);
       else { if (outfit.accessory.length === 2) outfit.accessory.shift(); outfit.accessory.push(itemId); }
@@ -64,6 +73,7 @@
     const theme = D.themes[index - 1];
     const outfit = normalizeOutfit(valueOutfit, save.unlockedItems);
     const result = scoreBreakdown(theme, equippedItems(outfit));
+    if (result.score >= 35) save.onboardingDone = true;
     const previous = save.levels[theme.id]?.best ?? -1;
     if (result.score > previous) save.levels[theme.id] = { ...save.levels[theme.id], best: result.score, rank: result.rank };
     const savedLook = result.score >= 35 && (!save.levels[theme.id]?.look || result.score >= save.levels[theme.id].look.score);
@@ -99,6 +109,7 @@
     if (D.characters.some(s => s.id === raw.character)) save.character = raw.character;
     else if(!raw.character&&['deep','tan'].includes(raw.skin))save.character='zoe';
     save.muted = raw.muted === true;
+    save.onboardingDone = raw.onboardingDone === true || raw.ruleset !== 2 && Object.keys(save.levels).length > 0;
     // Optional v1 field: old progress remains valid without a recorded outfit.
     // Recompute each look from owned items; saved metadata never grants rewards.
     for (const theme of D.themes) {
@@ -107,7 +118,15 @@
       const character=D.characters.some(c=>c.id===look.character)?look.character:!look.character&&['deep','tan'].includes(look.skin)?'zoe':D.defaultCharacter;
       const outfit = normalizeOutfit(look.outfit, save.unlockedItems);
       const score = scoreOutfit(theme, equippedItems(outfit));
-      if (score >= 35 && score === look.score && score <= level.best) level.look = { outfit, character, score };
+      const migratingEdit = raw.ruleset !== 2 && theme.index <= 3;
+      const historical = theme.index <= 3 && (migratingEdit || look.ruleset === 1) &&
+        classicBreakdown(theme, equippedItems(outfit)).score === look.score && look.score >= 35 && look.score <= level.best;
+      if (historical) {
+        level.look = { outfit, character, score: look.score, ruleset: 1 };
+      } else if (score >= 35 && (score === look.score && score <= level.best || migratingEdit)) {
+        if (migratingEdit && score > level.best) { level.best = score; level.rank = rankOf(score); }
+        level.look = { outfit, character, score };
+      }
     }
     return save;
   }
@@ -117,12 +136,12 @@
       return look ? [{ level: theme.index, ...structuredCopy(look), rank: rankOf(look.score) }] : [];
     });
   }
-  function createStorage(getStorage) {
+  function createStorage(getStorage, key = SAVE_KEY) {
     let writable = true, notice = '';
     return {
       load() {
         try {
-          const value = getStorage().getItem(SAVE_KEY);
+          const value = getStorage().getItem(key);
           if (!value) return newSave();
           const parsed = JSON.parse(value);
           if (parsed?.version !== 1) { writable = false; notice = 'This save is from a different version. Playing a temporary session.'; return newSave(); }
@@ -131,7 +150,7 @@
       },
       save(value) {
         if (!writable) return false;
-        try { getStorage().setItem(SAVE_KEY, JSON.stringify(value)); return true; }
+        try { getStorage().setItem(key, JSON.stringify(value)); return true; }
         catch { writable = false; notice = 'Storage is unavailable. Progress lasts for this session only.'; return false; }
       },
       get notice() { return notice; },
@@ -141,6 +160,22 @@
   // Exact dynamic programming over the five relevant tag bits, not a heuristic.
   // One representative per coverage mask is sufficient when every option fills the same units.
   function solveTheme(theme, available) {
+    if (E.brief(theme.index)) {
+      const group = c => available.filter(i => i.category === c);
+      const clothing = group('dress').map(i => [i]);
+      for (const top of group('top')) for (const bottom of group('bottom')) clothing.push([top, bottom]);
+      let best = { score: 0, items: [] };
+      // A single finish is sufficient for the starter briefs. Stop once all
+      // visible objectives are fulfilled; do not enumerate cosmetic duplicates.
+      for (const body of clothing) for (const shoe of group('shoes'))
+        for (const detail of [null, ...group('hair'), ...group('accessory')]) {
+          const items = [...body, shoe, ...(detail ? [detail] : [])];
+          const score = scoreOutfit(theme, items);
+          if (score > best.score) best = { score, items };
+          if (score === 94) return best;
+        }
+      return best;
+    }
     const targets = [...theme.required, ...theme.bonus];
     const mask = list => list.reduce((m, i) => i.tags.reduce((n, t) => n | (targets.includes(t) ? 1 << targets.indexOf(t) : 0), m), 0);
     const category = c => available.filter(i => i.category === c);
@@ -163,5 +198,5 @@
     }
     return best;
   }
-  return { SAVE_KEY, byId, starterIds, newSave, emptyOutfit, rankOf, scoreOutfit, scoreBreakdown, equippedItems, normalizeOutfit, toggleItem, nextLevel, canPlay, enterLevel, finishLevel, sanitizeSave, createStorage, solveTheme, savedLooks };
+  return { SAVE_KEY, byId, starterIds, newSave, emptyOutfit, rankOf, scoreOutfit, scoreBreakdown, classicBreakdown, equippedItems, normalizeOutfit, toggleItem, nextLevel, canPlay, enterLevel, finishLevel, sanitizeSave, createStorage, solveTheme, savedLooks };
 });

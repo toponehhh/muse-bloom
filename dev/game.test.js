@@ -12,20 +12,22 @@ function winningOutfit(save, index) {
   return outfit;
 }
 test('score uses a set of tags, explicit slot units, and exact boundaries', () => {
+  const first = D.themes[3];
   assert.deepEqual([34, 35, 54, 55, 69, 70, 84, 85, 94].map(G.rankOf), ['D','C','C','B','B','A','A','S','S']);
   assert.equal(G.scoreOutfit(first, []), 0);
   const i = { tags: first.required, slotUnit: 1 };
   assert.equal(G.scoreOutfit(first, [i, i]), 68);
   assert.equal(G.scoreOutfit(first, [{ tags: [...first.required, ...first.bonus], slotUnit: 99 }]), 94);
 });
-test('dress blocks separates; removing it restores categories; no duplicate accessories', () => {
+test('separates replace a dress naturally; no duplicate accessories', () => {
   const save = G.newSave(), all = save.unlockedItems;
   const of = c => D.items.filter(i => all.includes(i.id) && i.category === c);
   let outfit = G.toggleItem(G.emptyOutfit(), of('top')[0].id, all);
   outfit = G.toggleItem(outfit, of('bottom')[0].id, all);
   outfit = G.toggleItem(outfit, of('dress')[0].id, all);
   assert.equal(outfit.top, null); assert.equal(outfit.bottom, null);
-  assert.equal(G.toggleItem(outfit, of('top')[1].id, all).top, null);
+  assert.equal(G.toggleItem(outfit, of('top')[1].id, all).top, of('top')[1].id);
+  assert.equal(G.toggleItem(outfit, of('top')[1].id, all).dress, null);
   outfit = G.toggleItem(outfit, of('dress')[0].id, all);
   assert.equal(G.toggleItem(outfit, of('top')[1].id, all).top, of('top')[1].id);
   for (const item of of('accessory').slice(0, 3)) outfit = G.toggleItem(outfit, item.id, all);

@@ -1,0 +1,27 @@
+{
+  "version": "1.7.0",
+  "tool": "built-in image_gen",
+  "sourceFiles": [
+    "exec-ce58996e-ad1d-46be-a7a5-3172a407b6c3.png",
+    "exec-1a5a445e-81c4-4fc7-a042-19d0f2dfb77d.png",
+    "exec-4c3cafd2-48a5-4677-aa84-f1f9a4fa1080.png"
+  ],
+  "files": [
+    {
+      "path": "assets/capsule/details.webp",
+      "sha256": "1044e7c486447f44ea9f6007ea78afa6decdec97b5a2d70f0c4d468ed1872a16",
+      "bytes": 262066
+    },
+    {
+      "path": "assets/capsule/dresses.webp",
+      "sha256": "30b46656f4e4c0ddf8bcf35b9c854db20f309317cf07274bc48574b020808a49",
+      "bytes": 163464
+    },
+    {
+      "path": "assets/capsule/separates.webp",
+      "sha256": "22d2b38fba49e46bc16bc9dc43a8d738837249d40c8c566dcc46115241d4c469",
+      "bytes": 217450
+    }
+  ],
+  "notes": "Original generated alpha preserved. WebP format conversion only. Runtime garment fitting uses a native SVG mask and UV strips; source atlas pixels are not retouched."
+}

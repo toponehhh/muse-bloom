@@ -27,5 +27,16 @@
   }
   function shutter(){animate(document.querySelector('.result-stage,.saved-look-portrait'),[{filter:'brightness(1)'},{filter:'brightness(1.15)',offset:.35},{filter:'brightness(1)'}],{duration:300});}
   reduced.addEventListener('change',reset);document.addEventListener('visibilitychange',()=>{if(document.hidden)reset();});
-  root.MuseFX={enter,equip,reveal,shutter,reset};
+  function presentation(done){
+    const node=document.querySelector('.reveal-stage .avatar');
+    const motion=animate(node,[
+      {opacity:0,scale:'.86',translate:'0 16px',rotate:'-2deg'},
+      {opacity:1,scale:'1',translate:'0 0',rotate:'0deg',offset:.38},
+      {opacity:1,scale:'1.025',translate:'0 -2px',rotate:'1deg',offset:.7},
+      {opacity:1,scale:'1',translate:'0 0',rotate:'0deg'}
+    ],{duration:2200,easing:'cubic-bezier(.25,.65,.3,1)'});
+    if(motion)motion.finished.catch(()=>{}).then(done);
+    else queueMicrotask(done);
+  }
+  root.MuseFX={enter,equip,reveal,shutter,reset,presentation};
 })(globalThis);

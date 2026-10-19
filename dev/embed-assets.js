@@ -12,6 +12,9 @@ const customCount=Object.keys(map).length;
 // never depend on a separate image request or taint the portrait canvas.
 map['assets/scenes/bedroom.webp']='data:image/webp;base64,'+fs.readFileSync(path.join(root,'assets/scenes/bedroom.webp')).toString('base64');
 for(const character of D.characters)map[character.asset]='data:image/webp;base64,'+fs.readFileSync(path.join(root,character.asset)).toString('base64');
+for(const fit of Object.values(require('../js/capsule-data.js'))){
+  map[fit.asset]='data:image/webp;base64,'+fs.readFileSync(path.join(root,fit.asset)).toString('base64');
+}
 for(const name of fs.readdirSync(path.join(root,'assets/editorial')).sort()){
   if(!name.endsWith('.webp'))continue;
   map['assets/editorial/'+name]='data:image/webp;base64,'+fs.readFileSync(path.join(root,'assets/editorial',name)).toString('base64');
