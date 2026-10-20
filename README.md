@@ -4,6 +4,8 @@
 
 [Play online](https://toponehhh.github.io/muse-bloom/) · [Playtest tasks & feedback](https://toponehhh.github.io/muse-bloom/playtest/) · [Build & deployment status](https://github.com/toponehhh/muse-bloom/actions/workflows/verify.yml)
 
+Cloudflare delivery targets `muse-bloom.pages.dev`: Pages serves the game and forwards `/api/*` through a private service binding to the Worker with D1 and native rate limiting. See [Cloudflare deployment](docs/CLOUDFLARE.md) for setup and live verification; GitHub Pages feedback stays in download mode.
+
 The public preview updates automatically after the `main` branch passes all checks. The initial URL becomes available when the first deployment completes.
 
 An offline HTML5 dress-up game with three painted characters, 36 challenges and 122 collectible pieces. The first three occasions use 14 painted wardrobe pieces, a warm ivory/rose studio, an adaptive guide, an animated reveal and before/after comparison.

@@ -1,5 +1,13 @@
 # 本地验收记录
 
+## Pages 域名部署适配 — 2026-10-20
+
+PR #2 已合入修复分支，PR #1 通过合并后完整回归后进入 main，合并提交为 `b9ac8cb`。新增 Pages Function → 私有 Worker → D1 部署路径；浏览器入口仍同源。私有 Worker 保留原生限流，关闭 workers.dev 与版本预览公开入口。
+
+本地 Edge 的 Pages 服务绑定套件通过：41 项 API 校验/并发幂等/限流检查，以及手机表单、同意、草稿、503、丢失响应后的重复提交、94 分游戏日志和修改答案的实际 D1 写入。缺失或异常绑定返回 503。原始单 Worker 浏览器套件、41 项 API 检查及数据迁移也通过。证据分别在 `artifacts/cloudflare-pages`、`artifacts/cloudflare`。
+
+生产验收脚本 `test:cloudflare-live` 需显式指定已部署域名，产物哈希、源代码提交和线上回执均须核对；真实执行结果保存在 `artifacts/cloudflare-live`，本节的本地结果不替代该结果。
+
 ## v1.8.0 Make It Yours — 体验改进候选版
 
 验收日期：2026-10-20。分支 `feat/cg-quality-pass` 从 `bug/playtest-feedback-ui` 继续开发，保留之前的反馈分类与小屏修复。官方要求的适用范围及人工试玩任务见 `QUALITY-1.8.md`。

@@ -32,6 +32,8 @@ jobs:
         run: npm run test:feedback-kind
       - name: Online feedback, D1 receipts and safe retries
         run: npm run test:cloudflare
+      - name: Pages Functions and private feedback service
+        run: npm run test:cloudflare-pages
       - name: Initial action visibility, touch targets and feedback dialogs
         run: npm run test:playtest-ui
       - name: CG iframe sizes, first-click clothing and live styling goals
@@ -74,6 +76,7 @@ jobs:
             artifacts/glam/
             artifacts/pages/
             artifacts/cloudflare/
+            artifacts/cloudflare-pages/
             artifacts/playtest-ui/
             artifacts/quality/
       - name: Check generated art stays reproducible
@@ -101,6 +104,12 @@ jobs:
         with:
           name: muse-bloom-cloudflare
           path: dist/cloudflare/
+          if-no-files-found: error
+      - name: Keep the tested Cloudflare Pages website
+        uses: actions/upload-artifact@v4
+        with:
+          name: muse-bloom-cloudflare-pages
+          path: dist/cloudflare-pages/
           if-no-files-found: error
       - name: Upload the tested Pages site
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -153,5 +162,9 @@ jobs:
         with:
           name: muse-bloom-cloudflare
           path: dist/cloudflare/
+      - uses: actions/download-artifact@v4
+        with:
+          name: muse-bloom-cloudflare-pages
+          path: dist/cloudflare-pages/
       - name: Apply D1 migrations and deploy the tested artifact
         run: node dev/cloudflare-command.js deploy
