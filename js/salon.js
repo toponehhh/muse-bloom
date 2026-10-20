@@ -182,6 +182,9 @@
   };
   U.settings=state=>oldSettings(state).replace('The art of a good match','Your style story').replace('Match each mood tag for',
     'The first three looks use visible occasion goals: a complete outfit earns 40 points, and each of two details earns 27. Later challenges match mood tags. Match each mood tag for')+
+    '<section class="setting-section"><h3>Studio music</h3>'+b('music','Background music '+(state.save.music?'on':'off'),'button secondary',
+      'aria-pressed="'+!!state.save.music+'" '+(state.save.muted?'disabled':''))+
+    '<p>A quiet original loop while you style. Music is optional; the sound button mutes both music and effects.</p></section>'+
     '<section class="setting-section">'+b('nav-map','Open challenges','button secondary')+b('lookbook','Open lookbook','button secondary')+b('collection','Open full collection','button secondary')+b('replay-guide','Replay the styling guide','text-button')+'</section>';
   Object.assign(U,{header,updateDressing,characters,styleBrief:goals,demoOutfit:demo});
 })(globalThis);

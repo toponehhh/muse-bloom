@@ -34,20 +34,35 @@
     if(muted||document.hidden)return false;
     try{
       if(!context){const Audio=root.AudioContext||root.webkitAudioContext;if(!Audio)return false;context=new Audio();master=context.createGain();master.gain.value=.7;master.connect(context.destination);}
-      if(context.state!=='running')await context.resume();return context.state==='running';
+      if(context.state!=='running')await context.resume();
+      if(context.state==='running')root.MuseMusic?.attach(context,master);
+      return context.state==='running';
     }catch{return false;}
   }
-  function stop(){epoch++;for(const voice of active)voice.stop();active.clear();}
+  function stopEffects(){epoch++;for(const voice of active)voice.stop();active.clear();}
+  function stop(){stopEffects();root.MuseMusic?.pause();}
   async function play(name){
     const ticket=epoch;
     if(!await resume()||ticket!==epoch||muted||document.hidden)return false;
     // Bound rapid taps, including notes scheduled in reward arpeggios.
-    if(active.size>32)stop();
+    if(active.size>32)stopEffects();
     for(const voice of synthesize(context,name,context.currentTime+.005,master)){active.add(voice);voice.onended=()=>active.delete(voice);}
     return true;
   }
-  function setMuted(value){muted=!!value;if(muted){stop();context?.suspend().catch(()=>{});}}
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();context?.suspend().catch(()=>{});}});
+  function setMuted(value){
+    muted=!!value;root.MuseMusic?.setMuted(muted);
+    if(muted){stop();context?.suspend().catch(()=>{});}
+    else if(context&&root.MuseMusic?.wanted())resume();
+  }
+  function setMusic(value){root.MuseMusic?.setEnabled(value);if(value&&context&&!muted)resume();}
+  function setScene(screen){
+    root.MuseMusic?.setActive(['dressing','reveal','result'].includes(screen));
+    if(context&&root.MuseMusic?.wanted())resume();
+  }
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){stop();context?.suspend().catch(()=>{});}
+    else if(context&&root.MuseMusic?.wanted())resume();
+  });
   document.addEventListener('pointerdown',resume,{passive:true});document.addEventListener('keydown',resume);
-  root.MuseAudio={play,setMuted,resume,synthesize};
+  root.MuseAudio={play,setMuted,setMusic,setScene,resume,synthesize};
 })(globalThis);

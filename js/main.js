@@ -21,7 +21,7 @@
     document.querySelector('.category-tab[data-category="'+hint.category+'"]')?.focus({preventScroll:true});
   }
   function render(focus=true) {
-    cancelAnimationFrame(raf);U.render(state);root.MuseFX.enter();
+    cancelAnimationFrame(raf);U.render(state);root.MuseFX.enter();S.setScene(state.screen);
     if(focus) { const heading=document.querySelector('main h1,main h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
   }
   function navigate(screen) { revealEpoch++;closeDialog();clearTimeout(toastTimer);document.getElementById('toast').classList.remove('visible');state.screen=screen;P.event('screen',{screen,level:state.level});render(); }
@@ -122,6 +122,10 @@
         root.MuseFX.presentation(()=>{if(ticket===revealEpoch)finishReveal();});break;
       }
       case 'mute':state.save.muted=!state.save.muted;S.setMuted(state.save.muted);if(!state.save.muted)S.play('click');persist();refreshHeader();if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector('[data-action="mute"]')?.focus();}break;
+      case 'music':
+        state.save.music=!state.save.music;S.setMusic(state.save.music);persist();
+        if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector('[data-action="music"]')?.focus();}
+        break;
       case 'characters':openDialog(U.characters(state));break;
       case 'character': {
         const id=button.dataset.character;if(!D.characters.some(c=>c.id===id))break;
@@ -149,7 +153,7 @@
         openDialog(`<div class="dialog-head"><h2 id="dialog-title">${item.name}</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close item details"')}</div><div class="inspect-art">${U.thumbnail(item)}</div><p class="inspect-tags">${item.tags.join(' · ')}</p><p>${owned?'In your wardrobe. Ready for your next look.':item.unlockType==='streak'?'Keep earning S on different challenges in a row. Secret pieces unlock every three S looks.':`${item.unlockOn==='enter'?'Enter':'Pass'} look ${item.unlockLevel}: ${D.themes[item.unlockLevel-1].name}.`}</p>`);break;
       }
       case 'reset-progress':openDialog(`<h2 id="dialog-title">Start a new story?</h2><p>This clears your scores, lookbook, clothing unlocks and streak in this browser.</p><div class="confirm-actions">${U.btn('close','Keep my story','button primary')}${U.btn('confirm-reset','Start again','button secondary')}</div>`);break;
-      case 'confirm-reset':state.save=G.newSave();state.outfit=G.emptyOutfit();state.result=null;state.level=1;state.chapter=1;S.setMuted(false);persist();navigate('home');toast('A brand-new style story. Make it yours.');break;
+      case 'confirm-reset':state.save=G.newSave();state.outfit=G.emptyOutfit();state.result=null;state.level=1;state.chapter=1;S.setMusic(false);S.setMuted(false);persist();navigate('home');toast('A brand-new style story. Make it yours.');break;
     }
   });
   document.addEventListener('change',e=>{if(e.target.id==='show-locked'){state.showLocked=e.target.checked;U.updateDressing(state);}});
@@ -162,7 +166,7 @@
   });
   document.addEventListener('visibilitychange',()=>document.body.classList.toggle('is-hidden',document.hidden));
   for(const character of D.characters){const image=new Image();image.src=root.MuseArt.characterSource(character);image.decode().catch(()=>{});}
-  S.setMuted(state.save.muted);state.chapter=D.themes[G.nextLevel(state.save)-1].chapter;render(false);
+  S.setMuted(state.save.muted);S.setMusic(state.save.music);state.chapter=D.themes[G.nextLevel(state.save)-1].chapter;render(false);
   if(storage.notice)toast(storage.notice);else persist();
   // Read-only data/logic globals are also used by the dependency-free QA harness.
 })(globalThis);

@@ -81,3 +81,11 @@ test('later mood suggestions only expose owned pieces matching the requested bri
     }
   }
 });
+test('music is opt-in, survives saves independently of mute, and ignores malformed preferences',()=>{
+  assert.equal(G.newSave().music,false);
+  const save=G.newSave();save.music=true;save.muted=true;save.character='mika';
+  const restored=G.sanitizeSave(save);
+  assert.equal(restored.music,true);assert.equal(restored.muted,true);assert.equal(restored.character,'mika');
+  save.music='true';assert.equal(G.sanitizeSave(save).music,false);
+  delete save.music;assert.equal(G.sanitizeSave(save).music,false);
+});
