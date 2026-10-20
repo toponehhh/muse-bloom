@@ -2,13 +2,26 @@
   'use strict';
   const D=root.MuseData,G=root.MuseGame,U=root.MuseUI,S=root.MuseAudio,E=root.MuseEdit,P=root.MusePlaytest;
   const storage=G.createStorage(()=>root.localStorage,P.active?P.saveKey:G.SAVE_KEY);
-  const state={save:storage.load(),storage,screen:'home',previousScreen:'home',level:1,chapter:1,category:'top',outfit:G.emptyOutfit(),showLocked:false,result:null,shareCard:null};
+  const state={save:storage.load(),storage,screen:'home',previousScreen:'home',level:1,chapter:1,category:'top',outfit:G.emptyOutfit(),showLocked:false,result:null,shareCard:null,outfitHistory:[],goalHint:null};
   const dialog=document.getElementById('dialog');
   let toastTimer,raf=0,shareEpoch=0,dialogFocus=null,revealEpoch=0;
   function toast(message) { const el=document.getElementById('toast');el.textContent=message;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),3800); }
   function persist() { if(!storage.save(state.save)) toast(storage.notice); }
+  function rememberOutfit() {
+    state.outfitHistory.push(JSON.parse(JSON.stringify(state.outfit)));
+    if(state.outfitHistory.length>20)state.outfitHistory.shift();
+  }
+  function showGoal(index) {
+    const theme=D.themes[state.level-1],available=D.items.filter(item=>state.save.unlockedItems.includes(item.id)&&(!E.brief(state.level)||E.capsule.includes(item.id)));
+    const hint=E.suggestion(theme,state.outfit,G.equippedItems(state.outfit),available,index);
+    if(!hint){openDialog(U.styleBrief(state));return;}
+    state.goalHint=hint.index;state.category=hint.category;U.updateDressing(state);
+    document.getElementById('item-grid').scrollTop=0;
+    document.getElementById('item-grid').scrollLeft=0;
+    document.querySelector('.category-tab[data-category="'+hint.category+'"]')?.focus({preventScroll:true});
+  }
   function render(focus=true) {
-    cancelAnimationFrame(raf);U.render(state);root.MuseFX.enter();
+    cancelAnimationFrame(raf);U.render(state);root.MuseFX.enter();S.setScene(state.screen);
     if(focus) { const heading=document.querySelector('main h1,main h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
   }
   function navigate(screen) { revealEpoch++;closeDialog();clearTimeout(toastTimer);document.getElementById('toast').classList.remove('visible');state.screen=screen;P.event('screen',{screen,level:state.level});render(); }
@@ -21,6 +34,7 @@
     state.save=entry.save;state.level=index;state.chapter=D.themes[index-1].chapter;state.result=null;state.shareCard=null;
     state.outfit=G.normalizeOutfit(state.outfit,state.save.unlockedItems);
     state.beforeOutfit=JSON.parse(JSON.stringify(state.outfit));state.compareBefore=false;
+    state.outfitHistory=[];state.goalHint=null;
     state.category=(!retry&&E.brief(index)?.focus)||(state.outfit.dress?'dress':'top');persist();navigate('dressing');
     if(entry.fresh.length) { S.play('unlock');toast(`${entry.fresh.length} fresh pieces unlocked. Your new chapter is here!`); }
   }
@@ -57,7 +71,7 @@
     const button=e.target.closest('[data-action]');if(!button||button.disabled)return;
     const action=button.dataset.action;
     P.event('action',{name:action,screen:state.screen,level:state.level,...(button.dataset.item?{item:button.dataset.item}:{}),...(button.dataset.category?{category:button.dataset.category}:{})});
-    if(!['mute','equip','score','share','export-look','clear','preview-sound'].includes(action))S.play(action==='category'?'tab':'click');
+    if(!['mute','equip','undo','score','share','export-look','clear','preview-sound'].includes(action))S.play(action==='category'?'tab':'click');
     switch(action) {
       case 'home':navigate('home');break;
       case 'studio':startLevel(state.level);break;
@@ -68,6 +82,9 @@
       case 'level':startLevel(Number(button.dataset.level));break;
       case 'next':if(state.screen==='result'&&state.result.result.score>=35)startLevel(Math.min(36,state.level+1));break;
       case 'retry':startLevel(state.level,true);break;
+      case 'retry-detail':startLevel(state.level,true);showGoal(Number(button.dataset.goal));break;
+      case 'goal-hint':if(state.screen==='dressing')showGoal(Number(button.dataset.goal));break;
+      case 'dismiss-hint':state.goalHint=null;U.updateDressing(state);break;
       case 'style-brief':openDialog(U.styleBrief(state));break;
       case 'feedback':if(P.active){openDialog(P.form());P.mount();}break;
       case 'skip-guide':state.save.onboardingDone=true;persist();U.updateDressing(state);break;
@@ -83,19 +100,32 @@
         const id=button.dataset.item,item=G.byId[id];
         if(!state.save.unlockedItems.includes(id)){toast(item.unlockType==='streak'?'Earn S on 3 different challenges in a row to unlock this piece.':`${item.unlockOn==='enter'?'Enter':'Pass'} look ${item.unlockLevel} to unlock ${item.name}.`);break;}
         const was=G.equippedItems(state.outfit).some(i=>i.id===id);
+        const previous=E.goals(D.themes[state.level-1],G.equippedItems(state.outfit));
+        rememberOutfit();
         state.outfit=G.toggleItem(state.outfit,id,state.save.unlockedItems);
-        S.play(was?'unequip':'equip');U.updateDressing(state,true);root.MuseFX.equip();break;
+        const current=E.goals(D.themes[state.level-1],G.equippedItems(state.outfit));
+        const gained=current.flatMap((goal,index)=>goal.done&&!previous[index].done?[index]:[]);
+        const improved=current.filter(goal=>goal.done).length>previous.filter(goal=>goal.done).length;
+        if(current[state.goalHint]?.done)state.goalHint=null;
+        S.play(was?'unequip':improved?'goal':'equip');U.updateDressing(state,true);root.MuseFX.equip();
+        if(improved){root.MuseFX.goals(gained);P.event('goal-met',{level:state.level,goals:gained});}
+        break;
       }
-      case 'clear':if(state.screen==='dressing'){state.outfit=G.emptyOutfit();U.updateDressing(state);root.MuseFX.equip();S.play('clear');toast('Studio basics restored. Add your own pieces to earn points.');}break;
+      case 'undo':if(state.screen==='dressing'&&state.outfitHistory.length){state.outfit=state.outfitHistory.pop();U.updateDressing(state);root.MuseFX.equip();S.play('unequip');}break;
+      case 'clear':if(state.screen==='dressing'){if(G.equippedItems(state.outfit).length)rememberOutfit();state.outfit=G.emptyOutfit();U.updateDressing(state);root.MuseFX.equip();S.play('clear');toast('Studio basics restored. Undo is here if you change your mind.');}break;
       case 'score': {
         if(state.screen!=='dressing')break;
         const edit=E.evaluate(state.level,G.equippedItems(state.outfit));
-        if(edit&&!edit.ready){toast('Add a dress or a top and bottom, then shoes, before revealing your look.');P.event('reveal-blocked',{level:state.level});break;}
+        if(edit&&!edit.ready){showGoal(0);toast('Add a dress or a top and bottom, then shoes, before revealing your look.');P.event('reveal-blocked',{level:state.level});break;}
         state.result=G.finishLevel(state.save,state.level,state.outfit);state.save=state.result.save;state.outfit=state.result.outfit;state.shareCard=null;state.compareBefore=false;persist();
         navigate('reveal');S.play('shutter');const ticket=revealEpoch;
         root.MuseFX.presentation(()=>{if(ticket===revealEpoch)finishReveal();});break;
       }
       case 'mute':state.save.muted=!state.save.muted;S.setMuted(state.save.muted);if(!state.save.muted)S.play('click');persist();refreshHeader();if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector('[data-action="mute"]')?.focus();}break;
+      case 'music':
+        state.save.music=!state.save.music;S.setMusic(state.save.music);persist();
+        if(dialog.open){dialog.innerHTML=U.settings(state);dialog.querySelector('[data-action="music"]')?.focus();}
+        break;
       case 'characters':openDialog(U.characters(state));break;
       case 'character': {
         const id=button.dataset.character;if(!D.characters.some(c=>c.id===id))break;
@@ -123,7 +153,7 @@
         openDialog(`<div class="dialog-head"><h2 id="dialog-title">${item.name}</h2>${U.btn('close',U.icon('close'),'icon-button','aria-label="Close item details"')}</div><div class="inspect-art">${U.thumbnail(item)}</div><p class="inspect-tags">${item.tags.join(' · ')}</p><p>${owned?'In your wardrobe. Ready for your next look.':item.unlockType==='streak'?'Keep earning S on different challenges in a row. Secret pieces unlock every three S looks.':`${item.unlockOn==='enter'?'Enter':'Pass'} look ${item.unlockLevel}: ${D.themes[item.unlockLevel-1].name}.`}</p>`);break;
       }
       case 'reset-progress':openDialog(`<h2 id="dialog-title">Start a new story?</h2><p>This clears your scores, lookbook, clothing unlocks and streak in this browser.</p><div class="confirm-actions">${U.btn('close','Keep my story','button primary')}${U.btn('confirm-reset','Start again','button secondary')}</div>`);break;
-      case 'confirm-reset':state.save=G.newSave();state.outfit=G.emptyOutfit();state.result=null;state.level=1;state.chapter=1;S.setMuted(false);persist();navigate('home');toast('A brand-new style story. Make it yours.');break;
+      case 'confirm-reset':state.save=G.newSave();state.outfit=G.emptyOutfit();state.result=null;state.level=1;state.chapter=1;S.setMusic(false);S.setMuted(false);persist();navigate('home');toast('A brand-new style story. Make it yours.');break;
     }
   });
   document.addEventListener('change',e=>{if(e.target.id==='show-locked'){state.showLocked=e.target.checked;U.updateDressing(state);}});
@@ -136,7 +166,7 @@
   });
   document.addEventListener('visibilitychange',()=>document.body.classList.toggle('is-hidden',document.hidden));
   for(const character of D.characters){const image=new Image();image.src=root.MuseArt.characterSource(character);image.decode().catch(()=>{});}
-  S.setMuted(state.save.muted);state.chapter=D.themes[G.nextLevel(state.save)-1].chapter;render(false);
+  S.setMuted(state.save.muted);S.setMusic(state.save.music);state.chapter=D.themes[G.nextLevel(state.save)-1].chapter;render(false);
   if(storage.notice)toast(storage.notice);else persist();
   // Read-only data/logic globals are also used by the dependency-free QA harness.
 })(globalThis);

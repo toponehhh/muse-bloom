@@ -47,3 +47,45 @@ test('playtest storage keys never overwrite the regular game save',()=>{
   assert.equal(regular.load().character,'mika');assert.equal(trial.load().character,'bella');
   assert.equal(map.size,2);
 });
+test('live occasion goals follow scoring, including losing a goal after removing shoes',()=>{
+  const theme=D.themes[0],outfit=items(coffee);
+  assert.equal(E.goals(theme,outfit).filter(goal=>goal.done).length,3);
+  const withoutShoes=outfit.filter(item=>item.category!=='shoes');
+  assert.equal(E.goals(theme,withoutShoes).filter(goal=>goal.done).length,1);
+  assert.equal(G.scoreOutfit(theme,withoutShoes),0);
+});
+test('occasion suggestions guide a complete look without choosing pieces for the player',()=>{
+  const available=D.items.filter(item=>E.capsule.includes(item.id));
+  let outfit=G.emptyOutfit();
+  for(const category of ['top','bottom','shoes']){
+    const hint=E.suggestion(D.themes[0],outfit,G.equippedItems(outfit),available,0);
+    assert.equal(hint.category,category);
+    assert.ok(hint.ids.length>1,'Keep a real choice in each category');
+    outfit=G.toggleItem(outfit,hint.ids[0],available.map(item=>item.id));
+  }
+  assert.equal(E.goals(D.themes[0],G.equippedItems(outfit))[0].done,true);
+  const ready={...outfit,dress:'dress_cute_01',top:null,bottom:null};
+  assert.equal(E.suggestion(D.themes[0],ready,G.equippedItems(ready),available,0).index,2);
+});
+test('later mood suggestions only expose owned pieces matching the requested brief',()=>{
+  for(const theme of D.themes.slice(3)){
+    const available=D.items.filter(item=>item.unlockType==='progress'&&
+      (item.unlockLevel===null||item.unlockLevel<=theme.index));
+    for(let index=0;index<theme.required.length;index++){
+      const hint=E.suggestion(theme,G.emptyOutfit(),[],available,index);
+      assert.ok(hint,theme.name+' / '+theme.required[index]);
+      for(const id of hint.ids){
+        assert.ok(available.some(item=>item.id===id));
+        assert.ok(G.byId[id].tags.includes(theme.required[index]));
+      }
+    }
+  }
+});
+test('music is opt-in, survives saves independently of mute, and ignores malformed preferences',()=>{
+  assert.equal(G.newSave().music,false);
+  const save=G.newSave();save.music=true;save.muted=true;save.character='mika';
+  const restored=G.sanitizeSave(save);
+  assert.equal(restored.music,true);assert.equal(restored.muted,true);assert.equal(restored.character,'mika');
+  save.music='true';assert.equal(G.sanitizeSave(save).music,false);
+  delete save.music;assert.equal(G.sanitizeSave(save).music,false);
+});

@@ -7,7 +7,7 @@
 .form .feedback-consent{display:flex;align-items:flex-start;gap:10px;line-height:1.6}.form .feedback-consent input{flex:0 0 20px;width:20px;min-height:20px;margin-top:4px;accent-color:#ae3e6c}.feedback-status{overflow-wrap:anywhere}.feedback-status[data-state="success"]{color:#246c51}.feedback-status[data-state="error"]{color:#a12942}.form [disabled]{opacity:.65;cursor:wait}
 </style></head>
 <body><main>
-<header><span class="kicker">MUSE BLOOM / PRIVATE PLAYTEST / v1.7.0</span><h1>A little more you.</h1>
+<header><span class="kicker">MUSE BLOOM / PRIVATE PLAYTEST / v1.8.0</span><h1>A little more you.</h1>
 <p class="intro">欢迎参加 Muse Bloom 私人试玩。请用自己的方式完成前三个穿搭场景，再告诉我们哪些地方好玩、清楚，哪些地方需要改进。建议预留 5–8 分钟。</p>
 <div class="actions"><a class="button" href="Muse-Bloom.html?playtest=1&amp;fresh=1" target="_blank" rel="noopener">开始新一轮试玩 ↗</a><a class="button secondary" href="Muse-Bloom.html?playtest=1" target="_blank" rel="noopener">继续这次试玩 ↗</a></div>
 <p class="note" id="delivery-note">直接用 Edge 或 Chrome 打开即可，无需安装。试玩记录保存在本机，与正常游戏进度分开。不会自动上传数据。</p>
@@ -28,11 +28,11 @@
 <li>每位新试玩者点击“开始新一轮试玩”。同一位试玩者刷新或返回时用“继续这次试玩”。不要先演示正确穿搭。</li>
 <li>观察：是否知道第一步点哪里，是否看得清服装，是否误触，是否卡在换裙装/鞋子/揭晓，是否主动继续下一关。允许他们说出正在想什么。</li>
 <li>需要帮助时记录具体位置和帮助次数，再给予最少提示。不要把有帮助的完成记录当成独立完成。</li>
-<li>收集游戏导出的 JSON；为每位试玩者填写下方观察表。<code>source: automated-check</code> 的文件是自动化验证，不能计入真人结果。</li>
+<li>收集游戏导出的 JSON；观察表使用游戏内相同的匿名编号。填写时明确选择真人或 AI/自动化测试。没有确认类型的旧记录需要人工核实，不能直接计入真人结果。</li>
 <li>先看反复出现的问题，再看均分。可用“5 人中至少 4 人能独立完成第一套、至少 3 人愿意继续、无明显遮挡或操作阻塞”作为内部讨论目标。</li>
 </ol>
 <div class="status"><strong>汇总前请按匿名编号去重，并排除自动测试记录。</strong><br>本页不会公开展示参与者的答案。反馈评分与实际留存、平台审核结果是不同的指标。</div>
-<p>从源码目录可运行 <code>node dev/summarize-playtest.js 反馈文件夹</code> 生成去重后的汇总。工具会排除自动化测试记录，并区分缺失答案与低分。</p>
+<p>从源码目录可运行 <code>node dev/summarize-playtest.js 反馈文件夹</code> 生成去重后的汇总。工具仅汇总已声明为真人且未发现模拟测试声明的记录；自动化与待核实记录单列原因，不计入评分。自动化演练请在本页网址加 <code>?qa=1</code>，打开游戏时会保留此标记。</p>
 </details>
 <details class="section" id="feedback-section"><summary>反馈表 / 组织者观察表</summary>
 <p class="note" id="form-intro">游戏内反馈表优先。这里也可以单独填写反馈。匿名编号可与游戏中保持一致，请勿填写姓名或联系方式。</p>
@@ -47,5 +47,6 @@
 </form></details>
 <p class="note">此页面供私人试玩使用。提交 CrazyGames 时使用单独生成的 <code>crazygames-upload/index.html</code>，不把本页作为游戏入口。</p>
 </main>
+<script src="../js/feedback-kind.js"></script>
 <script src="../js/feedback-client.js"></script>
 <script src="feedback.js"></script></body></html>

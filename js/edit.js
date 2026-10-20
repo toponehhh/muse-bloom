@@ -67,5 +67,48 @@
     if (!outfit.shoes) return { step: 3, category: 'shoes', text: 'Add a pair of shoes. Watch your whole look come together.' };
     return { step: 4, category: null, text: 'Your look is ready. Add a detail, or reveal it now.' };
   }
-  return { capsule, briefs, brief, evaluate, coach };
+  function goals(theme, items) {
+    const edit = evaluate(theme.index, items);
+    if (edit) return edit.checks;
+    const tags = new Set(items.flatMap(item => item.tags));
+    return theme.required.map(tag => ({
+      title: tag, hint: 'Choose a piece tagged ' + tag + '.', done: tags.has(tag), points: 20
+    }));
+  }
+  // Suggestions point to choices, never equip an item or change the scoring rules.
+  function suggestion(theme, outfit, items, available, goalIndex) {
+    const checks = goals(theme, items);
+    const index = Number.isInteger(goalIndex) && checks[goalIndex] && !checks[goalIndex].done
+      ? goalIndex : checks.findIndex(check => !check.done);
+    if (index < 0) return null;
+    let category, matches = () => true;
+    const shaped = (kind, shapes) => item => item.category === kind && shapes.includes(item.shape);
+    if (!brief(theme.index)) {
+      matches = item => item.tags.includes(theme.required[index]);
+      category = ['top', 'bottom', 'shoes', 'dress', 'hair', 'accessory']
+        .find(kind => available.some(item => item.category === kind && matches(item)));
+    } else if (index === 0) {
+      category = !outfit.dress && !outfit.top ? 'top'
+        : !outfit.dress && !outfit.bottom ? 'bottom' : 'shoes';
+    } else if (theme.index === 1) {
+      category = index === 1 ? 'shoes' : 'hair';
+      if (index === 1) matches = shaped('shoes', ['sneaker', 'loafer']);
+    } else if (theme.index === 2) {
+      category = index === 1 ? 'dress' : 'shoes';
+      if (index === 2) matches = shaped('shoes', ['maryjane', 'loafer', 'heel', 'embroidered']);
+    } else if (index === 2) {
+      category = 'accessory';
+      matches = shaped('accessory', ['bag', 'tote', 'crossbody']);
+    } else if (!items.some(shaped('shoes', ['sneaker', 'loafer']))) {
+      category = 'shoes';
+      matches = shaped('shoes', ['sneaker', 'loafer']);
+    } else {
+      category = outfit.dress ? 'dress' : 'bottom';
+      matches = shaped(category, category === 'dress'
+        ? ['sundress', 'aline', 'wrap', 'puff'] : ['jeans', 'shorts', 'cargo', 'trousers', 'flare']);
+    }
+    const ids = available.filter(item => item.category === category && matches(item)).map(item => item.id);
+    return ids.length ? { index, category, ids, title: checks[index].title, hint: checks[index].hint } : null;
+  }
+  return { capsule, briefs, brief, evaluate, coach, goals, suggestion };
 });

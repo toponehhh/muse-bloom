@@ -28,8 +28,14 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Feedback API against an isolated local D1
         run: npm run test:feedback-api
+      - name: Separate human feedback from simulations and unverified imports
+        run: npm run test:feedback-kind
       - name: Online feedback, D1 receipts and safe retries
         run: npm run test:cloudflare
+      - name: Initial action visibility, touch targets and feedback dialogs
+        run: npm run test:playtest-ui
+      - name: CG iframe sizes, first-click clothing and live styling goals
+        run: npm run test:quality
       - name: Check Cloudflare Worker and asset bindings without deploying
         run: npx wrangler deploy --dry-run --outdir artifacts/cloudflare-worker
       - name: Wardrobe UI and visual regression
@@ -56,7 +62,8 @@ jobs:
         with:
           name: ui-regression-evidence
           path: |
-            artifacts/v1.7.0/
+            artifacts/studio/
+            artifacts/playtest/
             artifacts/ui/
             artifacts/characters/
             artifacts/fitting/
@@ -67,6 +74,8 @@ jobs:
             artifacts/glam/
             artifacts/pages/
             artifacts/cloudflare/
+            artifacts/playtest-ui/
+            artifacts/quality/
       - name: Check generated art stays reproducible
         run: |
           npm run assets

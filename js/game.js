@@ -8,7 +8,7 @@
   const byId = Object.fromEntries(D.items.map(i => [i.id, i]));
   const starterIds = D.items.filter(i => i.unlockType === 'progress' && i.unlockLevel === null).map(i => i.id);
   function emptyOutfit() { return { hair: null, top: null, bottom: null, dress: null, shoes: null, accessory: [] }; }
-  function newSave() { return { version: 1, ruleset: 2, onboardingDone: false, levels: {}, unlockedItems: [...starterIds], streak: 0, streakLevels: [], character: D.defaultCharacter, muted: false }; }
+  function newSave() { return { version: 1, ruleset: 2, onboardingDone: false, levels: {}, unlockedItems: [...starterIds], streak: 0, streakLevels: [], character: D.defaultCharacter, muted: false, music: false }; }
   function rankOf(score) { return score >= 85 ? 'S' : score >= 70 ? 'A' : score >= 55 ? 'B' : score >= 35 ? 'C' : 'D'; }
   function scoreBreakdown(theme, equipped) {
     const edit = E.evaluate(theme.index, equipped);
@@ -109,6 +109,7 @@
     if (D.characters.some(s => s.id === raw.character)) save.character = raw.character;
     else if(!raw.character&&['deep','tan'].includes(raw.skin))save.character='zoe';
     save.muted = raw.muted === true;
+    save.music = raw.music === true;
     save.onboardingDone = raw.onboardingDone === true || raw.ruleset !== 2 && Object.keys(save.levels).length > 0;
     // Optional v1 field: old progress remains valid without a recorded outfit.
     // Recompute each look from owned items; saved metadata never grants rewards.

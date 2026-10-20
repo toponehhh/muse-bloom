@@ -31,7 +31,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .occasion-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:32px}.occasion-pills>span{padding:9px 12px;background:#fffaf9;border:1px solid #e8d6df;border-radius:30px;font-size:11px;color:#7c526a}
 .home-note{color:#8b7885;font-size:11px;line-height:1.6;letter-spacing:0;margin-top:18px}
 .playtest-notice{padding:12px 15px;border:1px dashed #b78da2;color:#74546a;background:#fffaf8;font-size:12px;line-height:1.6;border-radius:10px;margin-top:20px}
-.salon-dressing{height:calc(100dvh - 68px);min-height:640px;display:flex;flex-direction:column;padding:16px 28px 24px;gap:12px}
+.salon-dressing{height:calc(100dvh - 68px);min-height:0;display:flex;flex-direction:column;padding:16px 28px 24px;gap:12px}
 .salon-dressing .brief{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0;margin:0}
 .brief-main{gap:12px;align-items:center}.brief-main h1{font-family:var(--display);font-size:30px;font-weight:400;color:#4a2a40;margin:4px 0;letter-spacing:-.5px}
 .brief-main p{color:#816574;font-size:12px;margin:0;max-width:none}.brief-main .eyebrow{font-size:9px;color:#99657c}
@@ -69,7 +69,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .wardrobe-footer{display:flex;align-items:center;gap:9px;flex:none;padding:13px 0;background:#fffbf8;border-top:1px solid #eadce1;box-shadow:none}
 .outfit-status{margin-right:auto}.goal-progress{font-size:12px;color:#9a6b80;white-space:nowrap}.wardrobe-footer>.primary{min-width:170px;min-height:47px;font-size:13px}
 .wardrobe-footer>.icon-button{width:40px;height:40px;flex-shrink:0}
-.dress-notice{font-size:11px;color:#916c7e;background:#f4eaed;padding:7px 9px;flex:none;border-radius:8px}
+.dress-notice{font-size:13px;line-height:1.5;color:#65445b;background:#f4eaed;padding:8px 10px;flex:none;border-radius:8px}
 .style-goals{list-style:none;padding:0;margin:20px 0}.style-goals li{display:flex;gap:12px;align-items:start;padding:13px 0;border-bottom:1px solid #ecdee5}
 .style-goals li>div{flex:1}.style-goals strong{color:#71455e;font-size:13px;font-weight:650}.style-goals p{font-size:12px;line-height:1.65;color:#947a8a;margin:4px 0 0}.style-goals small{font-size:11px;color:#987187}
 .goal-check{color:#b8a3af;font-size:18px}.done .goal-check{color:#788c68}
@@ -144,3 +144,46 @@ dialog::backdrop{background:#3b29335e;backdrop-filter:blur(5px)}
 /* Collection is a wrapping catalogue; only the fitting wardrobe is a carousel. */
 .collection-screen .collection-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));overflow:visible;gap:12px;max-width:100%;scroll-snap-type:none}
 .collection-screen .item-picture{height:145px}.collection-screen .item-tags>span{color:#714c65;background:#f0e3eb}
+
+/* Keep feedback actions outside the scrolling answers, including online consent. */
+dialog[open]:has(#playtest-feedback){display:flex;flex-direction:column;overflow:hidden;padding:0;width:560px;max-width:calc(100vw - 24px);height:min(900px,calc(100dvh - 24px));max-height:calc(100dvh - 24px)}
+dialog:has(#playtest-feedback)>.dialog-head{flex:none;margin:0;padding:18px 20px;border-bottom:1px solid var(--line)}
+dialog:has(#playtest-feedback) .dialog-head .icon-button{flex:none;min-width:44px;min-height:44px}
+#playtest-feedback{flex:1;min-height:0;display:flex;flex-direction:column;gap:0}
+.feedback-fields{display:grid;gap:16px;align-content:start;overflow:auto;min-height:0;flex:1;padding:18px 20px;scroll-padding-block:16px}
+.feedback-actions{flex:none;display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#fffaf7}
+.feedback-actions>.button{flex:1;min-height:44px}
+.feedback-actions>.feedback-status{flex-basis:100%;margin:0;font-size:12px;line-height:1.5;max-height:6em;overflow:auto}
+.feedback-status:empty{display:none}
+.wardrobe-toolbar label{display:inline-flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;font-size:12px;color:#65445b}
+.wardrobe-toolbar input{width:20px;height:20px;margin:0;flex:none}
+@media(max-width:767px){
+ body[data-screen="dressing"]{height:auto;overflow:auto}
+ body[data-screen="dressing"] .app-header.salon-header{height:54px}
+ .salon-dressing{padding-bottom:calc(84px + env(safe-area-inset-bottom));animation:none;transform:none}
+ .salon-dressing .wardrobe-panel{padding-bottom:8px}
+ .salon-dressing .wardrobe-footer{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-radius:0;background:#fffbf8;box-shadow:0 -4px 16px #63414d12}
+ .wardrobe-footer>.icon-button{width:44px;height:44px}
+ .dress-notice{font-size:12px;padding:8px 10px}
+ .wardrobe-toolbar{flex-wrap:wrap;column-gap:8px;margin:4px 0}
+ .wardrobe-toolbar label{font-size:12px}
+ .swipe-hint{color:#76556b}
+ .feedback-actions{padding-left:14px;padding-right:14px}
+ .feedback-fields{padding:14px}
+ dialog:has(#playtest-feedback)>.dialog-head{padding:12px 14px}
+}
+@media(max-width:767px) and (orientation:landscape){
+ .salon-dressing{height:calc(100dvh - 54px);min-height:0;padding-bottom:10px}
+ .salon-dressing .dressing-layout{min-height:0;flex:1}
+ .salon-dressing .studio-column{min-height:0;height:100%}
+ .salon-dressing .wardrobe-footer{left:calc(42% + 10px);right:10px;padding-left:10px;padding-right:10px}
+ .salon-dressing .wardrobe-panel{display:block;overflow:auto;padding-bottom:76px}
+ .salon-dressing .item-grid{height:auto;min-height:0;max-height:none;overflow:visible;grid-auto-rows:max-content}
+ .salon-dressing .item-picture,.salon-dressing .item-card:nth-child(3n+2) .item-picture,.salon-dressing .item-card:nth-child(3n+3) .item-picture{height:70px}
+}
+@media(max-width:360px){
+ .app-header.salon-header{padding-inline:8px;gap:4px}
+ .salon-header .brand{font-size:18px;gap:5px}
+ .salon-header .bloom-mark{width:26px;height:28px}
+ .salon-header .header-right{gap:3px}
+}

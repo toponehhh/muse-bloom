@@ -1,10 +1,11 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {standalone}=require('./standalone');
-const root=path.resolve(__dirname,'..'),out=path.join(root,'dist/playtest-v1.7.0');
+const version=require('../package.json').version;
+const root=path.resolve(__dirname,'..'),out=path.join(root,'dist/playtest-v'+version);
 fs.mkdirSync(out,{recursive:true});
 standalone(path.join(out,'Muse-Bloom.html'));
 fs.writeFileSync(path.join(out,'index.html'),require('./build-guide').buildGuide());
 const files=['index.html','Muse-Bloom.html'].map(file=>{const bytes=fs.readFileSync(path.join(out,file));return {file,bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};});
-fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify({version:'1.7.0',purpose:'Private playtest',humanParticipants:0,humanResults:'Not yet collected',files},null,2));
+fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify({version,purpose:'Private playtest',humanParticipants:0,humanResults:'Not yet collected',files},null,2));
 console.log('Private playtest ready: '+out);
