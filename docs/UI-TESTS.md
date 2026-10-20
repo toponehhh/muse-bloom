@@ -1,16 +1,17 @@
-# Current UI regression contracts — v1.7.0
+# Current UI regression contracts — v1.8.0
 
 All tests operate on real browser rendering or actual pixels, not just asset names. Reports live in `artifacts/`; they are automated evidence, saved locally or as Actions artifacts. See `QA.md` for which browser ran each suite. Mobile dimensions are emulated desktop viewports, not physical-phone testing.
 
 | Command | Contract |
 |---|---|
-| `npm test` | 14 save/scoring tests, six starter-occasion/guide/legacy-save tests and 36 achievable 94-point solutions |
+| `npm test` | 14 save/scoring tests, ten occasion/guide/legacy-save/music tests and 36 achievable 94-point solutions |
+| `npm run test:quality` | Ten documented CG iframe sizes and four phones at DPR 1; first-play clothing, goals and Reveal must pass coordinate hit tests before any scrolling; live score, reversible changes and targeted suggestions |
 | `npm run test:ui` | `salon.test.js`: complete all 36 via clicks, three different starter tasks, 366 equip/remove pairs (122 × three bodies), stable mounted base, before/after, 1080×1920 portrait, isolated feedback export |
 | `npm run test:fitting` | 246 actual garment/body masks; 1449 top/bottom waist pairs; offset trousers, narrow skirt and oversized top negative fixtures |
 | `npm run test:neckline` | 43 tops/dresses × three painted bodies; neck-root contact, visible necks and covered basic straps; old wide collar and chin-covering negative fixtures |
 | `npm run test:glam` | Seven viewports across home, studio, result, collection, lookbook, challenges and settings; missing-image and low-contrast failures detected |
 | `npm run test:lookbook` | Saved identity/outfit, actual PNG download, keyboard Enter/Escape and focus restoration, old progression without invented outfits, 12-look gallery across four sizes |
-| `npm run test:experience` | Real Web Audio analyser plus nine offline PCM effects; no pre-gesture audio, mute/resume race, background suspension, reduced motion, animated reveal and no-Web-Audio fallback |
+| `npm run test:experience` | Real Web Audio analyser, ten offline PCM effects and an original 12-second music loop; no pre-gesture audio, one live music source, separate preference, mute/resume race, background suspension, reduced motion, animated reveal and no-Web-Audio fallback |
 | `npm run test:upload` | Built single HTML at root, nested path, sandbox iframe and file URL; no external asset request; source-only upload intentionally fails |
 | `npm run test:playtest` | Delivered offline guide launches game; new/continue preserves session; backup form downloads; synthetic records exercise deduplication/missing values/automation exclusion and are deleted |
 | `npm run test:pages` | Published file allowlist/hashes, source commit, actual first outfit at 1440px and 390px under `/muse-bloom/`, embedded resources, feedback guide/popups/download/reload/continue and regular-save isolation; `MUSE_PAGES_URL` runs the same smoke checks against a deployed site |
@@ -19,7 +20,7 @@ All tests operate on real browser rendering or actual pixels, not just asset nam
 
 `salon.test.js` tests 320×568, 375×667, 390×844, 667×375, 768×1024, 1024×540, 1024×768, 1440×600 and 1440×1000 with each character. It measures transformed SVG head/foot rectangles against stage and control bounds. Deliberately covering the head or feet must fail, and removing the obstruction must recover.
 
-Small phones scroll vertically so the whole avatar can stay at least 260px tall. The reveal button must be reachable and unclipped; the test does not falsely require every control to fit on the initial viewport. The character picker is a dialog, not the removed permanent dock. The full collection wraps; only the fitting wardrobe uses a horizontal mobile carousel.
+Small phones put goals beside the complete character and keep the first clothing choice in view. The short first-play tutorial temporarily shares vertical space; skipping it restores a character at least 260px tall in the small-phone layout checks. The reveal button must be visible and hit-testable before scrolling. The character picker is a dialog. The full collection wraps; the portrait fitting wardrobe uses a horizontal carousel.
 
 ## Pixel acceptance and visual review
 
@@ -33,6 +34,6 @@ The old `dev/browser.test.js`, `dev/characters.test.js` and 24 v1.6 baselines re
 
 ## Limits
 
-Cloudflare feedback checks: `npm run test:feedback-api` exercises the real local Worker/D1 runtime (27 assertions covering concurrent retries, validation, origin, size, rate limits and unavailable storage). `npm run test:cloudflare` serves the actual Cloudflare build and checks mobile guide submission, consent, draft restoration, server failure, a lost response after the database commit, idempotent retry, receipts, backups, gameplay/action-log submission and revised answers. Evidence is saved to `artifacts/cloudflare/`. These use isolated local databases and are not production D1 tests.
+Cloudflare feedback checks: `npm run test:feedback-api` exercises the real local Worker/D1 runtime (concurrent retries, validation including v1.8 goal events, origin, size, rate limits and unavailable storage). `npm run test:cloudflare` serves the actual Cloudflare build and checks mobile guide submission, consent, draft restoration, server failure, a lost response after the database commit, idempotent retry, receipts, backups, gameplay/action-log submission and revised answers. Evidence is saved to `artifacts/cloudflare/`. These use isolated local databases and are not production D1 tests.
 
 No human playtest results, real iOS/Safari, physical Android, low-memory Chromebook or CrazyGames portal QA are included. Hosted CI status and downloadable evidence are available in the repository Actions runs. Playtest records with `source: automated-check` must never count as human feedback. A passing local test cannot establish retention, artistic preference or platform approval.

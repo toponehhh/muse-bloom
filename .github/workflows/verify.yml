@@ -62,7 +62,8 @@ jobs:
         with:
           name: ui-regression-evidence
           path: |
-            artifacts/v1.7.0/
+            artifacts/studio/
+            artifacts/playtest/
             artifacts/ui/
             artifacts/characters/
             artifacts/fitting/

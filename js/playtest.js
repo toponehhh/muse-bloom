@@ -1,12 +1,12 @@
 (function(root){
   'use strict';
   const params=new URLSearchParams(root.location.search),active=params.get('playtest')==='1';
-  const key='muse_bloom_playtest_v17',saveKey=key+'_save';
+  const version='1.8.0',key='muse_bloom_playtest_v18',saveKey=key+'_save';
   let record=null;
   if(active){
     try{if(params.get('fresh')==='1'){localStorage.removeItem(key);localStorage.removeItem(saveKey);}
       record=JSON.parse(localStorage.getItem(key)||'null');}catch{}
-    if(!record||record.version!=='1.7.0'||!Array.isArray(record.events)||!/^P-[A-Z0-9]{6}$/.test(record.participant)||!['participant-session','automated-check'].includes(record.source))record={version:'1.7.0',source:params.get('qa')==='1'?'automated-check':'participant-session',participant:'P-'+Math.random().toString(36).slice(2,8).padEnd(6,'0').toUpperCase(),startedAt:new Date().toISOString(),events:[],feedback:null};
+    if(!record||record.version!==version||!Array.isArray(record.events)||!/^P-[A-Z0-9]{6}$/.test(record.participant)||!['participant-session','automated-check'].includes(record.source))record={version,source:params.get('qa')==='1'?'automated-check':'participant-session',participant:'P-'+Math.random().toString(36).slice(2,8).padEnd(6,'0').toUpperCase(),startedAt:new Date().toISOString(),events:[],feedback:null};
     // Continuing an existing session with qa=1 must not retain a human label.
     if(params.get('qa')==='1'){record.source='automated-check';record.testType='automated';}
     if(params.has('fresh'))try{const clean=new URL(root.location.href);clean.searchParams.delete('fresh');history.replaceState(null,'',clean);}catch{}
@@ -39,5 +39,5 @@
     event('session-open',{viewport:{width:innerWidth,height:innerHeight},reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
     document.addEventListener('visibilitychange',()=>event(document.hidden?'hidden':'visible'));
   }
-  root.MusePlaytest={active,saveKey,event,form,mount,snapshot:()=>active?JSON.parse(JSON.stringify(record)):null};
+  root.MusePlaytest={active,version,recordKey:key,saveKey,event,form,mount,snapshot:()=>active?JSON.parse(JSON.stringify(record)):null};
 })(globalThis);
