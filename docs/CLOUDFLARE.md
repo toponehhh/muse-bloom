@@ -1,6 +1,14 @@
 # Cloudflare 部署与在线反馈
 
-当前源码为 v1.8.0。使用 **Cloudflare Workers Static Assets + D1**：游戏入口 `/`，试玩与反馈页 `/playtest/`，提交接口 `POST /api/feedback`。这是一个 Worker 项目，不能只把静态文件上传到 Pages 后就期待 D1 生效。实际线上版本以该网站的 `build.json` 和部署记录为准。
+当前源码为 v1.8.0，按用户选择使用 **Cloudflare Pages 的 pages.dev 域名**：游戏入口 `/`，试玩与反馈页 `/playtest/`，提交接口 `POST /api/feedback`。实际线上版本以该网站的 `build.json` 和部署记录为准。
+
+## 部署结构
+
+- Pages 项目 `muse-bloom` 提供 `https://muse-bloom.pages.dev`。静态文件来自 `dist/cloudflare-pages`，`_routes.json` 只将 `/api/*` 交给 Pages Function。
+- Pages Function 通过 `FEEDBACK_API` 服务绑定调用私有 Worker `muse-bloom`。原始 URL、Origin、方法和请求体原样传递，浏览器不跨域。
+- 私有 Worker 使用 `DB` 绑定连接 D1 `muse-bloom-feedback`，保留原生 `FEEDBACK_RATE_LIMIT`。Workers 的 `workers_dev` 和 `preview_urls` 都关闭，公开入口只有 Pages。
+- Pages 当前不支持原生限流绑定，因此采用官方支持的 [Pages Service bindings](https://developers.cloudflare.com/pages/functions/bindings/#service-bindings)，不把限流降级为单个进程的内存计数。
+- `cloudflare/pages/wrangler.jsonc` 管理 Pages，根目录 `wrangler.jsonc` 管理私有 Worker。账号 ID、真实 D1 ID 和凭据不提交到源码。
 
 ## 已实现的行为
 
@@ -25,10 +33,11 @@ npm run cf:dev
 ```powershell
 npm run test:feedback-api
 npm run test:cloudflare
+npm run test:cloudflare-pages
 npx wrangler deploy --dry-run --outdir artifacts/cloudflare-worker
 ```
 
-测试使用独立临时 D1：验证并发幂等、参数校验、请求来源、大小限制、限流、数据库失败，以及手机/电脑表单、网络失败、响应丢失、刷新恢复、回执、备份和正常游戏存档隔离。所有合成反馈标记为 `automated-check`。
+测试使用独立临时 D1：验证并发幂等、参数校验、请求来源、大小限制、限流、数据库失败，以及手机/电脑表单、网络失败、响应丢失、刷新恢复、回执、备份和正常游戏存档隔离。`test:cloudflare-pages` 使用两个本地 Worker 和真实服务绑定，重新执行 API 与浏览器提交检查；缺失绑定返回 503，不能误报成功。所有合成反馈标记为 `automated-check`。`cf:dev` 是单服务本地开发入口；Pages 绑定由独立套件验证。
 
 ## 第一次部署到自己的 Cloudflare 账号
 
@@ -38,9 +47,12 @@ npx wrangler deploy --dry-run --outdir artifacts/cloudflare-worker
 npx wrangler login
 npx wrangler whoami
 npx wrangler d1 create muse-bloom-feedback
+npx wrangler pages project create muse-bloom --production-branch main --force
 ```
 
-从创建结果复制 `database_id`。若账号已存在同名数据库，使用其 ID，不要重复创建。将以下占位值替换为实际账号和数据库 ID：
+先检查 `wrangler d1 list` 和 `wrangler pages project list`，已有同名资源时复用，不重复创建。Wrangler 4.151.2 在代理会话中会将新 Pages 项目的创建自动转为 Workers 部署；首次创建时 `--force` 在此命令中表示直接创建 Pages，以满足 `pages.dev` 域名要求。已有 Pages 项目的后续部署不需要该选项。
+
+从创建结果复制 `database_id`。将以下占位值替换为实际账号和数据库 ID：
 
 ```powershell
 $env:CLOUDFLARE_ACCOUNT_ID = '你的 Cloudflare Account ID'
@@ -48,9 +60,16 @@ $env:CLOUDFLARE_D1_DATABASE_ID = '创建 D1 后返回的 UUID'
 npm run cf:deploy
 ```
 
-命令先生成被 Git 忽略的 `wrangler.deploy.json`，应用远程迁移，再部署 Worker 和静态文件。`wrangler.jsonc` 中全零 ID 仅用于本地开发；部署脚本拒绝缺失或全零 ID。无需手动把账号信息写进源码。
+命令构建两份产物，校对提交号及文件哈希，再生成被 Git 忽略的 `wrangler.deploy.json`，应用远程迁移，部署私有 Worker，最后发布 Pages。`wrangler.jsonc` 中全零 ID 仅用于本地开发；部署脚本拒绝缺失或全零 ID。无需手动把账号信息写进源码。
 
-成功后使用 Wrangler 输出的实际 `workers.dev` 地址；可在 Cloudflare 的 Worker 设置中绑定自定义域名。游戏和 API 必须位于同一域名。把该地址下的 `/playtest/` 发给测试者即可。
+Pages 发布使用 `--cwd cloudflare/pages`，从专用配置读取服务绑定，`--branch main` 更新正式域名。Wrangler 会返回本次部署独立地址；正式入口为 Pages 项目的 `muse-bloom.pages.dev`。游戏和 API 位于同一域名，把 `/playtest/` 发给测试者即可。确认主域名的 `build.json` 与本次提交一致后，再执行一次标记为自动化的实际提交并到 D1 核对回执。
+
+```powershell
+$env:MUSE_CF_URL = 'https://muse-bloom.pages.dev'
+npm run test:cloudflare-live
+```
+
+线上检查必须显式设置 HTTPS 地址。它对比已测试产物的提交号及三个页面的哈希，实际完成桌面/手机首套造型，并创建一条 `automated-check` / `automated` 反馈，再原样重试确认回执一致。报告及回执位于 `artifacts/cloudflare-live/report.json`。该脚本不读取其他参与者的反馈；管理员应按报告中的准确回执在远程 D1 核对数据库行，不能只以网页提示为成功证据。
 
 ## GitHub Actions 自动部署
 
@@ -60,14 +79,14 @@ npm run cf:deploy
 
 | 类型 | 名称 | 值 |
 | --- | --- | --- |
-| Secret | `CLOUDFLARE_API_TOKEN` | 限定到目标账号、能编辑 Workers Scripts 和 D1 的 API Token |
+| Secret | `CLOUDFLARE_API_TOKEN` | 限定到目标账号、能编辑 Cloudflare Pages、Workers Scripts 和 D1 的 API Token |
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账号 ID |
 | Variable | `CLOUDFLARE_D1_DATABASE_ID` | 已创建的 D1 数据库 UUID |
 | Variable | `CLOUDFLARE_DEPLOY_ENABLED` | `true` |
 
-可用 Cloudflare 的 Edit Cloudflare Workers token 模板为起点，确认包含目标账号 D1 编辑权限；参考官方 [CI/CD 认证说明](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)。Token 只保存在 GitHub Secret 或本机环境变量中，不发到聊天、不放入配置文件。
+可用 Cloudflare 的 Edit Cloudflare Workers token 模板为起点，确认包含目标账号 Pages 和 D1 编辑权限；参考官方 [CI/CD 认证说明](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)。本机交互式 OAuth 登录可完成手动部署；GitHub 自动部署需要另行创建 API Token。Token 只保存在 GitHub Secret 或本机环境变量中，不发到聊天、不放入配置文件。
 
-最后手动运行 workflow 或推送到 `main`。部署任务下载同一轮测试生成的 `muse-bloom-cloudflare` artifact，执行 D1 迁移再发布，不重新构建另一个版本。尚未配置 Cloudflare 时该任务显示 skipped，测试和 Pages 发布照常进行。
+最后手动运行 workflow 或推送到 `main`。部署任务下载同一轮测试生成的 `muse-bloom-cloudflare` 和 `muse-bloom-cloudflare-pages` 两个 artifact，执行 D1 迁移再依次发布私有 Worker 与 Pages，不重新构建另一个版本。尚未配置 Cloudflare 时该任务显示 skipped，测试和 GitHub Pages 发布照常进行。
 
 ## 查询和汇总反馈
 
@@ -110,4 +129,4 @@ FROM ranked WHERE position = 1 GROUP BY game_version;
 
 生产首次验证应使用 `/playtest/?qa=1`，填写并提交后在 D1 找到相同回执。此时记录为 `automated-check`，不会混入上面的汇总。校验后可在管理员控制台按确定的回执删除该测试行。未执行真实 Cloudflare 发布、线上提交和 D1 查询前，不应把本地测试当成生产部署成功。
 
-实现参考：[Workers 静态资源](https://developers.cloudflare.com/workers/static-assets/)、[D1 入门](https://developers.cloudflare.com/d1/get-started/)、[D1 参数绑定](https://developers.cloudflare.com/d1/worker-api/prepared-statements/)。
+实现参考：[Pages Advanced mode](https://developers.cloudflare.com/pages/functions/advanced-mode/)、[Pages Service bindings](https://developers.cloudflare.com/pages/functions/bindings/#service-bindings)、[D1 入门](https://developers.cloudflare.com/d1/get-started/)、[D1 参数绑定](https://developers.cloudflare.com/d1/worker-api/prepared-statements/)。

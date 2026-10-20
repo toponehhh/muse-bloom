@@ -1,8 +1,8 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright'),{fixture}=require('./cloudflare-fixture');
-const out=path.resolve(__dirname,'../artifacts/cloudflare');
-const report={version:require('../package.json').version,target:'local Cloudflare Worker, static assets and isolated D1',checks:[],errors:[]};
+const pages=process.env.MUSE_CF_TARGET==='pages',out=path.resolve(__dirname,pages?'../artifacts/cloudflare-pages':'../artifacts/cloudflare');
+const report={version:require('../package.json').version,target:pages?'local Pages service binding, private Worker and isolated D1':'local Cloudflare Worker, static assets and isolated D1',checks:[],errors:[]};
 const pass=message=>{report.checks.push(message);console.log('PASS:',message);};
 const fill=async page=>{
   for(const key of ['clarity','readability','visuals','enjoyment'])await page.locator('[name="'+key+'"]').selectOption('4');
