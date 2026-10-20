@@ -1,7 +1,7 @@
 (function(root){
   'use strict';
   // Original synthesized effects. QA renders this same graph to actual PCM.
-  const melodies={click:[880],tab:[740,988],equip:[784,1175,1568],unequip:[660,440],clear:[523,392],shutter:[1047],rankS:[523,659,784,1047,1319],rankLow:[523,659,784],unlock:[784,988,1175,1568]};
+  const melodies={click:[880],tab:[740,988],equip:[784,1175,1568],goal:[659,988,1319],unequip:[660,440],clear:[523,392],shutter:[1047],rankS:[523,659,784,1047,1319],rankLow:[523,659,784],unlock:[784,988,1175,1568]};
   function synthesize(ctx,name,start=ctx.currentTime,destination=ctx.destination){
     name=Object.hasOwn(melodies,name)?name:'click';const voices=[];
     function voice(source,peak,duration,offset=0,filter=null){

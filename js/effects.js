@@ -25,6 +25,13 @@
     document.querySelectorAll('.rating-star.earned').forEach((node,i)=>animate(node,[{opacity:0,scale:'.2',rotate:'-20deg'},{opacity:1,scale:'1.2',rotate:'8deg',offset:.65},{opacity:1,scale:'1',rotate:'0deg'}],{duration:500,delay:180+i*160}));
     document.querySelectorAll('.reward-items>div').forEach((node,i)=>animate(node,[{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:400,delay:450+i*70}));
   }
+  function goals(indices){
+    for(const index of indices){
+      const node=document.querySelector('.live-goal[data-goal="'+index+'"]');
+      animate(node,[{backgroundColor:'#e4cfad',scale:'.98'},{backgroundColor:'#edf2e7',scale:'1'}],{duration:600});
+      animate(node?.querySelector('.goal-symbol'),[{scale:'.5'},{scale:'1.2',offset:.5},{scale:'1'}],{duration:420});
+    }
+  }
   function shutter(){animate(document.querySelector('.result-stage,.saved-look-portrait'),[{filter:'brightness(1)'},{filter:'brightness(1.15)',offset:.35},{filter:'brightness(1)'}],{duration:300});}
   reduced.addEventListener('change',reset);document.addEventListener('visibilitychange',()=>{if(document.hidden)reset();});
   function presentation(done){
@@ -38,5 +45,5 @@
     if(motion)motion.finished.catch(()=>{}).then(done);
     else queueMicrotask(done);
   }
-  root.MuseFX={enter,equip,reveal,shutter,reset,presentation};
+  root.MuseFX={enter,equip,reveal,shutter,reset,presentation,goals};
 })(globalThis);

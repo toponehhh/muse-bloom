@@ -1,0 +1,108 @@
+/* The occasion stays visible while the player experiments. */
+.salon-dressing .wardrobe-title{margin:0 0 8px;min-height:12px}
+.live-goals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px;flex:none}
+.live-goal{display:flex;align-items:center;gap:7px;min-height:50px;border:1px solid #deccd5;border-radius:12px;padding:8px;color:#634358;background:#fbf4f0;text-align:left}
+.live-goal:hover{background:#f4e8ed;border-color:#b78c9e}
+.goal-symbol{font-size:18px;flex:none;color:#86546e}
+.goal-label{font-size:12px;line-height:1.25;font-weight:650;overflow-wrap:anywhere}
+.goal-label small{display:block;font-size:10px;font-weight:400;margin-top:3px;color:#76556b}
+.live-goal.done{background:#edf2e7;border-color:#c7d5ba}
+.live-goal.done .goal-symbol,.live-goal.done .goal-label{color:#405e3a}
+.live-goal.is-guided{border-color:#a5597a;box-shadow:inset 0 0 0 1px #a5597a}
+.item-card.suggested{outline:2px solid #947c50;outline-offset:-2px;background:#fbf4df}
+.item-card.suggested.selected{background:#f9e7ed}
+.brief-matches{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}
+.brief-matches>span{padding:2px 5px;border-radius:5px;font-size:10px;line-height:1.4;background:#ede2e9;color:#69405a}
+.brief-matches>.bonus{background:#f4ead4;color:#6a552f}
+.wardrobe-toolbar{margin:0 0 5px;gap:6px;flex-wrap:wrap}
+#wardrobe-tools{display:flex;align-items:center;gap:8px;flex:1}
+.next-detail{flex:1;min-width:0}
+.next-detail-button,.undo-button,.retry-detail{min-height:44px;font-size:12px;display:inline-flex;gap:5px;align-items:center;color:#873650;font-weight:650;border-radius:8px;padding:4px 8px}
+.next-detail-button:hover,.undo-button:hover,.retry-detail:hover{background:#f4e7ec}
+.next-detail-button .icon,.retry-detail .icon{width:14px;height:14px}
+.ready-detail{display:flex;align-items:center;gap:5px;color:#405e3a;font-size:11px}
+.ready-detail .icon{width:15px;height:15px}
+.undo-button:disabled{opacity:.5;cursor:default}
+.outfit-status{display:flex;flex-direction:column;gap:2px}
+.salon-dressing .outfit-status>.live-score{font-size:22px;line-height:1;color:#674057;font-variant-numeric:tabular-nums}
+.live-score small{font-size:11px;color:#76556b}
+.coach-close,.coach-link{min-width:44px;min-height:44px}
+.goal-hint-strip p{line-height:1.4}
+@media(max-width:1024px){
+ .live-goal{gap:5px;padding:6px}.goal-label{font-size:11px}
+ .live-goals{gap:4px;margin-bottom:8px}
+}
+@media(max-width:767px){
+ .live-goals{margin:0 0 8px}.live-goal{min-height:48px}
+ .goal-label{font-size:11px}.goal-label small{font-size:9px}
+ .next-detail-button,.undo-button{font-size:11px}
+ .wardrobe-toolbar{margin:0 0 4px}
+ .salon-dressing .outfit-status>.live-score{font-size:19px}
+ .wardrobe-toolbar .swipe-hint{display:none}
+ .brief-matches>span{font-size:10px;padding:2px 3px}
+}
+/* Portrait keeps the goals beside the full character, with clothes just below. */
+@media(max-width:767px) and (orientation:portrait){
+ .salon-dressing .brief-actions>[data-action="style-brief"]{display:none}
+ .salon-dressing .dressing-layout{display:grid;grid-template-columns:minmax(0,60%) minmax(0,40%);gap:8px}
+ .salon-dressing .studio-column{grid-column:1;grid-row:1;height:clamp(200px,calc(100dvh - 440px),440px)}
+ .salon-dressing .wardrobe-panel,.salon-dressing .wardrobe-toolbar{display:contents}
+ .salon-dressing .live-goals{grid-column:2;grid-row:1;align-self:center;display:flex;flex-direction:column;margin:0 0 46px;gap:6px}
+ .salon-dressing .live-goal{min-height:46px;padding:7px}
+ .salon-dressing #wardrobe-tools{grid-column:2;grid-row:1;align-self:end;justify-content:center;margin:0}
+ .salon-dressing .next-detail,.salon-dressing #category-count{display:none}
+ .salon-dressing .undo-button{justify-content:center;width:100%;border:1px solid #e2d1d9;background:#fffaf7}
+ .salon-dressing #category-tabs{grid-column:1 / -1;grid-row:2}
+ .salon-dressing .wardrobe-toolbar label{grid-column:1 / -1;grid-row:3}
+ .salon-dressing #item-grid{grid-column:1 / -1;grid-row:4}
+ .salon-dressing #dress-notice{grid-column:1 / -1;grid-row:5}
+ .salon-dressing .item-card{flex-basis:calc((100% - 16px) / 3)}
+}
+/* Standard CG iframes are often short. Give items room without clipping controls. */
+@media(min-width:768px) and (max-height:700px){
+ .app-header.salon-header{height:56px}
+ .salon-dressing{height:calc(100dvh - 56px);padding:8px 14px 10px;gap:8px}
+ .brief-main h1{font-size:24px}.brief-main p{display:none}
+ .salon-dressing .wardrobe-panel{padding:10px 10px 0}
+ .salon-dressing .wardrobe-title{display:none}
+ .live-goals{margin-bottom:6px}
+ .live-goal{min-height:44px}
+ .category-tab{min-height:44px;gap:2px;padding:4px 2px}
+ .category-tab>.icon{width:18px;height:18px}
+ .salon-dressing .wardrobe-footer{padding:8px 0}
+ .salon-dressing .item-picture,.salon-dressing .item-card:nth-child(n) .item-picture{height:90px}
+ .salon-dressing .item-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .coach-strip{padding:2px 8px}
+}
+@media(max-width:767px) and (orientation:landscape){
+ body[data-screen="dressing"] .app-header.salon-header{height:48px}
+ .salon-dressing{position:relative;height:calc(100dvh - 48px);display:grid;grid-template-columns:42% minmax(0,58%);grid-template-rows:auto minmax(0,1fr) auto;gap:8px}
+ .salon-dressing .brief{grid-column:1 / -1;grid-row:1}
+ .salon-dressing .brief-main{max-width:calc(100% - 218px)}
+ .salon-dressing .brief-main h1{font-size:19px}
+ .salon-dressing #coach-slot{grid-column:1;grid-row:3}
+ .salon-dressing .coach-number{display:none}
+ .salon-dressing .coach-strip{padding:2px 4px;gap:3px}
+ .salon-dressing .dressing-layout{display:contents}
+ .salon-dressing .studio-column{grid-column:1;grid-row:2}
+ .salon-dressing .wardrobe-panel{grid-column:2;grid-row:2 / 4;display:flex;overflow:hidden;padding-bottom:64px}
+ .live-goal{min-height:44px;padding:5px}.goal-symbol{font-size:14px}
+ .live-goal .goal-label small{display:none}
+ .salon-dressing #wardrobe-tools{position:absolute;right:156px;top:10px;height:44px}
+ .salon-dressing .next-detail,.salon-dressing #category-count{display:none}
+ .salon-dressing .wardrobe-toolbar{order:3;flex:none;margin:0}
+ .salon-dressing #item-grid{flex:1;min-height:0;overflow:auto;order:2}
+ .salon-dressing #dress-notice{order:4}
+ .salon-dressing .wardrobe-footer .outfit-status{display:none}
+}
+@media(min-width:768px) and (max-height:520px){
+ .app-header.salon-header{height:48px}
+ .salon-dressing{height:calc(100dvh - 48px);gap:6px}
+ .brief-main h1{font-size:22px;line-height:1.1;margin:2px 0}
+ .coach-strip{padding:0 6px}
+ .salon-dressing .wardrobe-panel{padding:6px 8px 0}
+ .live-goal{min-height:44px}.goal-label small{display:none}
+ .category-tabs{padding:2px}
+ .salon-dressing .wardrobe-footer{padding:5px 0}
+ .wardrobe-footer>.primary{min-height:44px}
+}
