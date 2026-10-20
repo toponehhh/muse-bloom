@@ -2,9 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {pathToFileURL}=require('node:url'),{execFileSync}=require('node:child_process');
 const {chromium}=require('playwright');
-const root=path.resolve(__dirname,'..'),out=path.join(root,'artifacts/v1.7.0');
+const root=path.resolve(__dirname,'..'),out=path.join(root,'artifacts/playtest'),version=require('../package.json').version;
 const channel=process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':'chromium');
-const report={version:'1.7.0',source:'automated-check',humanParticipants:0,checks:[],errors:[]};
+const report={version,source:'automated-check',humanParticipants:0,checks:[],errors:[]};
 const pass=s=>{report.checks.push(s);console.log('PASS:',s);};
 let browser;
 (async()=>{
@@ -12,15 +12,20 @@ let browser;
  browser=await chromium.launch({channel:channel==='chromium'?undefined:channel,headless:true});
  const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce',acceptDownloads:true});
  const page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));
- const guide=pathToFileURL(path.join(root,'dist/playtest-v1.7.0/index.html')).href;
+ const guide=pathToFileURL(path.join(root,'dist/playtest-v'+version+'/index.html')).href;
  await page.goto(guide);assert.ok(await page.locator('h1').isVisible());
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  // The delivered link launches the self-contained file, with isolated save mode.
  const opened=context.waitForEvent('page');await page.locator('.actions a').first().click();const game=await opened;
  await game.locator('.salon-home').waitFor();assert.ok(await game.evaluate(()=>MusePlaytest.active));
- await game.evaluate(()=>localStorage.setItem('muse_bloom_playtest_v17',JSON.stringify({version:'1.7.0',events:null})));
+ await game.evaluate(()=>{
+   localStorage.setItem('muse_bloom_playtest_v17',JSON.stringify({version:'1.7.0',participant:'PREVIOUS-ROUND'}));
+   localStorage.setItem(MusePlaytest.recordKey,JSON.stringify({version:MusePlaytest.version,events:null}));
+ });
  await game.reload();await game.locator('.salon-home').waitFor();
  const pid=await game.evaluate(()=>MusePlaytest.snapshot().participant);assert.match(pid,/^P-[A-Z0-9]{6}$/);
+ assert.equal(await game.evaluate(()=>MusePlaytest.snapshot().version),version);
+ assert.equal(await game.evaluate(()=>JSON.parse(localStorage.getItem('muse_bloom_playtest_v17')).participant),'PREVIOUS-ROUND');
  await game.locator('.home-actions [data-action="play"]').click();
  await game.locator('[data-action="category"][data-category="top"]').click();
  await game.locator('[data-item="top_casual_01"]').click();
@@ -38,6 +43,7 @@ let browser;
  await page.locator('[name="observerNotes"]').fill('Automated form test; not a participant response.');
  const downloading=page.waitForEvent('download');await page.locator('#fallback [type="submit"]').click();
  const artifact=await downloading,feedback=JSON.parse(fs.readFileSync(await artifact.path(),'utf8'));
+ assert.equal(feedback.version,version,'Guide and playable game must label the same release');
  assert.equal(feedback.source,'automated-check');assert.equal(feedback.testType,'automated');assert.equal(feedback.feedback.readability,'4');assert.deepEqual(feedback.events,[]);
  // Test the form, but never persist its synthetic ratings as human feedback.
  pass('Backup observation form downloads valid JSON with four ratings and no fabricated action log');

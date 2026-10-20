@@ -1,7 +1,7 @@
 import '../js/feedback-kind.js';
 const MAX_BYTES = 512 * 1024;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
-const actions = new Set(['session-open', 'hidden', 'visible', 'screen', 'action', 'look-complete', 'reveal-blocked', 'feedback-export']);
+const actions = new Set(['session-open', 'hidden', 'visible', 'screen', 'action', 'look-complete', 'goal-met', 'reveal-blocked', 'feedback-export']);
 class InputError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
 }
@@ -46,6 +46,11 @@ export function validate(input) {
     for (const key of ['name', 'screen', 'item', 'category']) if (e[key] !== undefined) event[key] = text(e[key], key, 80, true);
     if (e.level !== undefined) event.level = integer(e.level, 'level', 1, 36);
     if (e.score !== undefined) event.score = integer(e.score, 'score', 0, 100);
+    if (e.action === 'goal-met') {
+      event.level = integer(e.level, 'level', 1, 36);
+      if (!Array.isArray(e.goals) || e.goals.length < 1 || e.goals.length > 3 || new Set(e.goals).size !== e.goals.length) throw new InputError('Invalid goals');
+      event.goals = e.goals.map(goal => integer(goal, 'goal', 0, 2));
+    }
     if (e.items !== undefined) {
       if (!Array.isArray(e.items) || e.items.length > 12) throw new InputError('Invalid items');
       event.items = e.items.map(id => text(id, 'item', 80, true));

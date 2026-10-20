@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright'),{fixture}=require('./cloudflare-fixture');
 const out=path.resolve(__dirname,'../artifacts/cloudflare');
-const report={target:'local Cloudflare Worker, static assets and isolated D1',checks:[],errors:[]};
+const report={version:require('../package.json').version,target:'local Cloudflare Worker, static assets and isolated D1',checks:[],errors:[]};
 const pass=message=>{report.checks.push(message);console.log('PASS:',message);};
 const fill=async page=>{
   for(const key of ['clarity','readability','visuals','enjoyment'])await page.locator('[name="'+key+'"]').selectOption('4');
@@ -67,6 +67,9 @@ let runtime,browser;
   const pid=await game.evaluate(()=>MusePlaytest.snapshot().participant);
   const actual=await db.prepare('SELECT record_json FROM feedback_submissions WHERE participant_id=?').bind(pid).first();
   const stored=JSON.parse(actual.record_json);assert.ok(stored.events.some(e=>e.action==='look-complete'&&e.score===94));assert.equal(stored.feedback.favorite,'The first look');
+  assert.equal(stored.version,report.version);
+  assert.deepEqual(stored.events.filter(e=>e.action==='goal-met'),await game.evaluate(()=>MusePlaytest.snapshot().events.filter(e=>e.action==='goal-met')));
+  assert.ok(stored.events.some(e=>e.action==='goal-met'&&e.goals.includes(0)));
   assert.equal(await game.evaluate(()=>localStorage.getItem('muse_bloom_save_v1')),'REGULAR-SAVE-CONTROL');
   await game.screenshot({path:path.join(out,'feedback-desktop.png'),fullPage:true});
   await game.locator('[name="favorite"]').fill('Updated answer');await game.locator('#playtest-feedback [type="submit"]').click();await game.locator('.feedback-status[data-state="success"]').waitFor();

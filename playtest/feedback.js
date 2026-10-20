@@ -1,19 +1,19 @@
 (function(){
   'use strict';
-  const form=document.getElementById('fallback'),online=MuseFeedback.online;
+  const form=document.getElementById('fallback'),online=MuseFeedback.online,version='1.8.0';
   const labels={clarity:'我知道下一步该做什么',readability:'人物和衣服细节看得清楚',visuals:'人物与服装的画风协调',enjoyment:'创造不同造型的过程有趣'};
   document.getElementById('rating-fields').innerHTML=Object.entries(labels).map(([name,label])=>'<label>'+label+'<select name="'+name+'" required><option value="">请选择</option>'+[1,2,3,4,5].map(n=>'<option value="'+n+'">'+n+' / 5'+(n===1?' — 完全不同意':n===5?' — 非常同意':'')+'</option>').join('')+'</select></label>').join('');
-  const session=()=>{try{return JSON.parse(localStorage.getItem('muse_bloom_playtest_v17')||'null');}catch{return null;}};
+  const session=()=>{try{return JSON.parse(localStorage.getItem('muse_bloom_playtest_v18')||'null');}catch{return null;}};
   const recent=session();
   if(new URLSearchParams(location.search).get('qa')==='1'){
     for(const link of document.querySelectorAll('.actions a')){const url=new URL(link.href);url.searchParams.set('qa','1');link.href=url.href;}
   }
   MuseFeedback.mount(form,{
-    storageKey:'muse_bloom_guide_feedback_v1',language:'zh',
+    storageKey:'muse_bloom_guide_feedback_v18',language:'zh',
     initial:online?{participant:recent?.participant||'P-'+crypto.randomUUID().slice(0,6).toUpperCase(),device:innerWidth<600?'手机':innerWidth<1000?'平板':'电脑'}:{},
     getRecord:answers=>{
-      const r=session(),matched=r?.participant===answers.participant&&Array.isArray(r.events)&&r.version==='1.7.0';
-      return {version:'1.7.0',source:new URLSearchParams(location.search).get('qa')==='1'?'automated-check':matched?r.source:'manual-feedback',
+      const r=session(),matched=r?.participant===answers.participant&&Array.isArray(r.events)&&r.version===version;
+      return {version,source:new URLSearchParams(location.search).get('qa')==='1'?'automated-check':matched?r.source:'manual-feedback',
         participant:answers.participant,...(matched?{startedAt:r.startedAt}:{}),exportedAt:new Date().toISOString(),feedback:answers,events:matched?r.events:[]};
     }
   });

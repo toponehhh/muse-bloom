@@ -21,7 +21,7 @@ async function newPage(base,width,height,level=1){
   const page=await browser.newPage({viewport:{width,height},reducedMotion:'reduce',acceptDownloads:true});
   page.on('pageerror',e=>report.errors.push(e.message));
   if(level===4){const save=G.newSave();for(const theme of D.themes.slice(0,3))save.levels[theme.id]={best:94,rank:'S'};save.onboardingDone=true;
-    await page.addInitScript(save=>localStorage.setItem('muse_bloom_playtest_v17_save',JSON.stringify(save)),save);
+    await page.addInitScript(save=>localStorage.setItem('muse_bloom_playtest_v18_save',JSON.stringify(save)),save);
   }
   await page.goto(base+'?playtest=1&qa=1');await page.locator('.salon-home').waitFor();return page;
 }

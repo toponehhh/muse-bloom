@@ -3,8 +3,9 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const {chromium}=require('playwright'),{createServer}=require('./server');
 const D=require('../js/data'),G=require('../js/game'),E=require('../js/edit');
 const channel=process.env.MUSE_BROWSER_CHANNEL||(process.platform==='win32'?'msedge':'chromium');
-const out=path.join(__dirname,'../artifacts/v1.7.0');fs.mkdirSync(out,{recursive:true});
-const report={version:'1.7.0',channel,source:'automated-check',checks:[],errors:[],layouts:[],humanParticipants:0};
+const out=path.join(__dirname,'../artifacts/studio');fs.mkdirSync(out,{recursive:true});
+const report={version:require('../package.json').version,channel,source:'automated-check',checks:[],errors:[],layouts:[],humanParticipants:0};
+report.scope=process.argv.includes('--wardrobe-only')?'wardrobe-and-layout':'full';
 const pass=s=>{report.checks.push(s);console.log('PASS:',s);};
 const save=G.newSave();for(const t of D.themes)save.levels[t.id]={best:94,rank:'S'};
 save.unlockedItems=D.items.map(i=>i.id);save.onboardingDone=true;
@@ -18,6 +19,7 @@ function watch(page){page.on('pageerror',e=>report.errors.push(e.message));}
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
  browser=await chromium.launch({channel:channel==='chromium'?undefined:channel,headless:true});report.browser=browser.version();
+ if(report.scope==='full'){
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce',acceptDownloads:true});watch(page);
  await page.goto(url);await page.locator('.home-actions [data-action="play"]').click();
  assert.match(await page.locator('.coach-strip').innerText(),/Choose a top/);
@@ -28,7 +30,7 @@ function watch(page){page.on('pageerror',e=>report.errors.push(e.message));}
  await equip(page,'shoes_casual_01');assert.match(await page.locator('.coach-strip').innerText(),/look is ready/);
  await equip(page,'hair_casual_01');
  assert.equal(await page.locator('[data-painted-material]').count(),4);
- await page.locator('[data-action="style-brief"]').click();
+ await page.locator('.brief-actions [data-action="style-brief"]').click();
  assert.equal(await page.locator('#dialog .style-goals .done').count(),3);
  await page.locator('#dialog [data-action="close"]').click();
  await page.locator('[data-action="score"]').click();await waitResult(page);
@@ -72,6 +74,7 @@ function watch(page){page.on('pageerror',e=>report.errors.push(e.message));}
  }
  pass('All 36 challenges completed through actual equip/reveal/next actions at 94 points');
  await page.close();
+ }
  // Geometry is measured in document coordinates. Small phones may scroll;
  // they must not shrink the avatar or overlap clothing with controls.
  for(const [width,height] of [[320,568],[375,667],[390,844],[667,375],[768,1024],[1024,540],[1024,768],[1440,600],[1440,1000]]){
@@ -88,7 +91,7 @@ function watch(page){page.on('pageerror',e=>report.errors.push(e.message));}
        const head=rect(180,0,360,280),feet=rect(250,1130,220,148);
        const overlaps=(a,b)=>a.left<b.right&&b.left<a.right&&a.top<b.bottom&&b.top<a.bottom;
        const within=a=>a.left>=s.left-1&&a.right<=s.right+1&&a.top>=s.top-1&&a.bottom<=s.bottom+1;
-       const controls=[...document.querySelectorAll('.brief,.wardrobe-panel,.coach-strip')];
+       const controls=[...document.querySelectorAll('.brief,.wardrobe-panel,.coach-strip,.live-goals,#category-tabs,.wardrobe-footer,.body-cover-negative')];
        return {headVisible:within(head),feetVisible:within(feet),noCover:controls.every(n=>!overlaps(head,n.getBoundingClientRect())&&!overlaps(feet,n.getBoundingClientRect())),
          noOverflow:document.documentElement.scrollWidth<=innerWidth+1,avatarHeight:svg.getBoundingClientRect().height,
          stageHeight:s.height,bg:getComputedStyle(document.body).backgroundColor,htmlBg:getComputedStyle(document.documentElement).backgroundColor};};return __layoutCheck();
@@ -99,7 +102,8 @@ function watch(page){page.on('pageerror',e=>report.errors.push(e.message));}
    }
    if(width===390){
      const negative=await p.evaluate(()=>{
-       const stage=document.querySelector('.fitting-stage'),bad=document.createElement('div');bad.className='wardrobe-panel';
+       // Independent overlay: an app class may use display:contents on phones.
+       const stage=document.querySelector('.fitting-stage'),bad=document.createElement('div');bad.className='body-cover-negative';
        bad.style.cssText='position:absolute;left:30%;top:3%;width:40%;height:25%;z-index:50';stage.append(bad);
        const headBlocked=!__layoutCheck().noCover;
        bad.style.cssText='position:absolute;left:0;bottom:0;width:100%;height:60px;z-index:50';const feetBlocked=!__layoutCheck().noCover;
