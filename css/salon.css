@@ -123,6 +123,8 @@ dialog::backdrop{background:#3b29335e;backdrop-filter:blur(5px)}
  .item-name{font-size:10px;line-height:1.25;min-height:25px;white-space:normal}.selected-check{width:17px;height:17px;right:3px;bottom:3px}.selected-check .icon{width:12px;height:12px}
  .wardrobe-footer{padding:8px 0;gap:7px}.wardrobe-footer>.primary{min-height:44px;font-size:12px;min-width:153px;padding:10px 13px}.wardrobe-footer>.icon-button{width:35px;height:35px}.goal-progress{font-size:10px}.dress-notice{font-size:10px;padding:6px 8px}
  .salon-result{display:flex;flex-direction:column;padding:14px;gap:18px}.result-look{width:100%;padding:13px}.result-look-heading h2{font-size:22px}.result-stage{height:440px;min-height:0;margin-top:10px}.result-copy{padding:6px 4px;width:100%}.result-copy h1{font-size:38px}.result-story{font-size:13px}.result-actions .button{min-height:44px}
+ .salon-result .result-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .salon-result .result-actions .primary{grid-column:1/-1;white-space:normal;line-height:1.4}
  .reveal-screen{min-height:calc(100dvh - 54px);padding:14px}.reveal-heading h1{font-size:34px}.reveal-stage{min-height:290px;height:calc(100dvh - 260px);width:min(360px,94vw);border-radius:90px 90px 20px 20px}.reveal-caption{font-size:14px}.reveal-skip{min-height:40px}
  .character-preview{height:250px}.character-card>span{font-size:9px}.character-card strong{font-size:17px}.character-gallery{gap:8px}
 }
