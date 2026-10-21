@@ -16,6 +16,8 @@ The first occasions are Coffee with friends, The gallery opening and Weekend flo
 
 ## Play and develop
 
+The experimental [Motion Atelier](demos/skeletal/README.md) runs a new original character on **PixiJS 8 + DragonBones** with 20 bones, weighted clothing meshes, 6 garments and 3 animations. Use `npm run demo:skeletal` to open the separate demo at `http://localhost:4175/demos/skeletal/index.html`; `npm run test:skeletal` checks its motion, fit and UI. This experiment does not replace the v1.8 game or its production deployment.
+
 Open the source `index.html`, or run `npm start` and visit `http://localhost:4173`. The delivered standalone file needs no server, account, CDN or installation.
 
 ```sh

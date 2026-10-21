@@ -43,7 +43,8 @@
     "cf:configure": "node dev/cloudflare-command.js configure",
     "cf:deploy": "npm run package:cloudflare-pages && node dev/cloudflare-command.js deploy",
     "demo:skeletal": "node dev/skeletal-server.js",
-    "build:skeletal": "node dev/build-skeletal.js"
+    "build:skeletal": "node dev/build-skeletal.js",
+    "test:skeletal": "npm run build:skeletal && node dev/skeletal.test.js"
   },
   "engines": {
     "node": ">=22"

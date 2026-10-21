@@ -26,6 +26,14 @@ jobs:
         run: npm ci
       - name: Install test browser
         run: npx playwright install --with-deps chromium
+      - name: PixiJS skeletal demo, garment contacts and responsive layout
+        run: npm run test:skeletal
+      - name: Keep the independent skeletal demo for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: muse-bloom-skeletal-demo
+          path: dist/skeletal-demo/
+          if-no-files-found: error
       - name: Feedback API against an isolated local D1
         run: npm run test:feedback-api
       - name: Separate human feedback from simulations and unverified imports
@@ -79,6 +87,7 @@ jobs:
             artifacts/cloudflare-pages/
             artifacts/playtest-ui/
             artifacts/quality/
+            artifacts/skeletal/
       - name: Check generated art stays reproducible
         run: |
           npm run assets
