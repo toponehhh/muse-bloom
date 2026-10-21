@@ -41,14 +41,21 @@
     "test:cloudflare": "npm run package:cloudflare && node dev/cloudflare.test.js",
     "cf:dev": "npm run package:cloudflare && node dev/cloudflare-command.js dev",
     "cf:configure": "node dev/cloudflare-command.js configure",
-    "cf:deploy": "npm run package:cloudflare-pages && node dev/cloudflare-command.js deploy"
+    "cf:deploy": "npm run package:cloudflare-pages && node dev/cloudflare-command.js deploy",
+    "demo:skeletal": "node dev/skeletal-server.js",
+    "build:skeletal": "node dev/build-skeletal.js"
   },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "miniflare": "5.20261019.0-beta",
     "playwright": "1.62.1",
     "wrangler": "4.151.2"
+  },
+  "dependencies": {
+    "pixi-dragonbones-runtime": "8.0.3",
+    "pixi.js": "8.22.0"
   }
 }

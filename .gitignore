@@ -12,3 +12,5 @@ Thumbs.db
 .dev.vars.*
 wrangler.deploy.json
 playtest-responses/
+demos/skeletal/app.js
+demos/skeletal/app.js.LEGAL.txt
