@@ -1,5 +1,7 @@
 # Muse Bloom
 
+**New: [Style Stories 2.0](https://style-room.muse-bloom.pages.dev)** — the approved Mira/room style now includes all **36 challenges, six chapters and 122 collectible items**, original scoring/ranks, rewards, best-look collection and save recovery. Run `npm run demo:style` and open the printed `campaign.html` URL. [Release notes](docs/STYLE-ROOM-RELEASE.md) describe this feature branch's Cloudflare delivery and test evidence; the classic game below remains a separate entry.
+
 **v1.8.0 — Make It Yours**
 
 [Play online](https://toponehhh.github.io/muse-bloom/) · [Playtest tasks & feedback](https://toponehhh.github.io/muse-bloom/playtest/) · [Build & deployment status](https://github.com/toponehhh/muse-bloom/actions/workflows/verify.yml)

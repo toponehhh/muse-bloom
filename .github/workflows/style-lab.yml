@@ -7,6 +7,11 @@ on:
       - 'dev/*style-lab*'
       - 'dev/style-release.test.js'
       - 'dev/style-progress.test.mjs'
+      - 'dev/campaign*.test.*'
+      - 'js/data.js'
+      - 'js/game.js'
+      - 'js/edit.js'
+      - 'js/art.js'
       - 'dev/cloudflare-fixture.js'
       - 'cloudflare/**'
       - 'js/feedback*.js'
@@ -20,6 +25,11 @@ on:
       - 'dev/*style-lab*'
       - 'dev/style-release.test.js'
       - 'dev/style-progress.test.mjs'
+      - 'dev/campaign*.test.*'
+      - 'js/data.js'
+      - 'js/game.js'
+      - 'js/edit.js'
+      - 'js/art.js'
       - 'dev/cloudflare-fixture.js'
       - 'cloudflare/**'
       - 'js/feedback*.js'
@@ -59,6 +69,7 @@ jobs:
           path: |
             artifacts/style-lab/
             artifacts/style-release/
+            artifacts/campaign/
           retention-days: 14
       - name: Keep the tested Cloudflare preview
         uses: actions/upload-artifact@v4

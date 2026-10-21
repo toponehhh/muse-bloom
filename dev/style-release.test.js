@@ -17,24 +17,27 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
   await page.goto(base+'/?test=1&qa=1');await page.waitForFunction(()=>document.documentElement.dataset.ready==='true');
   const build=await(await context.request.get(base+'/build.json')).json();assert.equal(build.version,release.version);assert.equal(build.channel,'style-room');
   assert.equal(await page.evaluate(()=>window.MuseFeedback.online),true);
-  // A custom look is savable, but cannot complete an unrelated theme.
-  await page.locator('[data-theme="1"]').click();await page.locator('#save').click();
-  assert.match(await page.locator('#result-progress').innerText(),/0 of 3/);await page.locator('#keep-styling').click();
+  assert.equal(build.themes,36);assert.equal(build.pieces,122);
+  // Exercise real clothing controls on the exact Pages artifact and live host.
+  const looks=[[
+    ['hair','hair_casual_01']
+  ],[
+    ['dress','dress_elegant_02'],['shoes','shoes_cute_02']
+  ],[
+    ['top','top_casual_01'],['bottom','bottom_casual_01'],['shoes','shoes_casual_01'],['accessory','accessory_casual_01']
+  ]];
   for(let theme=0;theme<3;theme++){
-    await page.locator(`[data-theme="${theme}"]`).click();
-    await page.locator('[data-tab="tops"]').click();await page.locator(`[data-item="${theme}"]`).click();
-    await page.locator('[data-tab="bottoms"]').click();await page.locator(`[data-item="${theme}"]`).click();
-    await page.locator('#save').click();
-    assert.equal((await page.evaluate(()=>window.__styleLab.snapshot().completed)).length,theme+1);
-    if(theme<2){await page.locator('#next-theme').click();assert.equal(await page.locator('#brief-name').innerText(),theme===0?'Pastel hour':'Gallery day');}
-    else{assert.equal(await page.locator('#next-theme').isVisible(),false);await page.screenshot({path:path.join(out,'completed-edit.png')});await page.locator('#keep-styling').click();}
+    for(const [category,id]of looks[theme]){await page.locator(`[data-category="${category}"]`).click();await page.locator(`[data-item="${id}"]`).click();}
+    await page.locator('#reveal').click();assert.equal(await page.locator('#rank').innerText(),'S');assert.equal(await page.locator('#score').innerText(),'94');
+    assert.equal(await page.evaluate(()=>window.__campaign.snapshot().completed),theme+1);
+    await page.locator('#next-level').click();
   }
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.ready==='true');
-  assert.deepEqual(await page.evaluate(()=>{const s=window.__styleLab.snapshot();return [s.state.top,s.state.bottom,s.completed.length];}),[2,2,3]);
-  await page.locator('[data-tab="saved"]').click();await page.locator('[data-saved="1"]').click();await page.locator('#wear-look').click();
-  assert.deepEqual(await page.evaluate(()=>[window.__styleLab.state.top,window.__styleLab.state.bottom,window.__styleLab.state.theme]),[1,1,1]);
-  const count=await page.locator('#saved-count').innerText();await page.locator('#save').click();await page.locator('#keep-styling').click();assert.equal(await page.locator('#saved-count').innerText(),count);
-  pass('Three themes, completion without false awards, next-theme flow, outfit/progress reload, wear saved looks and duplicate-save handling');
+  assert.equal(await page.evaluate(()=>window.__campaign.snapshot().completed),3);assert.equal(await page.evaluate(()=>window.__campaign.state.level),4);
+  await page.locator('#book-open').click();await page.locator('[data-saved="2"]').click();
+  assert.equal(await page.evaluate(()=>window.__campaign.state.outfit.dress),'dress_elegant_02');
+  const count=await page.locator('#saved-count').innerText();await page.locator('#reveal').click();await page.locator('#retry-look').click();assert.equal(await page.locator('#saved-count').innerText(),count);
+  pass('Full 36-level/122-item artifact: first three challenges earn S through real controls, progression reloads and saved looks restore');
   await page.screenshot({path:path.join(out,'desktop-release.png'),fullPage:true});
   await page.locator('#feedback-open').click();
   for(const [width,height] of [[1440,1000],[800,600],[390,844],[320,568],[667,375]]){
@@ -74,8 +77,8 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
     await submit.click();assert.equal((await runtime.db.prepare('SELECT COUNT(*) AS n FROM feedback_submissions').first()).n,1);
   }
   pass('Responsive feedback, oversized-file rejection, consent, screenshot/recording upload and confirmed receipt'+(runtime?' through isolated Pages → Worker → D1/R2, retry and idempotency':''));
-  await page.locator('#close-feedback').click();await page.locator('[data-tab="bottoms"]').click();await page.locator('[data-item="2"]').click();
-  assert.equal(await page.evaluate(()=>window.__styleLab.state.bottom),2);assert.deepEqual(errors,[]);
+  await page.locator('#close-feedback').click();await page.locator('[data-category="top"]').click();await page.locator('[data-item="top_casual_01"]').click();
+  assert.equal(await page.evaluate(()=>window.__campaign.state.outfit.top),'top_casual_01');assert.deepEqual(errors,[]);
   pass('Game continues after feedback with no page errors');
 })().catch(error=>{console.error(error);errors.push(error.stack);process.exitCode=1;}).finally(async()=>{
   fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({kind:'automated-check',humanParticipants:0,version:release.version,url:base,checks,errors,receipt},null,2));
