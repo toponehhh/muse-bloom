@@ -4,6 +4,9 @@ const {chromium}=require('playwright'),{fixture}=require('./cloudflare-fixture')
 const out=path.resolve(__dirname,'../artifacts/feedback-uploads');
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jvN8AAAAASUVORK5CYII=','base64');
 const picture={name:'screenshot.png',mimeType:'image/png',buffer:png};
+// Fixed synthetic clips avoid MediaRecorder producing an empty container on slow machines.
+const recording={name:'screen.webm',mimeType:'video/webm',buffer:fs.readFileSync(path.join(__dirname,'fixtures/feedback-valid.webm'))};
+const brokenRecording={name:'incomplete.webm',mimeType:'video/webm',buffer:fs.readFileSync(path.join(__dirname,'fixtures/feedback-header-only.webm'))};
 let runtime,browser;const errors=[],checks=[];
 const pass=message=>{checks.push(message);console.log('PASS:',message);};
 (async()=>{
@@ -20,24 +23,39 @@ const pass=message=>{checks.push(message);console.log('PASS:',message);};
   await page.waitForFunction(()=>document.querySelector('.feedback-upload-status').textContent.includes('5 MB'));
   await picker.setInputFiles({name:'bad.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg/>')});
   await page.waitForFunction(()=>document.querySelector('.feedback-upload-status').textContent.includes('请选择'));
+  await picker.setInputFiles(brokenRecording);
+  const warning=page.locator('.feedback-preview-warning');
+  await warning.waitFor({state:'visible',timeout:5000});
+  assert.match(await warning.innerText(),/无法预览.*录屏/);
+  assert.match(await warning.innerText(),/仍可提交/);
+  assert.equal(await warning.getAttribute('role'),'status');
+  assert.equal(await page.locator('.feedback-attachment-list video:visible').count(),0);
+  assert.equal(await page.locator('.feedback-attachment-list strong').innerText(),brokenRecording.name);
+  assert.equal((await bucket.list()).objects.length,0);
+  await page.screenshot({path:path.join(out,'mobile-video-preview-warning.png'),fullPage:true});
+  await page.locator('.feedback-remove').click();assert.equal(await warning.count(),0);
+  await picker.setInputFiles({...picture,name:'incomplete.png',buffer:png.subarray(0,8)});
+  await warning.waitFor({state:'visible',timeout:5000});
+  assert.match(await warning.innerText(),/无法预览.*图片/);
+  assert.equal(await page.locator('.feedback-attachment-list img:visible').count(),0);
+  await page.locator('.feedback-remove').click();assert.equal(await warning.count(),0);
+  pass('Damaged video and image previews show accessible warnings instead of broken players; removal clears them without uploading');
   await picker.setInputFiles(picture);await page.locator('.feedback-attachment-list img').waitFor();
   await page.locator('.feedback-remove').click();assert.equal(await page.locator('.feedback-attachment-list li').count(),0);
   await picker.setInputFiles(picture);await page.locator('.feedback-attachment-list img').waitFor();
-  // Generate an actual short playable screen-like recording, not a fake MIME header.
-  const bytes=await page.evaluate(async()=>{
-    const canvas=document.createElement('canvas');canvas.width=160;canvas.height=90;
-    const ctx=canvas.getContext('2d'),stream=canvas.captureStream(10),chunks=[];
-    const recorder=new MediaRecorder(stream,{mimeType:'video/webm'});
-    const finished=new Promise(resolve=>{recorder.ondataavailable=e=>chunks.push(e.data);recorder.onstop=resolve;});
-    recorder.start();ctx.fillStyle='#ae3e6c';ctx.fillRect(0,0,160,90);ctx.fillStyle='white';ctx.fillText('Automated upload check',10,40);
-    await new Promise(resolve=>setTimeout(resolve,350));recorder.stop();await finished;stream.getTracks().forEach(track=>track.stop());
-    return [...new Uint8Array(await new Blob(chunks,{type:'video/webm'}).arrayBuffer())];
-  });
-  const recording={name:'screen.webm',mimeType:'video/webm',buffer:Buffer.from(bytes)};
   await picker.setInputFiles(recording);await page.locator('.feedback-attachment-list video').waitFor();
+  await page.waitForFunction(()=>{
+    const video=document.querySelector('.feedback-attachment-list video'),image=document.querySelector('.feedback-attachment-list img');
+    return video.readyState>=1&&video.videoWidth>0&&image.complete&&image.naturalWidth>0;
+  });
+  assert.equal(await warning.count(),0);
   assert.equal(await page.locator('.feedback-attachment-list li').count(),2);
   assert.equal(await page.locator('.feedback-attachment-list video').getAttribute('autoplay'),null);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  // A browser may not decode a valid recording's codec: preview failure must not reject its upload.
+  await page.locator('.feedback-attachment-list video').dispatchEvent('error');
+  await warning.waitFor({state:'visible'});assert.match(await warning.innerText(),/仍可提交/);
+  assert.equal(await page.locator('.feedback-attachment-list li').count(),2);
   for(const key of ['clarity','readability','visuals','enjoyment'])await page.locator('[name='+key+']').selectOption('4');
   await page.locator('[name=continue]').selectOption('Maybe');await page.locator('[name=friction]').fill('Automated attachment retry test.');
   await submit.click();assert.match(await page.locator('.feedback-status').innerText(),/勾选/);
@@ -58,6 +76,8 @@ const pass=message=>{checks.push(message);console.log('PASS:',message);};
   await page.reload();await send();await page.locator('.feedback-status[data-state=error]').waitFor();
   assert.match(await page.locator('.feedback-status').innerText(),/重新选择/);assert.equal(puts,2);
   await picker.setInputFiles(recording);await page.locator('.feedback-attachment-list video').waitFor();
+  await page.waitForFunction(()=>document.querySelector('.feedback-attachment-list video').readyState>=1);
+  assert.equal(await warning.count(),0);
   await send();await page.locator('.feedback-status[data-state=error]').waitFor();
   assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM feedback_submissions').first()).n,1);
   await page.reload();await send();await page.locator('.feedback-status[data-state=success]').waitFor();
@@ -73,6 +93,11 @@ const pass=message=>{checks.push(message);console.log('PASS:',message);};
   for(const [width,height] of [[320,568],[667,375],[1280,800]]){
     const game=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'});game.on('pageerror',e=>errors.push(e.message));
     await game.goto(base+'/?playtest=1&qa=1');await game.locator('[data-action=feedback]').first().click();
+    await game.locator('input[type=file]').setInputFiles(brokenRecording);
+    await game.locator('.feedback-preview-warning').waitFor({state:'visible'});
+    assert.match(await game.locator('.feedback-preview-warning').innerText(),/Cannot preview this recording/);
+    assert.match(await game.locator('.feedback-preview-warning').innerText(),/still submit/);
+    assert.equal(await game.locator('.feedback-attachment-list video:visible').count(),0);
     await game.locator('input[type=file]').setInputFiles(picture);await game.locator('.feedback-attachment-list img').waitFor();
     assert.ok(await game.evaluate(()=>{
       const r=document.querySelector('#playtest-feedback [type=submit]').getBoundingClientRect();
