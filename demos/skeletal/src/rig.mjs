@@ -158,10 +158,10 @@ export function makeSkeleton() {
   }]};
 }
 export const wardrobe = {
-  tops:[{id:'tank',name:'Cloud tank',note:'Soft cotton',color:'#eae1cd',texture:'nora',crop:[390,305,245,330]},
+  tops:[{id:'tank',name:'Cloud tank',note:'Soft cotton',color:'#eae1cd',texture:'nora',crop:[390,305,245,330],clip:[[440,307],[458,306],[462,326],[480,338],[512,343],[550,338],[574,325],[577,307],[595,310],[594,354],[607,397],[623,433],[613,493],[594,545],[609,597],[629,618],[592,630],[512,634],[430,625],[410,607],[430,555],[427,516],[414,480],[406,445],[413,404],[430,357]]},
     {id:'rose',name:'Rosie cardigan',note:'Pearl buttons',color:'#dca3a9',texture:'rose-denim',crop:[260,200,500,490]},
     {id:'blue',name:'Sunday polo',note:'Cable knit',color:'#b6c6d7',texture:'blue-ivory',crop:[320,160,390,370]}],
-  bottoms:[{id:'shorts',name:'Studio shorts',note:'Soft stretch',color:'#bb7f8a',texture:'nora',crop:[350,600,330,222]},
-    {id:'denim',name:'Denim days',note:'A-line silhouette',color:'#55708d',texture:'rose-denim',crop:[180,695,665,412]},
+  bottoms:[{id:'shorts',name:'Studio shorts',note:'Soft stretch',color:'#bb7f8a',texture:'nora',crop:[350,630,330,192]},
+    {id:'denim',name:'Denim days',note:'A-line silhouette',color:'#55708d',texture:'rose-denim',crop:[180,695,665,412],clip:[[340,695],[685,695],[842,1110],[180,1110]]},
     {id:'ivory',name:'Gallery trousers',note:'Fluid wide leg',color:'#e8d7bb',texture:'blue-ivory',crop:[315,530,400,900]}],
 };

@@ -26,7 +26,13 @@ function makeThumbnails() {
   for(const item of [...wardrobe.tops,...wardrobe.bottoms]) {
     const canvas=document.createElement('canvas');canvas.width=220;canvas.height=240;
     const context=canvas.getContext('2d'),[x,y,w,h]=item.crop,scale=Math.min(200/w,218/h);
-    context.drawImage(images[item.texture],x,y,w,h,(220-w*scale)/2,(240-h*scale)/2,w*scale,h*scale);
+    const left=(220-w*scale)/2,top=(240-h*scale)/2;
+    // The source sheets contain neighboring garments; crop to the item silhouette
+    // so cardigan cuffs cannot leak into the skirt card.
+    if(item.clip) {
+      context.beginPath();item.clip.forEach(([px,py],index)=>context[index?'lineTo':'moveTo'](left+(px-x)*scale,top+(py-y)*scale));context.closePath();context.clip();
+    }
+    context.drawImage(images[item.texture],x,y,w,h,left,top,w*scale,h*scale);
     thumbnails[item.id]=canvas.toDataURL('image/png');
   }
 }

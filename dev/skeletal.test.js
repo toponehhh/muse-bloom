@@ -109,6 +109,13 @@ async function load(page,url) {
   await page.locator('[data-category="tops"]').focus();await page.keyboard.press('ArrowRight');
   assert.equal(await page.locator('[data-category="bottoms"]').getAttribute('aria-selected'),'true');
   pass('Keyboard arrow navigation between wardrobe tabs');
+  const thumbnail=await page.locator('[data-item="1"] img').evaluate(async img=>{
+    await img.decode();const canvas=document.createElement('canvas');canvas.width=220;canvas.height=240;
+    const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
+    return {edge:ctx.getImageData(18,68,1,1).data[3],skirt:ctx.getImageData(110,105,1,1).data[3]};
+  });
+  assert.ok(thumbnail.edge<10&&thumbnail.skirt>200,'Skirt thumbnail must exclude neighboring pink cardigan cuffs');
+  pass('Wardrobe thumbnail excludes adjacent garments from the source sheet');
   for(const [width,height] of [[1440,1000],[1024,768],[800,600],[390,844],[320,568],[667,375]]) {
     await page.setViewportSize({width,height});await page.waitForTimeout(120);
     const layout=await page.evaluate(()=>{

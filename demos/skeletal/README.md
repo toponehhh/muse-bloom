@@ -48,7 +48,7 @@ Verified locally on 2026-10-21:
 - An empty armpit region detects the previous elbow-stretch spike. A negative control deliberately hides a top and proves the coverage check fails.
 - Real animation advances the wrist and native mesh vertices; pause stops the clock; a completed wave blends back to breathing without changing clothes.
 - 6 layouts: 1440×1000, 1024×768, 800×600, 390×844, 320×568, 667×375. The heading stays above the head and mobile wardrobe controls stay below the feet.
-- Keyboard tabs, bone overlay, speed, sound toggle, PNG download, reduced motion, subpath packaging, missing-skeleton error and successful Retry.
+- Keyboard tabs, bone overlay, speed, sound toggle, PNG download, reduced motion, subpath packaging, missing-skeleton error and successful Retry. Thumbnail clipping excludes neighboring garments on shared source sheets.
 - Original `npm test`: 24 rule/save/occasion tests and all 36 briefs still solvable.
 
 This is sampled automated coverage plus visual inspection, not proof that every intermediate pose or future garment fits. Physical iOS/Android devices and real-player preference have not been tested. There is no 3D rotation, cloth collision solver, full level progression or new Cloudflare deployment in this demo.
