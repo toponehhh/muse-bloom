@@ -1,0 +1,6 @@
+{
+  "tool": "Built-in image_gen.imagegen",
+  "source": "../source/blue-ivory-v1.png",
+  "output": "blue-ivory-v2.png",
+  "prompt": "Edit target is this transparent clothing overlay. Preserve exactly the same 1024x1536 canvas, garment positions, dimensions, shapes, sleeves, trousers, material shading, colors and transparent background. Make ONLY one precise correction: remove the flat blue fabric visible INSIDE the polo neckline behind the V opening, turning that inner neck area fully transparent. It is an empty collar opening for a character's neck. The rear neck band from approximately x465 to570, y165 to220 should not form a closed turtleneck panel. Keep the left and right folded polo lapels and ivory edging intact. The transparent V-shaped interior should run from the top neck opening down to the V tip near x520,y285. Do not include skin, body, text, new props, or any other changes."
+}
