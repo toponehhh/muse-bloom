@@ -45,9 +45,9 @@ async function load(page,url) {
   const external=[];page.on('request',request=>{if(/^https?:/.test(request.url())&&!request.url().startsWith(base))external.push(request.url());});
   await load(page,base+'/demos/skeletal/index.html?test=1');
   assert.equal(await page.evaluate(()=>window.__atelier.snapshot().pixi),'8.22.0');
-  assert.equal(await page.evaluate(()=>window.__atelier.display.armature.getBones().length),20);
+  assert.equal(await page.evaluate(()=>window.__atelier.display.armature.getBones().length),22);
   assert.equal(external.length,0,'Demo must boot without a runtime CDN');
-  pass('PixiJS 8.22.0, 20 DragonBones bones and all local assets boot in a real browser');
+  pass('PixiJS 8.22.0, 22 DragonBones bones and all local assets boot in a real browser');
 
   // Actual joint movement must occur over time, and pause must stop it.
   await page.locator('[data-motion="wave"]').click();
@@ -62,6 +62,24 @@ async function load(page,url) {
   assert.equal(await page.evaluate(()=>window.__atelier.snapshot().frame),stopped);
   pass('Live wrist movement and garment deformation; pause stops the animation clock');
 
+  const swaps=await page.evaluate(async()=>{
+    const a=window.__atelier,results=[];a.setMotion('wave',true);
+    for(let n=0;n<27;n++) {
+      await new Promise(requestAnimationFrame);
+      const time=a.display.animation.lastAnimationState.currentTime;
+      a.setOutfit(n%3,Math.floor(n/3)%3,false);
+      const s=a.snapshot();
+      results.push({top:s.state.top,bottom:s.state.bottom,slots:s.slots.map(v=>({name:v.name,index:v.index,valid:v.visible&&v.vertices.length>0&&v.vertices.every(x=>Number.isFinite(x)&&Math.abs(x)<2000)})),sameTime:time===a.display.animation.lastAnimationState.currentTime});
+    }
+    a.setPause(true);return results;
+  });
+  for(const s of swaps) {
+    assert.ok(s.sameTime&&s.slots.every(v=>v.valid),'Changing clothes must not reset motion or show invalid meshes for one frame');
+    assert.equal(s.slots.find(v=>v.name==='arms').index,s.top);
+    assert.equal(s.slots.find(v=>v.name==='body').index,s.bottom===2?1:0);
+  }
+  pass('27 consecutive live outfit swaps update sleeves and covered skin before the next rendered frame');
+
   for(let top=0;top<3;top++)for(let bottom=0;bottom<3;bottom++) {
     await page.locator('[data-category="tops"]').click();await page.locator(`[data-item="${top}"]`).click();
     // Active-item clicks must never turn into an empty outfit.
@@ -73,8 +91,9 @@ async function load(page,url) {
       const snapshot=await page.evaluate(()=>window.__atelier.snapshot());
       assert.equal(snapshot.slots.find(s=>s.name==='top').index,top);
       assert.equal(snapshot.slots.find(s=>s.name==='bottom').index,bottom);
-      assert.ok(snapshot.slots.every(s=>(s.visible||(s.name==='arms'&&top===1))&&s.vertices.length&&s.vertices.every(Number.isFinite)),'Native meshes must remain drawable');
-      assert.equal(snapshot.slots.find(s=>s.name==='arms').visible,top!==1,'Long sleeves must occlude covered skin');
+      assert.ok(snapshot.slots.every(s=>s.visible&&s.vertices.length&&s.vertices.every(Number.isFinite)),'Native meshes must remain drawable');
+      assert.equal(snapshot.slots.find(s=>s.name==='arms').index,top,'Skin coverage must match the sleeve length on the same frame');
+      assert.equal(snapshot.slots.find(s=>s.name==='body').index,bottom===2?1:0,'Trousers must hide covered legs on the same frame');
       const coverage=await contacts(page);
       assert.ok(coverage.samples.every(s=>s.alpha>170),`${top}/${bottom}/${motion}/${time} contact holes: ${JSON.stringify(coverage.samples.filter(s=>s.alpha<=170))}`);
       if(motion==='wave'&&time===1.7)assert.ok(coverage.empty.every(s=>s.alpha<35),`Arm mesh stretched into the armpit: ${JSON.stringify(coverage.empty)}`);

@@ -44,7 +44,8 @@
     "cf:deploy": "npm run package:cloudflare-pages && node dev/cloudflare-command.js deploy",
     "demo:skeletal": "node dev/skeletal-server.js",
     "build:skeletal": "node dev/build-skeletal.js",
-    "test:skeletal": "npm run build:skeletal && node dev/skeletal.test.js"
+    "test:skeletal:rig": "node dev/skeletal-rig.test.mjs && node dev/skeletal-offline.mjs",
+    "test:skeletal": "npm run build:skeletal && npm run test:skeletal:rig && node dev/skeletal.test.js"
   },
   "engines": {
     "node": ">=22"
@@ -53,6 +54,7 @@
     "esbuild": "0.28.2",
     "miniflare": "5.20261019.0-beta",
     "playwright": "1.62.1",
+    "pngjs": "7.0.0",
     "wrangler": "4.151.2"
   },
   "dependencies": {

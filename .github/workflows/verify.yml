@@ -28,6 +28,14 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: PixiJS skeletal demo, garment contacts and responsive layout
         run: npm run test:skeletal
+      - name: Keep skeletal fit and motion evidence immediately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skeletal-motion-evidence
+          path: |
+            artifacts/skeletal/
+            artifacts/skeletal-offline/
       - name: Keep the independent skeletal demo for review
         uses: actions/upload-artifact@v4
         with:
