@@ -2,8 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {execFileSync}=require('node:child_process');
 const root=path.resolve(__dirname,'..'),source=path.join(root,'dist/style-lab'),out=path.join(root,'dist/style-room-pages');
-const publicFiles=['index.html','style.css','app.js','app.css','app.js.LEGAL.txt','release.json',
+const publicFiles=['index.html','style.css','campaign.css','campaign-app.js','campaign-app.css','campaign-app.js.LEGAL.txt','release.json',
   'assets/mira.png','assets/rose-lilac.png','assets/blue-ivory.png','assets/room.png','assets/provenance.json',
+  'assets/campaign-tops.png','assets/campaign-dresses.png','assets/campaign-shoes.png','assets/campaign-provenance.json',
   'licenses/dragonbones-pixi.txt','licenses/dragonbones.txt','licenses/pixi.txt'];
 const published=[...publicFiles,'_worker.js','_routes.json','_headers'];
 function inventory(dir,prefix='') {
@@ -25,8 +26,10 @@ function verify() {
 }
 async function build(){
   await require('./build-style-lab')();
+  // Only remove the three known generated files from the previous capsule build.
+  for(const old of ['app.js','app.css','app.js.LEGAL.txt']){const file=path.join(out,old);if(fs.existsSync(file))fs.unlinkSync(file);}
   for(const file of inventory(out))if(![...published,'build.json'].includes(file))throw new Error('Unexpected publish entry: '+file);
-  for(const file of publicFiles){const dest=path.join(out,file);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(source,file),dest);}
+  for(const file of publicFiles){const dest=path.join(out,file);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(source,file==='index.html'?'campaign.html':file),dest);}
   const html=fs.readFileSync(path.join(out,'index.html'),'utf8').replace('</head>','<meta name="muse-feedback-endpoint" content="/api/feedback"></head>');
   fs.writeFileSync(path.join(out,'index.html'),html);
   fs.copyFileSync(path.join(root,'cloudflare/pages/worker.mjs'),path.join(out,'_worker.js'));

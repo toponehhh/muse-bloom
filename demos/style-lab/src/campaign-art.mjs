@@ -1,7 +1,6 @@
 import {fitCage} from '../../skeletal/src/fitting.mjs';
 import {fitRose,fitBlue,fitLilac,fitIvory,wardrobe,inside} from './rig.mjs';
 const identity=(x,y)=>[x,y];
-const rectMap=(r,t)=>(x,y)=>[t[0]+(x-r[0])/(r[2]-r[0])*(t[2]-t[0]),t[1]+(y-r[1])/(r[3]-r[1])*(t[3]-t[1])];
 const base=(texture,rect,map=identity,keep=()=>true,role='top')=>({texture,rect,map,keep,role});
 export const templates={
   tee:base('mira',[338,325,690,584],identity,(x,y)=>inside(x,y,wardrobe.tops[0].clip)&&y<572-5*Math.min(1,Math.abs(x-515)/80)),

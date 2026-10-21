@@ -18,7 +18,8 @@ export class CampaignRenderer {
     this.model=new Container();this.model.sortableChildren=true;this.body.zIndex=0;this.model.addChild(this.body);this.shadow=new Graphics();this.app.stage.addChild(this.shadow,this.model);
     // Skin sampled from the original neck fills open garment necklines. Original
     // tee pixels are not used as a permanent visible undershirt in the campaign.
-    this.neck=this.makeMesh({texture:'mira',rect:[486,313,547,332],map:(x,y)=>[433+(x-486)/61*164,322+(y-313)/19*99],keep:()=>true,role:'top'},'neck');this.neck.mesh.zIndex=1;this.model.addChild(this.neck.mesh);
+    const neckMap=(x,y)=>[433+(x-486)/61*164,322+(y-313)/19*99];
+    this.neck=this.makeMesh({texture:'mira',rect:[486,313,547,332],map:neckMap,keep:(u,v)=>{const[x,y]=neckMap(u,v),edge=Math.max(433,455-(y-330)*.7);return y>=330&&x>=edge&&x<=1030-edge;},role:'top'},'neck');this.neck.mesh.zIndex=1;this.model.addChild(this.neck.mesh);
     this.observer=new ResizeObserver(()=>this.resize());this.observer.observe(this.stage);this.resize();
     this.app.ticker.add(t=>{if(!this.paused&&!document.hidden&&!document.querySelector('dialog[open]')){const dt=Math.min(t.deltaMS,50)/1000;this.clock+=dt;this.body.armature.advanceTime(dt);this.deform();}});this.app.start();
   }

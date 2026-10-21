@@ -16,7 +16,7 @@ const rating=(name,label)=>`<label>${label}<select name="${name}" required><opti
 export function openFeedback() {
   const dialog=document.querySelector('#feedback');
   if(!dialog.querySelector('form')) {
-    dialog.innerHTML=`<div class="feedback-heading"><div><p class="eyebrow">THE FIRST EDIT · ${release.version}</p><h2 id="feedback-title">Help shape the next look.</h2></div><button id="close-feedback" aria-label="Close feedback">×</button></div>
+    dialog.innerHTML=`<div class="feedback-heading"><div><p class="eyebrow">STYLE STORIES · ${release.version}</p><h2 id="feedback-title">Help shape the next look.</h2></div><button id="close-feedback" aria-label="Close feedback">×</button></div>
       <form class="feedback-form">
       ${rating('clarity','I knew what to do next')}
       ${rating('readability','I could see the character and clothing details')}

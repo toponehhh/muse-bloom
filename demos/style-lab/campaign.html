@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8f0ed"><meta name="description" content="36 styling challenges, 122 wardrobe pieces, and one room to make every look your own."><title>Muse Bloom · Style Stories</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="campaign.css"><link rel="stylesheet" href="campaign-app.css"><link rel="icon" href="data:,"></head>
+<body class="campaign">
+ <header class="app-header"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">✳</span><span>Muse Bloom<small>STYLE STORIES</small></span></a><span class="edition">Your wardrobe. A new story every day.</span><div class="header-actions"><button id="map-open">36 challenges</button><button id="book-open">Lookbook <span id="saved-count">0</span></button></div></header>
+ <main>
+  <section class="fitting-room" aria-label="Character fitting room"><div class="room-title"><span><i class="live-dot"></i>Mira’s room</span><div class="room-actions"><button id="sound" aria-pressed="false" aria-label="Turn sound on">♪</button><button id="motion" aria-pressed="false" aria-label="Pause motion">Ⅱ</button></div></div>
+   <div id="stage" role="img" aria-label="Mira in her dressing room"><div id="loading" role="status"><span>✳</span><p id="loading-copy">Opening your wardrobe…</p></div><div id="sparkles" aria-hidden="true"></div></div>
+   <div class="scene-tools"><div class="view-switch"><button id="full-view" aria-pressed="true">Full look</button><button id="detail-view" aria-pressed="false">Details</button></div><div><button id="undo" disabled>↶ Undo</button><button id="reset">Reset look</button></div></div>
+  </section>
+  <section class="wardrobe" aria-labelledby="wardrobe-title">
+   <div class="wardrobe-heading"><div><p class="eyebrow" id="chapter-label">CHAPTER 01</p><h1 id="wardrobe-title">Everyday Muse</h1></div><span class="capsule-badge"><strong id="campaign-progress">0 / 36 completed</strong><br><span id="streak">S streak · 0 / 3</span></span></div>
+   <div class="brief"><div class="brief-heading"><span id="brief-name"></span><span id="level-number">01 / 36</span></div><p id="brief-text"></p><div id="goals"></div><div id="bonus-notes"></div><p id="goal-hint" aria-live="polite">Tap a note for a wardrobe suggestion.</p></div>
+   <nav class="tabs" aria-label="Wardrobe categories"><button data-category="top" aria-pressed="true">Tops</button><button data-category="bottom" aria-pressed="false">Bottoms</button><button data-category="dress" aria-pressed="false">Dresses</button><button data-category="shoes" aria-pressed="false">Shoes</button><button data-category="hair" aria-pressed="false">Hair</button><button data-category="accessory" aria-pressed="false">Extras</button></nav>
+   <div class="collection-heading"><h2 id="collection-name">Your tops</h2><button id="filter-clear" hidden>Clear filter ×</button><span id="collection-note"></span></div>
+   <div id="items" aria-label="Clothing choices"></div>
+   <div class="wardrobe-bottom"><p id="selection-note" aria-live="polite">Pick a piece, follow the brief, then reveal your look.</p><div class="save-row"><button id="reveal" class="primary">Reveal my look <span>→</span></button><button id="feedback-open">Feedback</button></div><p class="privacy-note">Your wardrobe and progress are saved on this device.</p></div>
+  </section>
+ </main>
+ <footer><span id="owned-count">24 / 122 pieces</span><span id="release-version"></span></footer>
+ <dialog id="journey" aria-labelledby="journey-title"><div class="modal-heading"><div><p class="eyebrow">YOUR STYLE STORIES</p><h2 id="journey-title">One little moment at a time.</h2></div><button class="close" data-close="journey" aria-label="Close challenges">×</button></div><div id="chapter-map"></div></dialog>
+ <dialog id="lookbook" aria-labelledby="lookbook-title"><div class="modal-heading"><div><p class="eyebrow">LOOKS WORTH KEEPING</p><h2 id="lookbook-title">Your personal collection</h2></div><button class="close" data-close="lookbook" aria-label="Close Lookbook">×</button></div><div id="book-grid"></div></dialog>
+ <dialog id="result" aria-labelledby="result-title"><button class="close" data-close="result" aria-label="Close result">×</button><div class="result-layout"><img id="result-image" alt="Your latest styled outfit"><div class="result-copy"><p class="eyebrow" id="result-kicker">THE REVEAL</p><div class="score-heading"><span id="rank">S</span><div><strong id="score">94</strong><small>/ 94</small></div></div><h2 id="result-title"></h2><p id="result-note"></p><div id="score-breakdown"></div><div id="reward-list"></div><button id="next-level" class="primary">Next challenge →</button><div class="result-buttons"><button id="download">↓ Image</button><button id="retry-look">Keep styling</button></div></div></div></dialog>
+ <dialog id="feedback" aria-labelledby="feedback-title"></dialog>
+ <noscript><p class="no-script">Enable JavaScript to open Muse Bloom.</p></noscript><script src="campaign-app.js" defer></script>
+</body></html>
