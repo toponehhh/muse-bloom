@@ -1,0 +1,46 @@
+name: Style Room demo
+on:
+  push:
+    paths:
+      - 'demos/style-lab/**'
+      - 'demos/skeletal/src/fitting.mjs'
+      - 'dev/*style-lab*'
+      - 'package*.json'
+      - '.github/workflows/style-lab.yml'
+  pull_request:
+    paths:
+      - 'demos/style-lab/**'
+      - 'demos/skeletal/src/fitting.mjs'
+      - 'dev/*style-lab*'
+      - 'package*.json'
+      - '.github/workflows/style-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  style-room:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:style
+      - name: Keep screenshots and contact checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: style-room-ui-evidence
+          path: artifacts/style-lab/
+          retention-days: 14
+      - name: Keep the playable demo
+        uses: actions/upload-artifact@v4
+        with:
+          name: muse-bloom-style-room
+          path: dist/style-lab/
+          if-no-files-found: error
+          retention-days: 14
