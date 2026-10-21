@@ -51,7 +51,7 @@ export const fitRose=fitCage(roseLandmarks),fitBlue=fitCage(blueLandmarks);
 export const fitLilac=fitCage([[410,707,434,566],[655,707,597,566],[532,707,515,566],[263,1049,341,835],[799,1049,689,835],[531,1097,515,864]]);
 export const fitIvory=fitCage([[410,479,434,566],[615,479,597,566],[514,479,515,566],[351,633,380,740],[676,633,646,740],[514,674,515,843],[330,1395,385,1380],[494,1404,502,1382],[536,1404,553,1382],[696,1395,684,1380]]);
 
-function mesh(name,path,rect,map=identity,keep=()=>true,step=26) {
+export function mesh(name,path,rect,map=identity,keep=()=>true,step=26) {
   const vertices=[],uvs=[],triangles=[],weights=[],cache=new Map();
   const add=(u,v)=>{
     const key=u.toFixed(4)+','+v.toFixed(4);if(cache.has(key))return cache.get(key);
@@ -74,10 +74,10 @@ function mesh(name,path,rect,map=identity,keep=()=>true,step=26) {
   return {name,path,type:'mesh',vertices,uvs,triangles,weights,slotPose:[1,0,0,1,0,0],bonePose:bones.flatMap((b,i)=>[i,1,0,0,1,b[2],b[3]])};
 }
 const frames=(values,key)=>values.map(v=>({duration:45,tweenEasing:2,...(key==='translate'?{x:v[0],y:v[1]}:{rotate:v})}));
-export function makeSkeleton(){
+export function makeSkeleton({campaign=false}={}){
   // The narrow ivory insert is an intentional inner tee under the open cardigan.
   const inner=(x,y)=>inside(x,y,topOutline)&&x>447&&x<585&&y<416;
-  const bodyKeep=(x,y)=>(!inside(x,y,topOutline)||inner(x,y))&&!inside(x,y,skirtOutline);
+  const bodyKeep=(x,y)=>(!inside(x,y,topOutline)||!campaign&&inner(x,y))&&!inside(x,y,skirtOutline)&&(!campaign||y<1355);
   const skinSlots=[
     {name:'body',display:[
       mesh('body','mira',[260,40,765,1500],identity,bodyKeep),
