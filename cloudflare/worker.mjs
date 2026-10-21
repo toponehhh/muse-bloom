@@ -1,10 +1,8 @@
 import '../js/feedback-kind.js';
+import {InputError,readBytes,sha256,prepareUploads,uploadFile,attachToRecord,cleanupUploads} from './attachments.mjs';
 const MAX_BYTES = 512 * 1024;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const actions = new Set(['session-open', 'hidden', 'visible', 'screen', 'action', 'look-complete', 'goal-met', 'reveal-blocked', 'feedback-export']);
-class InputError extends Error {
-  constructor(message, status = 400) { super(message); this.status = status; }
-}
 const reply = (body, status = 200, headers = {}) => Response.json(body, {
   status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...headers }
 });
@@ -73,46 +71,48 @@ export function validate(input) {
   return { submissionId: input.submissionId.toLowerCase(), record };
 }
 async function readBody(request) {
-  if (Number(request.headers.get('Content-Length')) > MAX_BYTES) throw new InputError('Feedback is too large', 413);
-  const reader = request.body?.getReader();
-  if (!reader) throw new InputError('Feedback is required');
-  const chunks = []; let size = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.byteLength;
-    if (size > MAX_BYTES) { await reader.cancel(); throw new InputError('Feedback is too large', 413); }
-    chunks.push(value);
-  }
-  const bytes = new Uint8Array(size); let offset = 0;
-  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  const bytes = await readBytes(request,MAX_BYTES);
   try { return JSON.parse(new TextDecoder().decode(bytes)); } catch { throw new InputError('Invalid JSON'); }
 }
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
-    if (url.pathname !== '/api/feedback') return reply({ error: 'Not found' }, 404);
-    if (request.method !== 'POST') return reply({ error: 'Use POST to submit feedback' }, 405, { Allow: 'POST' });
+    const upload=url.pathname.match(/^\/api\/feedback\/uploads\/([a-f0-9-]{36})\/([a-f0-9-]{36})$/);
+    const preparing=url.pathname==='/api/feedback/uploads';
+    if (url.pathname !== '/api/feedback' && !preparing && !upload) return reply({ error: 'Not found' }, 404);
+    const method=upload?'PUT':'POST';
+    if (request.method !== method) return reply({ error: 'Use '+method }, 405, { Allow: method });
     if (request.headers.get('Origin') !== url.origin || request.headers.get('Sec-Fetch-Site') === 'cross-site') return reply({ error: 'Submit from this website' }, 403);
-    if (request.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return reply({ error: 'JSON is required' }, 415);
+    if (!upload && request.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return reply({ error: 'JSON is required' }, 415);
     try {
       if (!env.DB || !env.FEEDBACK_RATE_LIMIT) return reply({ error: 'Feedback is temporarily unavailable. Please retry later.' }, 503);
       // An anonymous endpoint has no authenticated user key. This generous shared-IP
       // limit protects D1 while allowing a classroom or household to submit together.
       const limit = await env.FEEDBACK_RATE_LIMIT.limit({ key: 'feedback:' + (request.headers.get('CF-Connecting-IP') || 'local') });
       if (!limit.success) return reply({ error: 'Too many submissions. Please retry in a minute.' }, 429, { 'Retry-After': '60' });
-      const { submissionId, record } = validate(await readBody(request));
+      if(upload)return reply(await uploadFile(request,upload[1],upload[2],env));
+      const input=await readBody(request);
+      const validated=validate(input),submissionId=validated.submissionId;
+      if(preparing){
+        if(!env.UPLOAD_RATE_LIMIT)return reply({error:'Attachment uploads are temporarily unavailable'},503);
+        const allowance=await env.UPLOAD_RATE_LIMIT.limit({key:'uploads:'+(request.headers.get('CF-Connecting-IP')||'local')});
+        if(!allowance.success)return reply({error:'Too many upload sessions. Please retry in a minute.'},429,{'Retry-After':'60'});
+        return reply(await prepareUploads(input,validated.record,env));
+      }
+      const record=await attachToRecord(input,validated.record,env);
       const json = JSON.stringify(record);
-      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(json));
-      const hash = [...new Uint8Array(digest)].map(n => n.toString(16).padStart(2, '0')).join('');
+      const hash = await sha256(new TextEncoder().encode(json));
       const receivedAt = new Date().toISOString(), f = record.feedback;
-      const result = await env.DB.prepare(`INSERT INTO feedback_submissions
+      const insert = env.DB.prepare(`INSERT INTO feedback_submissions
         (submission_id, payload_hash, received_at, participant_id, game_version, source,
          clarity, readability, visuals, enjoyment, would_continue, record_json, test_type)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(submission_id) DO NOTHING`)
         .bind(submissionId, hash, receivedAt, record.participant, record.version, record.source,
-          Number(f.clarity), Number(f.readability), Number(f.visuals), Number(f.enjoyment), f.continue, json, globalThis.MuseFeedbackKind.classify(record).type).run();
+          Number(f.clarity), Number(f.readability), Number(f.visuals), Number(f.enjoyment), f.continue, json, globalThis.MuseFeedbackKind.classify(record).type);
+      const result=record.attachments?(await env.DB.batch([insert,env.DB.prepare(`UPDATE feedback_upload_batches SET committed_at=COALESCE(committed_at,?)
+        WHERE submission_id=? AND EXISTS (SELECT 1 FROM feedback_submissions WHERE submission_id=? AND payload_hash=?)`)
+        .bind(receivedAt,submissionId,submissionId,hash)]))[0]:await insert.run();
       const saved = await env.DB.prepare('SELECT payload_hash, received_at FROM feedback_submissions WHERE submission_id = ?').bind(submissionId).first();
       if (!saved) throw new Error('Missing stored receipt');
       if (saved.payload_hash !== hash) return reply({ error: 'This submission ID has already been used for different answers.' }, 409);
@@ -123,5 +123,6 @@ export default {
       console.error('feedback_storage_unavailable');
       return reply({ error: 'Feedback could not be saved. Please retry or download a backup.' }, 503);
     }
-  }
+  },
+  async scheduled(_controller,env){await cleanupUploads(env);}
 };

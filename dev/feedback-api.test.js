@@ -5,7 +5,7 @@ const payload=()=>({schemaVersion:1,submissionId:crypto.randomUUID(),consent:tru
 (async()=>{
   const {mf,db,base}=await fixture();let ip=0,checks=0;
   const post=(body,headers={})=>mf.dispatchFetch(base+'/api/feedback',{method:'POST',headers:{Origin:base,'Content-Type':'application/json','CF-Connecting-IP':'192.0.2.'+(++ip),...headers},body:typeof body==='string'?body:JSON.stringify(body)});
-  const status=async(response,expected)=>{assert.equal(response.status,expected,await response.clone().text());checks++;return response;};
+  const status=async(response,expected)=>{let body;try{body=await response.clone().text();}catch(error){throw new Error('Response read failed at check '+checks+' (expected HTTP '+expected+')',{cause:error});}assert.equal(response.status,expected,body);checks++;return response;};
   try{
     const body=payload();
     const receipts=await Promise.all(Array.from({length:5},()=>post(body)));
