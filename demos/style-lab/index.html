@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8f0ed"><title>Muse Bloom · Style Room</title><link rel="stylesheet" href="style.css"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8f0ed"><meta name="description" content="A quiet room, three little moods, and a wardrobe to make your own. Create and save your look in Muse Bloom."><title>Muse Bloom · The First Edit</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"><link rel="icon" href="data:,"></head>
 <body>
   <header class="app-header"><a class="brand" href="./index.html"><span class="brand-mark" aria-hidden="true">✳</span><span>Muse Bloom<small>THE STYLE ROOM</small></span></a><span class="edition">A little outfit, a whole mood.</span><div class="header-actions"><button id="sound" aria-pressed="false" title="Toggle sound">♪ <span>Sound off</span></button><button id="motion" aria-pressed="false">Pause motion</button></div></header>
   <main>
@@ -14,10 +14,12 @@
       <nav class="tabs" aria-label="Wardrobe categories"><button data-tab="tops" aria-pressed="true">Tops <span>3</span></button><button data-tab="bottoms" aria-pressed="false">Bottoms <span>3</span></button><button data-tab="saved" aria-pressed="false">Lookbook <span id="saved-count">0</span></button></nav>
       <div class="collection-heading"><h2 id="collection-name">Your tops</h2><span id="collection-note">Tap a piece to try it on</span></div>
       <div id="items" aria-label="Clothing choices"></div>
-      <div class="wardrobe-bottom"><p id="selection-note" aria-live="polite">Start with a top you love. Make the rest your own.</p><button id="save" class="primary">♡ Save this look <span>→</span></button><p class="privacy-note">Saved on this device. Your style, your little collection.</p></div>
+      <div class="wardrobe-bottom"><p id="selection-note" aria-live="polite">Try a piece, follow the two notes, then save your mood.</p><div class="save-row"><button id="save" class="primary">♡ Save this look <span>→</span></button><button id="feedback-open">Feedback</button></div><p class="privacy-note">Saved on this device. Your style, your little collection.</p></div>
     </section>
   </main>
-  <footer><span>Made for a slow morning & a little creativity.</span><span>STYLE STUDY · DEMO</span></footer>
-  <dialog id="result" aria-labelledby="result-title"><button id="close-result" class="close" aria-label="Close look card">×</button><div class="result-layout"><img id="result-image" alt="Your saved outfit"><div class="result-copy"><p class="eyebrow">A LOOK TO KEEP</p><h2 id="result-title">Very you.</h2><p id="result-note"></p><span id="result-pieces"></span><button id="download" class="primary">↓ Download image</button><button id="keep-styling">Keep styling →</button></div></div></dialog>
+  <footer><span id="edit-progress" aria-live="polite">0 / 3 moods collected</span><span id="release-version">THE FIRST EDIT</span></footer>
+  <dialog id="result" aria-labelledby="result-title"><button id="close-result" class="close" aria-label="Close look card">×</button><div class="result-layout"><img id="result-image" alt="Your saved outfit"><div class="result-copy"><p class="eyebrow">A LOOK TO KEEP</p><h2 id="result-title">Very you.</h2><p id="result-note"></p><span id="result-pieces"></span><p id="result-progress"></p><button id="next-theme" class="primary">Next mood →</button><button id="download">↓ Download image</button><button id="wear-look">Wear this look</button><button id="keep-styling">Keep styling →</button></div></div></dialog>
+  <dialog id="feedback" aria-labelledby="feedback-title"></dialog>
+  <noscript><p class="no-script">Muse Bloom needs JavaScript to open the wardrobe. Please enable it and reload.</p></noscript>
   <script src="app.js" defer></script>
 </body></html>

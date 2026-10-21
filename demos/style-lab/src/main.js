@@ -1,14 +1,17 @@
 import {Application,Assets,Graphics,VERSION} from 'pixi.js';
 import {PixiFactory} from 'pixi-dragonbones-runtime';
 import {makeSkeleton,textureFiles,wardrobe} from './rig.mjs';
+import {readProgress,writeProgress,themes,matchesTheme,nextTheme} from './progress.mjs';
+import {openFeedback,recordAction} from './feedback.js';
+import release from '../release.json';
 
 const $=s=>document.querySelector(s),reduced=matchMedia('(prefers-reduced-motion: reduce)');
-const state={top:0,bottom:0,tab:'tops',theme:0,paused:reduced.matches,sound:false,view:'full'};
-const themes=[
-  {name:'Café morning',text:'An easy outfit for coffee, a book, and nowhere to rush.',goals:['Ivory cotton','Blue denim'],pair:[0,0]},
-  {name:'Pastel hour',text:'Soft textures and lilac tones for a catch-up with friends.',goals:['Rosy knit','Lilac pleats'],pair:[1,1]},
-  {name:'Gallery day',text:'A crisp collar and flowing trousers. Quietly put together.',goals:['A neat collar','Fluid trousers'],pair:[2,2]},
-];
+// Storage access itself may throw in a restricted iframe; the game still works.
+let storage;try{storage=localStorage;}catch{}
+const savedProgress=readProgress(storage),completed=new Set(savedProgress.completed);
+const state={top:savedProgress.top,bottom:savedProgress.bottom,tab:'tops',theme:savedProgress.theme,
+  paused:reduced.matches||savedProgress.paused,sound:savedProgress.sound,view:'full'};
+const persistProgress=()=>writeProgress(storage,state,completed);
 const history=[],thumbs={},images={},storageKey='muse-style-lab-v1';
 let app,display,room,shadow,observer,audio,clock=0,activeCard=null,book=[];
 try{const data=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(data))book=data.filter(x=>Number.isInteger(x.top)&&x.top>=0&&x.top<3&&Number.isInteger(x.bottom)&&x.bottom>=0&&x.bottom<3&&Number.isInteger(x.theme)&&x.theme>=0&&x.theme<3&&typeof x.image==='string'&&x.image.startsWith('data:image/jpeg;')).slice(0,6);}catch{}
@@ -29,6 +32,9 @@ function refreshGoals(){
   $('#goal-count').textContent=`${met.filter(Boolean).length} / 2 notes`;
   $('#goals').replaceChildren(...theme.goals.map((text,i)=>{const s=document.createElement('span');s.className=met[i]?'met':'';s.textContent=`${met[i]?'✓':'○'} ${text}`;return s;}));
   document.querySelectorAll('[data-theme]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.theme===state.theme)));
+  document.querySelectorAll('[data-theme]').forEach(b=>{b.dataset.complete=String(completed.has(+b.dataset.theme));b.setAttribute('aria-label',`${themes[+b.dataset.theme].name}${completed.has(+b.dataset.theme)?', completed':''}`);});
+  $('#edit-progress').textContent=`${completed.size} / 3 moods collected`;
+  $('#save').innerHTML=met.every(Boolean)&&!completed.has(state.theme)?'✧ Complete & save <span>→</span>':'♡ Save this look <span>→</span>';
 }
 function setOutfit(top,bottom,{remember=true,feedback=true}={}){
   if(!Number.isInteger(top)||top<0||top>2||!Number.isInteger(bottom)||bottom<0||bottom>2)throw new RangeError('Unknown wardrobe item');
@@ -41,7 +47,7 @@ function setOutfit(top,bottom,{remember=true,feedback=true}={}){
   display.armature.invalidUpdate(null,true);display.armature.advanceTime(0);
   $('#undo').disabled=!history.length;
   $('#stage').setAttribute('aria-label',`Mira wearing ${wardrobe.tops[top].name} and ${wardrobe.bottoms[bottom].name}`);
-  refreshGoals();renderItems();if(feedback){chime();sparkle();$('#selection-note').textContent=`${wardrobe.tops[top].name} + ${wardrobe.bottoms[bottom].name}.`;}app.render();
+  refreshGoals();renderItems();persistProgress();if(feedback){chime();sparkle();recordAction('action',{name:'change-outfit',items:[wardrobe.tops[top].name,wardrobe.bottoms[bottom].name]});$('#selection-note').textContent=goals().every(Boolean)?'Both notes, beautifully together. Save to collect this mood.':`${wardrobe.tops[top].name} + ${wardrobe.bottoms[bottom].name}.`;}app.render();
 }
 function thumbnail(item){
   const c=document.createElement('canvas');c.width=300;c.height=300;const ctx=c.getContext('2d'),[x,y,w,h]=item.crop,s=Math.min(270/w,260/h);
@@ -72,7 +78,7 @@ function resize(){
   shadow.clear();shadow.ellipse(box.width/2,display.y+1472*s,150*s,16*s).fill({color:0x65504f,alpha:state.view==='full'?.14:0});app.render();
 }
 function setView(view){state.view=view;$('#full-view').setAttribute('aria-pressed',String(view==='full'));$('#detail-view').setAttribute('aria-pressed',String(view==='detail'));resize();}
-function setPause(paused){state.paused=paused;$('#motion').setAttribute('aria-pressed',String(paused));$('#motion').textContent=paused?'Play motion':'Pause motion';}
+function setPause(paused){state.paused=paused;$('#motion').setAttribute('aria-pressed',String(paused));$('#motion').textContent=paused?'Play motion':'Pause motion';persistProgress();}
 function portrait(){
   const c=document.createElement('canvas');c.width=600;c.height=900;const ctx=c.getContext('2d');ctx.drawImage(room,0,0,600,900);
   const pos={x:display.x,y:display.y,s:display.scale.x};
@@ -88,22 +94,33 @@ function portrait(){
 function showCard(card){
   activeCard=card;$('#result-image').src=card.image;$('#result-title').textContent=card.top===themes[card.theme].pair[0]&&card.bottom===themes[card.theme].pair[1]?'Mood, captured.':'Very you.';
   $('#result-note').textContent=themes[card.theme].text;$('#result-pieces').textContent=`${wardrobe.tops[card.top].name} + ${wardrobe.bottoms[card.bottom].name}`;
+  $('#result-progress').textContent=completed.size===3?'Your First Edit is complete. Keep mixing — every look is yours.':`${completed.size} of 3 moods collected. Save a look that matches both notes to collect a mood.`;
+  const next=nextTheme(card.theme,[...completed]);$('#next-theme').hidden=next===null;
+  $('#next-theme').textContent=next===null?'All moods collected':`Try ${themes[next].name} →`;
   if(!$('#result').open)$('#result').showModal();
 }
+function selectTheme(theme){state.theme=theme;refreshGoals();persistProgress();recordAction('action',{name:'select-theme',level:theme+1});chime();}
 function controls(){
   document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{state.tab=b.dataset.tab;renderItems();}));
-  document.querySelectorAll('[data-theme]').forEach(b=>b.addEventListener('click',()=>{state.theme=+b.dataset.theme;refreshGoals();chime();}));
+  document.querySelectorAll('[data-theme]').forEach(b=>b.addEventListener('click',()=>selectTheme(+b.dataset.theme)));
   $('#undo').addEventListener('click',()=>{const prev=history.pop();if(prev)setOutfit(...prev,{remember:false});});
   $('#reset').addEventListener('click',()=>setOutfit(0,0));$('#full-view').addEventListener('click',()=>setView('full'));$('#detail-view').addEventListener('click',()=>setView('detail'));
   $('#motion').addEventListener('click',()=>setPause(!state.paused));
-  $('#sound').addEventListener('click',()=>{state.sound=!state.sound;$('#sound').setAttribute('aria-pressed',String(state.sound));$('#sound span').textContent=state.sound?'Sound on':'Sound off';chime();if(!state.sound)audio?.suspend();});
+  $('#sound').setAttribute('aria-pressed',String(state.sound));$('#sound span').textContent=state.sound?'Sound on':'Sound off';
+  $('#sound').addEventListener('click',()=>{state.sound=!state.sound;$('#sound').setAttribute('aria-pressed',String(state.sound));$('#sound span').textContent=state.sound?'Sound on':'Sound off';persistProgress();chime();if(!state.sound)audio?.suspend();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden)audio?.suspend();});
   reduced.addEventListener('change',e=>{if(e.matches)setPause(true);});
   $('#save').addEventListener('click',()=>{
-    const card={top:state.top,bottom:state.bottom,theme:state.theme,image:portrait()};book=[card,...book].slice(0,6);
+    const card={top:state.top,bottom:state.bottom,theme:state.theme,image:portrait()};book=[card,...book.filter(x=>x.top!==card.top||x.bottom!==card.bottom||x.theme!==card.theme)].slice(0,6);
+    if(matchesTheme(state.top,state.bottom,state.theme))completed.add(state.theme);
+    const progressSaved=persistProgress();refreshGoals();
+    recordAction('look-complete',{level:state.theme+1,score:goals().filter(Boolean).length*50,items:[wardrobe.tops[state.top].name,wardrobe.bottoms[state.bottom].name]});
     let persisted=true;try{localStorage.setItem(storageKey,JSON.stringify(book));}catch{persisted=false;}
-    renderItems();showCard(card);chime(true);$('#selection-note').textContent=persisted?'Added to your Lookbook. Make another mood?':'Device storage is full. Download this look to keep it.';
+    renderItems();showCard(card);chime(true);$('#selection-note').textContent=persisted&&progressSaved?'Added to your Lookbook. Make another mood?':'Device storage is unavailable or full. Download this look to keep it.';
   });
+  $('#next-theme').addEventListener('click',()=>{const next=nextTheme(activeCard?.theme??state.theme,[...completed]);if(next!==null){selectTheme(next);state.tab='tops';renderItems();}$('#result').close();$('#selection-note').textContent='Follow the two notes, or mix a mood of your own.';});
+  $('#wear-look').addEventListener('click',()=>{if(activeCard){selectTheme(activeCard.theme);state.tab='tops';setOutfit(activeCard.top,activeCard.bottom);}$('#result').close();});
+  $('#feedback-open').addEventListener('click',openFeedback);
   for(const id of ['close-result','keep-styling'])$('#'+id).addEventListener('click',()=>$('#result').close());
   $('#download').addEventListener('click',()=>{if(!activeCard)return;const a=document.createElement('a');a.href=activeCard.image;a.download='muse-bloom-look.jpg';a.click();});
 }
@@ -116,11 +133,13 @@ async function start(){
   display=factory.buildArmatureDisplay('Mira','muse-style-lab');if(!display)throw new Error('Character rig failed to load');
   shadow=new Graphics();app.stage.addChild(shadow,display);display.animation.play('breathe');display.animation.lastAnimationState.displayControl=false;
   for(const category of ['tops','bottoms'])thumbs[category]=wardrobe[category].map(thumbnail);
-  setOutfit(0,0,{remember:false,feedback:false});setPause(state.paused);controls();observer=new ResizeObserver(resize);observer.observe($('#stage'));resize();
-  app.ticker.add(t=>{if(!document.hidden&&!state.paused&&!$('#result').open){const dt=Math.min(t.deltaMS,50)/1000;clock+=dt;display.armature.advanceTime(dt);}});app.start();
+  setOutfit(state.top,state.bottom,{remember:false,feedback:false});setPause(state.paused);controls();observer=new ResizeObserver(resize);observer.observe($('#stage'));resize();
+  if(completed.size||state.top||state.bottom)$('#selection-note').textContent='Your last look is back. Pick up where you left off.';
+  $('#release-version').textContent=`THE FIRST EDIT · ${release.version}`;
+  app.ticker.add(t=>{if(!document.hidden&&!state.paused&&!document.querySelector('dialog[open]')){const dt=Math.min(t.deltaMS,50)/1000;clock+=dt;display.armature.advanceTime(dt);}});app.start();
   document.querySelectorAll('button').forEach(b=>b.disabled=false);$('#undo').disabled=true;$('#loading').hidden=true;document.documentElement.dataset.ready='true';
   if(new URLSearchParams(location.search).has('test'))window.__styleLab={app,display,state,wardrobe,bones:()=>display.armature.getBones().map(b=>({name:b.name,x:b.globalTransformMatrix.tx,y:b.globalTransformMatrix.ty})),setOutfit,setPause,setView,
     seek(time){display.animation.gotoAndStopByTime('breathe',time);display.animation.lastAnimationState.displayControl=false;display.armature.invalidUpdate(null,true);display.armature.advanceTime(0);setOutfit(state.top,state.bottom,{remember:false,feedback:false});app.render();},
-    snapshot(){return {pixi:VERSION,state:{...state},clock,slots:display.armature.getSlots().map(s=>({name:s.name,index:s.displayIndex,vertices:s.display?.geometry?.getBuffer('aPosition')?.data?Array.from(s.display.geometry.getBuffer('aPosition').data):[]})),bounds:display.getBounds(),saved:book.length};}};
+    snapshot(){return {version:release.version,completed:[...completed],pixi:VERSION,state:{...state},clock,slots:display.armature.getSlots().map(s=>({name:s.name,index:s.displayIndex,vertices:s.display?.geometry?.getBuffer('aPosition')?.data?Array.from(s.display.geometry.getBuffer('aPosition').data):[]})),bounds:display.getBounds(),saved:book.length};}};
 }
 start().catch(error=>{console.error(error);document.documentElement.dataset.ready='error';$('#loading').innerHTML='<span>✳</span><p>The wardrobe could not open.<br>Please try again.</p><button id="retry">Try again</button>';$('#retry').addEventListener('click',()=>location.reload());});
