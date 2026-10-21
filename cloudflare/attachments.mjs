@@ -83,6 +83,8 @@ export async function uploadFile(request,id,fileId,env){
 export async function attachToRecord(input,record,env){
   if(input.attachments===undefined){
     if(input.uploadToken!==undefined)throw new InputError('Missing attachment manifest');
+    const reserved=await env.DB.prepare('SELECT 1 FROM feedback_upload_batches WHERE submission_id=?').bind(input.submissionId.toLowerCase()).first();
+    if(reserved)throw new InputError('This submission has reserved attachments. Use a new ID to submit without files.',409);
     return record;
   }
   requireStorage(env);

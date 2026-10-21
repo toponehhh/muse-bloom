@@ -33,6 +33,8 @@ const payload=(files=[descriptor(png)])=>({schemaVersion:1,submissionId:crypto.r
     for(const files of [[{...p.attachments[0],size:A.limits.image+1}],Array(4).fill(p.attachments[0])])await status(post(payload(files),'/api/feedback/uploads'),413);
     for(const files of [[{...p.attachments[0],name:'../secret.png'}],[p.attachments[0],p.attachments[0]],[{...p.attachments[0],type:'text/html'}]])await status(post(payload(files),'/api/feedback/uploads'),400);
     await prepare(p);await prepare(p);
+    const withoutFiles={...p};delete withoutFiles.attachments;delete withoutFiles.uploadToken;
+    await status(post(withoutFiles),409);
     await status(post({...p,uploadToken:crypto.randomUUID()},'/api/feedback/uploads'),403);
     await status(post({...p,record:{...p.record,feedback:{...p.record.feedback,clarity:'1'}}},'/api/feedback/uploads'),409);
     await status(post(p),409);
