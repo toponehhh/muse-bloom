@@ -53,7 +53,9 @@ function setOutfit(top,bottom,notify=true) {
   if(!Number.isInteger(top)||!wardrobe.tops[top]||!Number.isInteger(bottom)||!wardrobe.bottoms[bottom]) throw new Error('Unknown wardrobe selection');
   state.top=top;state.bottom=bottom;
   display.armature.getSlot('top').displayIndex=top;display.armature.getSlot('bottom').displayIndex=bottom;
-  const arms=display.armature.getSlot('arms');arms.displayIndex=top===2?1:0;arms.visible=top!==1;
+  display.armature.getSlot('arms').displayIndex=top;
+  display.armature.getSlot('body').displayIndex=bottom===2?1:0;
+  display.armature.invalidUpdate(null,true);
   display.armature.advanceTime(0);renderWardrobe();app.render();
   if(notify) chime();
 }
