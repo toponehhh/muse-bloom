@@ -19,7 +19,9 @@ permissions:
   contents: read
 jobs:
   style-room:
-    runs-on: ubuntu-latest
+    # Keep Chromium sandboxing enabled. Ubuntu 24.04's hosted AppArmor policy
+    # blocks the unprivileged user namespaces used by Playwright Chromium.
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
