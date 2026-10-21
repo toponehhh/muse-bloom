@@ -12,7 +12,7 @@ const root=path.resolve(__dirname,'..');
   assert.equal(config.services[0].service,worker.name);assert.equal(worker.workers_dev,false);assert.equal(worker.preview_urls,false);
   const routes=JSON.parse(fs.readFileSync(path.join(root,'dist/cloudflare-pages/_routes.json'),'utf8'));
   assert.deepEqual(routes,{version:1,include:['/api/*'],exclude:[]});
-  for(const test of ['feedback-api.test.js','cloudflare.test.js']){
+  for(const test of ['feedback-api.test.js','feedback-attachments.test.js','cloudflare.test.js']){
     const result=spawnSync(process.execPath,[path.join(__dirname,test)],{cwd:root,stdio:'inherit',env:{...process.env,MUSE_CF_TARGET:'pages'}});
     if(result.error)throw result.error;
     assert.equal(result.status,0,test+' must pass through the actual service binding');

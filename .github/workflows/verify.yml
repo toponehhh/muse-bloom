@@ -28,6 +28,10 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Feedback API against an isolated local D1
         run: npm run test:feedback-api
+      - name: Bounded private R2 attachments and D1 consistency
+        run: npm run test:feedback-attachments
+      - name: Screenshot and recording picker, progress and retry UI
+        run: npm run test:feedback-upload-ui
       - name: Separate human feedback from simulations and unverified imports
         run: npm run test:feedback-kind
       - name: Online feedback, D1 receipts and safe retries
@@ -77,6 +81,7 @@ jobs:
             artifacts/pages/
             artifacts/cloudflare/
             artifacts/cloudflare-pages/
+            artifacts/feedback-uploads/
             artifacts/playtest-ui/
             artifacts/quality/
       - name: Check generated art stays reproducible
