@@ -1,10 +1,16 @@
-name: Style Room demo
+name: Style Room preview
 on:
   push:
     paths:
       - 'demos/style-lab/**'
       - 'demos/skeletal/src/fitting.mjs'
       - 'dev/*style-lab*'
+      - 'dev/style-release.test.js'
+      - 'dev/style-progress.test.mjs'
+      - 'dev/cloudflare-fixture.js'
+      - 'cloudflare/**'
+      - 'js/feedback*.js'
+      - 'css/feedback.css'
       - 'package*.json'
       - '.github/workflows/style-lab.yml'
   pull_request:
@@ -12,11 +18,22 @@ on:
       - 'demos/style-lab/**'
       - 'demos/skeletal/src/fitting.mjs'
       - 'dev/*style-lab*'
+      - 'dev/style-release.test.js'
+      - 'dev/style-progress.test.mjs'
+      - 'dev/cloudflare-fixture.js'
+      - 'cloudflare/**'
+      - 'js/feedback*.js'
+      - 'css/feedback.css'
       - 'package*.json'
       - '.github/workflows/style-lab.yml'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: style-room-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  WRANGLER_SEND_METRICS: 'false'
 jobs:
   style-room:
     # Keep Chromium sandboxing enabled. Ubuntu 24.04's hosted AppArmor policy
@@ -32,12 +49,23 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:style
+      - name: Release progression and Pages feedback with isolated D1 and R2
+        run: npm run test:style-release
       - name: Keep screenshots and contact checks
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: style-room-ui-evidence
-          path: artifacts/style-lab/
+          path: |
+            artifacts/style-lab/
+            artifacts/style-release/
+          retention-days: 14
+      - name: Keep the tested Cloudflare preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: muse-bloom-style-room-pages
+          path: dist/style-room-pages/
+          if-no-files-found: error
           retention-days: 14
       - name: Keep the playable demo
         uses: actions/upload-artifact@v4
@@ -46,3 +74,29 @@ jobs:
           path: dist/style-lab/
           if-no-files-found: error
           retention-days: 14
+  deploy-preview:
+    if: github.ref == 'refs/heads/feat/pixi-skeletal-demo' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    needs: style-room
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    environment:
+      name: cloudflare
+      url: https://style-room.muse-bloom.pages.dev
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: muse-bloom-style-room-pages
+          path: dist/style-room-pages/
+      - name: Verify the tested artifact before publishing
+        run: node dev/package-style-lab.js --verify
+      - name: Deploy the Style Room preview on pages.dev
+        run: node node_modules/wrangler/bin/wrangler.js pages deploy --cwd cloudflare/style-room --project-name muse-bloom --branch style-room --commit-hash "$GITHUB_SHA"
