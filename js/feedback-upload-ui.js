@@ -2,8 +2,14 @@
   'use strict';
   const A=root.MuseFeedbackAttachments;
   const copy={
-    en:{title:'Screenshots or screen recordings (optional)',hint:'Up to 3 files, 30 MB total. Images: PNG, JPG or WebP, up to 5 MB each. Videos: MP4, WebM or MOV, up to 20 MB each.',privacy:'Check that recordings and screenshots contain no personal information. Files are private to the project team.',remove:'Remove',restored:'File selection restored. If it was not uploaded, select the same file again.',reading:'Checking files…',count:'Choose at most 3 files.',type:'Use PNG, JPG, WebP, MP4, WebM or MOV.',empty:'Empty files cannot be uploaded.',size:'An image must be at most 5 MB and a video at most 20 MB.',total:'Attachments must total at most 30 MB.',content:'This file does not match its image or video format.',reselect:'Select the missing files again, or remove them to submit without them.',expired:'The upload session expired. Your answers are kept; submit again to start a new upload.',cancelled:'Submission cancelled. Your answers are kept; you can retry.',uploading:'Uploading attachment',backup:'JSON backups include file details only. Keep the original images and videos.'},
-    zh:{title:'截图或录屏（选填）',hint:'最多 3 个文件，合计不超过 30 MB。图片支持 PNG、JPG、WebP，每张不超过 5 MB；视频支持 MP4、WebM、MOV，每段不超过 20 MB。',privacy:'请检查截图和录屏中没有个人信息。文件仅供项目团队查看。',remove:'移除',restored:'已恢复附件信息；如文件尚未上传，请重新选择同一文件。',reading:'正在检查文件…',count:'最多选择 3 个文件。',type:'请选择 PNG、JPG、WebP、MP4、WebM 或 MOV 文件。',empty:'不能上传空文件。',size:'图片每张不能超过 5 MB，录屏每段不能超过 20 MB。',total:'附件总大小不能超过 30 MB。',content:'文件内容与图片或视频格式不符。',reselect:'请重新选择尚未上传的文件，或移除附件后提交。',expired:'上传会话已过期，填写内容已保留；请再次提交以重新上传。',cancelled:'已取消提交，填写内容已保留，可以稍后重试。',uploading:'正在上传附件',backup:'JSON 备份只包含附件信息，请保留原始图片和视频。'}
+    en:{
+      videoPreview:'Cannot preview this recording in this browser. It may be damaged or use an unsupported codec. Check it locally or export it again. You can still submit this file.',
+      imagePreview:'Cannot preview this image in this browser. It may be damaged or use an unsupported format. Check it locally or export it again. You can still submit this file.',
+      title:'Screenshots or screen recordings (optional)',hint:'Up to 3 files, 30 MB total. Images: PNG, JPG or WebP, up to 5 MB each. Videos: MP4, WebM or MOV, up to 20 MB each.',privacy:'Check that recordings and screenshots contain no personal information. Files are private to the project team.',remove:'Remove',restored:'File selection restored. If it was not uploaded, select the same file again.',reading:'Checking files…',count:'Choose at most 3 files.',type:'Use PNG, JPG, WebP, MP4, WebM or MOV.',empty:'Empty files cannot be uploaded.',size:'An image must be at most 5 MB and a video at most 20 MB.',total:'Attachments must total at most 30 MB.',content:'This file does not match its image or video format.',reselect:'Select the missing files again, or remove them to submit without them.',expired:'The upload session expired. Your answers are kept; submit again to start a new upload.',cancelled:'Submission cancelled. Your answers are kept; you can retry.',uploading:'Uploading attachment',backup:'JSON backups include file details only. Keep the original images and videos.'},
+    zh:{
+      videoPreview:'当前浏览器无法预览这段录屏，文件可能损坏或使用了不支持的编码。请先在本地播放检查，或重新导出；仍可提交此文件。',
+      imagePreview:'当前浏览器无法预览这张图片，文件可能损坏或使用了不支持的格式。请先在本地打开检查，或重新导出；仍可提交此文件。',
+      title:'截图或录屏（选填）',hint:'最多 3 个文件，合计不超过 30 MB。图片支持 PNG、JPG、WebP，每张不超过 5 MB；视频支持 MP4、WebM、MOV，每段不超过 20 MB。',privacy:'请检查截图和录屏中没有个人信息。文件仅供项目团队查看。',remove:'移除',restored:'已恢复附件信息；如文件尚未上传，请重新选择同一文件。',reading:'正在检查文件…',count:'最多选择 3 个文件。',type:'请选择 PNG、JPG、WebP、MP4、WebM 或 MOV 文件。',empty:'不能上传空文件。',size:'图片每张不能超过 5 MB，录屏每段不能超过 20 MB。',total:'附件总大小不能超过 30 MB。',content:'文件内容与图片或视频格式不符。',reselect:'请重新选择尚未上传的文件，或移除附件后提交。',expired:'上传会话已过期，填写内容已保留；请再次提交以重新上传。',cancelled:'已取消提交，填写内容已保留，可以稍后重试。',uploading:'正在上传附件',backup:'JSON 备份只包含附件信息，请保留原始图片和视频。'}
   };
   async function requestJSON(url,body,signal){
     const controller=new AbortController(),abort=()=>controller.abort();
@@ -53,9 +59,17 @@
         const item=document.createElement('li'),details=document.createElement('div'),label=document.createElement('strong'),size=document.createElement('span');
         label.textContent=entry.meta.name;size.textContent=(entry.meta.size/(1024*1024)).toFixed(2)+' MB';details.append(label,size);
         if(entry.url){
-          const media=document.createElement(entry.meta.type.startsWith('image/')?'img':'video');media.src=entry.url;
+          const media=document.createElement(entry.meta.type.startsWith('image/')?'img':'video');
           if(media.tagName==='IMG')media.alt=entry.meta.name;
           else {media.controls=true;media.playsInline=true;media.preload='metadata';media.setAttribute('aria-label',entry.meta.name);}
+          media.addEventListener('error',()=>{
+            if(!item.isConnected)return;
+            media.remove();
+            const warning=document.createElement('p');warning.className='feedback-preview-warning';warning.setAttribute('role','status');
+            details.append(warning);warning.textContent=media.tagName==='IMG'?t.imagePreview:t.videoPreview;
+            // Local decoding can fail for a valid codec; keep the file available for upload.
+          },{once:true});
+          media.src=entry.url;
           item.append(media);
         }else{const restored=document.createElement('small');restored.textContent=t.restored;details.append(restored);}
         const remove=document.createElement('button');remove.type='button';remove.className='secondary feedback-remove';remove.textContent=t.remove;remove.setAttribute('aria-label',t.remove+' '+entry.meta.name);

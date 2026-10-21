@@ -34,7 +34,7 @@ const pass=message=>{checks.push(message);console.log('PASS:',message);};
   assert.equal((await bucket.list()).objects.length,0);
   await page.screenshot({path:path.join(out,'mobile-video-preview-warning.png'),fullPage:true});
   await page.locator('.feedback-remove').click();assert.equal(await warning.count(),0);
-  await picker.setInputFiles({...picture,name:'incomplete.png',buffer:png.subarray(0,8)});
+  await picker.setInputFiles({...picture,name:'incomplete.png',buffer:png.subarray(0,24)});
   await warning.waitFor({state:'visible',timeout:5000});
   assert.match(await warning.innerText(),/无法预览.*图片/);
   assert.equal(await page.locator('.feedback-attachment-list img:visible').count(),0);
