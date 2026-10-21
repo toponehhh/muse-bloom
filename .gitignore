@@ -14,3 +14,5 @@ wrangler.deploy.json
 playtest-responses/
 demos/skeletal/app.js
 demos/skeletal/app.js.LEGAL.txt
+demos/style-lab/app.js
+demos/style-lab/app.js.LEGAL.txt
