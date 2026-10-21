@@ -5,7 +5,7 @@
 :root{font:16px/1.7 "Segoe UI","Microsoft YaHei",sans-serif;color:#543449;background:#fbf4ee}*{box-sizing:border-box}body{margin:0}main{max-width:920px;margin:auto;padding:42px 22px 70px}header{border-bottom:1px solid #e5ceda;padding-bottom:28px}.kicker{font-size:11px;letter-spacing:2px;color:#9d5b7d}h1{font-family:Georgia,serif;font-size:clamp(36px,7vw,58px);font-weight:400;line-height:1.1;margin:14px 0;color:#843f64}h2{font-size:21px;margin:0 0 16px}p{color:#846476}.intro{max-width:630px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0 10px}a.button,button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 22px;border-radius:13px;background:#ae3e6c;color:white;text-decoration:none;border:1px solid #ae3e6c;font:600 14px "Segoe UI","Microsoft YaHei",sans-serif;cursor:pointer}.secondary{background:#fffaf7!important;color:#8c4265!important;border-color:#d9bdcd!important}.note{font-size:12px;color:#967c8a}.section{background:#fffaf7;border:1px solid #e5d3dc;border-radius:18px;padding:25px;margin-top:24px}ol{padding-left:21px}li{padding:6px 0}.tasks{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.task{padding:16px;background:#f8eaf0;border-radius:12px}.task small{color:#a35d7d;letter-spacing:1px}.task strong{display:block;font-size:16px;margin:7px 0}.task p{font-size:13px;margin:0}summary{cursor:pointer;font-size:18px;font-weight:650;min-height:36px;color:#7b4a66}details p,details li{font-size:14px}.status{border:1px dashed #c7a2b7;padding:14px;border-radius:10px;font-size:13px;background:#fff7ed}.form{display:grid;gap:16px}.form label{display:grid;gap:6px;font-size:14px}.form input,.form select,.form textarea{font:inherit;color:#65405b;background:white;border:1px solid #d8c2cf;padding:10px 12px;border-radius:10px;width:100%;min-height:46px}.form textarea{min-height:90px;resize:vertical}.ratings{display:grid;grid-template-columns:1fr 1fr;gap:15px}.form button{justify-self:start}code{background:#f0e3e9;padding:2px 5px;border-radius:4px}a{color:#993f69}:focus-visible{outline:3px solid #9c4f80;outline-offset:4px}
 @media(max-width:600px){main{padding:25px 14px 45px}.section{padding:19px}.tasks,.ratings{grid-template-columns:1fr}.actions>a{width:100%}.task{padding:14px}h2{font-size:19px}}
 .form .feedback-consent{display:flex;align-items:flex-start;gap:10px;line-height:1.6}.form .feedback-consent input{flex:0 0 20px;width:20px;min-height:20px;margin-top:4px;accent-color:#ae3e6c}.feedback-status{overflow-wrap:anywhere}.feedback-status[data-state="success"]{color:#246c51}.feedback-status[data-state="error"]{color:#a12942}.form [disabled]{opacity:.65;cursor:wait}
-</style></head>
+</style><link rel="stylesheet" href="../css/feedback.css"></head>
 <body><main>
 <header><span class="kicker">MUSE BLOOM / PRIVATE PLAYTEST / v1.8.0</span><h1>A little more you.</h1>
 <p class="intro">欢迎参加 Muse Bloom 私人试玩。请用自己的方式完成前三个穿搭场景，再告诉我们哪些地方好玩、清楚，哪些地方需要改进。建议预留 5–8 分钟。</p>
@@ -48,5 +48,7 @@
 <p class="note">此页面供私人试玩使用。提交 CrazyGames 时使用单独生成的 <code>crazygames-upload/index.html</code>，不把本页作为游戏入口。</p>
 </main>
 <script src="../js/feedback-kind.js"></script>
+<script src="../js/feedback-attachments.js"></script>
+<script src="../js/feedback-upload-ui.js"></script>
 <script src="../js/feedback-client.js"></script>
 <script src="feedback.js"></script></body></html>

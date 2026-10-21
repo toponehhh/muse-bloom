@@ -7,8 +7,9 @@ async function fixture(withAssets=false,through='9999'){
   const pages=process.env.MUSE_CF_TARGET==='pages';
   const backend={
     name:config.name,
-    modules:[{type:'ESModule',path:path.join(root,config.main)},{type:'ESModule',path:path.join(root,'js/feedback-kind.js')}],modulesRoot:root,compatibilityDate:config.compatibility_date,
+    modules:[config.main,'cloudflare/attachments.mjs','js/feedback-kind.js','js/feedback-attachments.js'].map(file=>({type:'ESModule',path:path.join(root,file)})),modulesRoot:root,compatibilityDate:config.compatibility_date,
     d1Databases:{DB:'feedback-test-only'},
+    r2Buckets:{FEEDBACK_FILES:'feedback-files-test-only'},
     ratelimits:Object.fromEntries(config.ratelimits.map(r=>[r.name,{namespace_id:r.namespace_id,simple:r.simple}])),
     ...(!pages&&withAssets?{assets:{...config.assets,directory:path.resolve(root,config.assets.directory),routerConfig:{has_user_worker:true}}}:{})
   };
@@ -26,7 +27,7 @@ async function fixture(withAssets=false,through='9999'){
       const statements=fs.readFileSync(path.join(root,'cloudflare/migrations',name),'utf8').split(';').map(s=>s.trim()).filter(Boolean);
       await db.batch(statements.map(s=>db.prepare(s)));
     }
-    return {mf,db,base:(await mf.ready).origin};
+    return {mf,db,bucket:await mf.getR2Bucket('FEEDBACK_FILES',config.name),base:(await mf.ready).origin};
   }catch(error){await mf.dispose();throw error;}
 }
 module.exports={fixture};

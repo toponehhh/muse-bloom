@@ -1,0 +1,13 @@
+.feedback-attachments{min-width:0;margin:0;padding:14px;border:1px solid #d7bfcd;border-radius:12px;background:#fffaf7;color:#65445d}
+.feedback-attachments legend{padding:0 6px;font-size:14px;font-weight:600}
+.feedback-attachments .feedback-upload-hint,.feedback-attachments .feedback-upload-status{font-size:12px;line-height:1.6;color:#76556b;margin:4px 0 12px}
+.feedback-attachments input[type=file]{display:block;max-width:100%;width:100%;min-height:44px;font:inherit;font-size:13px;overflow:hidden}
+.feedback-attachments input::file-selector-button{min-height:40px;margin-right:8px;border:1px solid #be8da6;border-radius:8px;background:#f6e6ee;color:#6d3754;padding:6px 12px;cursor:pointer}
+.feedback-attachment-list{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:12px}
+.feedback-attachment-list li{padding:10px;border:1px solid #e5d3dc;border-radius:10px;display:grid;gap:8px;min-width:0;background:white}
+.feedback-attachment-list img,.feedback-attachment-list video{display:block;width:100%;max-height:160px;object-fit:contain;border-radius:6px;background:#f4eef2}
+.feedback-attachment-list strong,.feedback-attachment-list span,.feedback-attachment-list small{display:block;overflow-wrap:anywhere;font-size:12px;line-height:1.5}
+.feedback-attachment-list strong{color:#65445d}.feedback-attachment-list small{margin-top:4px;color:#76556b}
+.feedback-attachment-list .feedback-preview-warning{margin:8px 0 0;padding:10px 12px;border-left:3px solid #9a650e;border-radius:6px;background:#fff3d9;color:#6b4512;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.feedback-attachment-list .feedback-remove{min-height:44px;justify-self:start;padding:8px 16px;border:1px solid #d7bfcd;border-radius:8px;cursor:pointer}
+.feedback-upload-status:empty{display:none}.feedback-cancel[hidden]{display:none!important}
