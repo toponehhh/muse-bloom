@@ -1,5 +1,6 @@
 import {fitCage} from '../../skeletal/src/fitting.mjs';
 import {fitRose,fitBlue,fitLilac,fitIvory,wardrobe,inside} from './rig.mjs';
+import {footwearTemplates,isHandheld,heldPlacement} from './wearable-fit.mjs';
 const identity=(x,y)=>[x,y];
 const base=(texture,rect,map=identity,keep=()=>true,role='top')=>({texture,rect,map,keep,role});
 export const templates={
@@ -43,8 +44,7 @@ dress('pinafore',[105,504,481,960],[294,512,69,541,145,624,207,673,104,932,325],
 dress('gown',[515,503,971,997],[742,512,88,534,138,557,177,625,83,970,370],1432);
 dress('hanfu',[65,1001,514,1525],[295,1010,49,1047,134,1111,190,1145,91,1490,350],1390);
 dress('qipao',[635,1005,849,1518],[742,1014,48,1055,123,1101,178,1170,90,1494,105],1250);
-const shoeRects={maryjane:[24,83,490,460],loafer:[530,82,1007,456],boot:[21,541,492,970],sandal:[526,580,1015,977],heel:[18,1048,491,1477],platform:[524,1046,1009,1461]};
-for(const [name,r]of Object.entries(shoeRects)){const middle=(r[0]+r[2])/2,low=name==='boot'?1285:1349;templates[name]=base('shoes',r,(x,y)=>[x<middle?396+(x-r[0])/(middle-r[0])*108:588+(x-middle)/(r[2]-middle)*112,low+(y-r[1])/(r[3]-r[1])*(1475-low)],()=>true,'shoes');}
+Object.assign(templates,footwearTemplates());
 templates.shorts=base('blue',[320,479,705,815],(x,y)=>{const [a,b]=fitIvory(x,y);return[a,566+(b-566)*.79];},()=>true,'bottom');
 templates.midi=base('rose',[255,707,807,1110],(x,y)=>{const [a,b]=fitLilac(x,y);return[515+(a-515)*.94,566+(b-566)*1.85];},()=>true,'bottom');
 templates.mamian=base('dresses',[65,1157,514,1525],fitCage([[249,1157,434,566],[341,1157,597,566],[295,1157,515,566],[85,1463,335,1340],[495,1463,695,1340],[295,1510,515,1380]]),()=>true,'bottom');
@@ -59,8 +59,10 @@ export function templateFor(item){
   return null;
 }
 export function accessoryPlacement(item,second=false){
+  if(isHandheld(item))return heldPlacement(item,second?'L':'R');
+  if(item.shape==='crossbody')return {bone:'chest',target:[414,354],anchor:[299,368],scale:1.25};
   if(item.category==='hair')return {bone:'head',rect:['band','pearls','stars'].includes(item.shape)?[427,108,609,170]:[536,125,614,189]};
-  const poses={glasses:['head',[448,206,597,252]],earrings:['head',[438,252,603,294]],clip:['head',[539,130,600,189]],pin:['head',[530,124,610,186]],necklace:['chest',[458,334,575,390]],pendant:['chest',[470,332,565,405]],scarf:['chest',[440,332,595,540]],watch:['wristR',[697,738,732,786]],fan:['wristR',[672,697,800,838]],crossbody:['chest',[394,350,763,934]]};
+  const poses={glasses:['head',[448,206,597,252]],earrings:['head',[438,252,603,294]],clip:['head',[539,130,600,189]],pin:['head',[530,124,610,186]],necklace:['chest',[458,334,575,390]],pendant:['chest',[470,332,565,405]],scarf:['chest',[440,332,595,540]],watch:['wristR',[697,738,732,786]]};
   const found=poses[item.shape];if(found)return{bone:found[0],rect:found[1]};
-  return {bone:second?'wristL':'wristR',rect:second?[250,795,377,981]:[656,795,783,981]};
+  throw new Error('Missing accessory fit: '+item.id);
 }

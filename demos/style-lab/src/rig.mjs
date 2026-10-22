@@ -77,7 +77,7 @@ const frames=(values,key)=>values.map(v=>({duration:45,tweenEasing:2,...(key==='
 export function makeSkeleton({campaign=false}={}){
   // The narrow ivory insert is an intentional inner tee under the open cardigan.
   const inner=(x,y)=>inside(x,y,topOutline)&&x>447&&x<585&&y<416;
-  const bodyKeep=(x,y)=>(!inside(x,y,topOutline)||!campaign&&inner(x,y))&&!inside(x,y,skirtOutline)&&(!campaign||y<1355);
+  const bodyKeep=(x,y)=>(!inside(x,y,topOutline)||!campaign&&inner(x,y))&&!inside(x,y,skirtOutline)&&(!campaign||y<1325);
   const skinSlots=[
     {name:'body',display:[
       mesh('body','mira',[260,40,765,1500],identity,bodyKeep),
