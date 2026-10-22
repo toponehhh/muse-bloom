@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "mo-qa": {
+      "source": "momentic-ai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mo-qa/SKILL.md",
+      "computedHash": "8a7196365286179e8e7f7a6752d5a23cb5f0cc06eaf437152e843ed3357088d9"
+    }
+  }
+}
