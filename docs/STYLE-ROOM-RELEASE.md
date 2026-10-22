@@ -1,6 +1,15 @@
-# Style Stories · 2.0.1
+# Style Stories · 2.0.2
 
 沿用已确认的 Mira 人物、马尾发型、居家场景和奶油/柔紫界面，将原来的完整游戏规则接入新绘图层：**36 关、6 章、122 件物品**。
+
+## 2.0.2 人物渲染与 QA 选关
+
+- 无法创建 GPU 上下文时，Pixi 会回退到 Canvas2D。现在补齐网格绘制与服装配色，修复房间可见但人物和衣服消失的问题。图片生成异常时仍显示已保存的评分与下一步操作，并恢复人物变换。
+- [QA 自由选关](https://style-room.muse-bloom.pages.dev/?v=2.0.2&qa=1) 开放全部 36 关，使用独立测试存档和 Lookbook；可以从当前关直接切换到其他关，不需要伪造通关记录。
+- [QA 正常解锁](https://style-room.muse-bloom.pages.dev/?v=2.0.2&qa=1&progression=normal) 用另一套隔离存档测试顺序解锁。没有 `qa=1` 的普通玩家保留原有进度规则和存档。
+- 本地人物回归通过 WebGL、无 GPU 的桌面/手机尺寸 Canvas2D、图片生成失败恢复四类场景。选关回归通过 5 项状态测试和 5 项 UI 检查，包括旧存档隔离、损坏/禁用存储、跨关结果恢复。
+
+经用户授权，2.0.2 已从 `fix/qa-story-selection` 的 **`8e9e40497ced0eb558af31ca55d2de20d73b5eb7`** 手动部署至 `style-room`。不可变部署地址：[3ea96cc8.muse-bloom.pages.dev](https://3ea96cc8.muse-bloom.pages.dev)。2026-10-22 **14:12–14:13（Asia/Shanghai）** 核对线上版本与应用文件哈希，并通过桌面/手机尺寸的选关、刷新恢复及正常解锁模式检查。线上验证范围仅为选关；没有重跑 Mo、修改发现状态或提交反馈。具体修复与分版本证据见 [人物渲染记录](qa/2026-10-22-character-loading.md) 和 [选关发布记录](qa/2026-10-22-story-selection.md)。
 
 ## 2.0.1 鞋包贴合修复
 
@@ -45,6 +54,8 @@ npm run test:style-release
 ## 发布与回退
 
 分支：`feat/pixi-skeletal-demo`。Cloudflare Pages 项目 `muse-bloom`，分支别名 `style-room`，访问 **https://style-room.muse-bloom.pages.dev**。版本独立于经典版根目录 `package.json` 的 1.8.0；原主域名仍服务经典版。
+
+上述为常规自动发布分支。2.0.2 的修复分支、实际源提交与经授权手动发布记录见本页开头；文档后续提交不代表已部署应用发生变化。
 
 GitHub Actions **Style Room preview** 运行规则、穿搭和反馈测试，上传证据，再部署经过 SHA-256 校验的 `dist/style-room-pages`。入口为完整 campaign，配置 `cloudflare/style-room/wrangler.jsonc`；复用现有私有 `FEEDBACK_API` 服务，不新增数据库或公开 R2。
 

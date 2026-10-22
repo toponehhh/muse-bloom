@@ -8,7 +8,7 @@ Tracker: [GitHub issue #5](https://github.com/toponehhh/muse-bloom/issues/5), op
 - Reported target: `https://style-room.muse-bloom.pages.dev/?v=2.0.1&qa=1`.
 - Reviewed source: `12e51f8b34a818f50f0e489d6932a53d6b92327e` (v2.0.1). The Mo finding does **not** record its tested commit; this source revision must not be presented as a recorded Mo revision.
 - Existing Mo status, transcript, report manifest and finding evidence were retrieved read-only after the user authorized account access. Export time: **2026-10-22 05:24:02 UTC**. The preserved baseline has four open bugs, no triage decisions, and two `issues_found` verdicts; these are reproduction findings, not fix verification.
-- The user subsequently explicitly authorized **local targeted regression** of GPU-unavailable rendering, Details, scoring, saved looks and portrait failures. No Mo resume, remote QA, deployment or triage change was authorized or performed.
+- The user subsequently explicitly authorized **local targeted regression** of GPU-unavailable rendering, Details, scoring, saved looks and portrait failures. During that investigation no Mo resume, remote QA, deployment or triage change was authorized or performed. A later, separately authorized release is recorded below.
 - Original exports and the prior local package remain under ignored investigation artifacts. The prior package records source `34537dce331491d8cd01c278b77e0f1c118543ba`; it is not mislabeled as the reviewed source. The negative control was separately rebuilt from Git source `12e51f8` with the installed locked dependencies.
 
 ## Reproduction and evidence
@@ -87,6 +87,12 @@ These are local engineering results. **All Mo findings retain their original OPE
 
 ## Boundaries
 
-This is focused local verification, not complete coverage of 36 levels, 122 pieces, all browsers, lost GPU contexts or mobile hardware. The original remote environment and tested commit remain unknown. No new Mo verification verdict exists, no CF deployment was performed, and no Mo triage or issue closure was changed.
+This is focused local rendering verification, not complete coverage of 36 levels, 122 pieces, all browsers, lost GPU contexts or mobile hardware. The original remote environment and tested commit remain unknown. No new Mo verification verdict exists, and no Mo triage or issue closure was changed.
 
 Private session identifiers, participant identifiers, credentials, raw logs, recordings and feedback remain excluded from this note and the public issue. Local evidence paths are not attachment links.
+
+## Subsequent authorized publication
+
+The user later approved deploying **2.0.2**, explicitly including this rendering fix, to the Style Room test site. Source **`8e9e40497ced0eb558af31ca55d2de20d73b5eb7`** is served at [Style Room](https://style-room.muse-bloom.pages.dev/?v=2.0.2&qa=1), with immutable deployment [3ea96cc8.muse-bloom.pages.dev](https://3ea96cc8.muse-bloom.pages.dev). Served manifest and application hashes were verified on **2026-10-22 06:12–06:13 UTC**.
+
+The authorized hosted check covered the new QA story-switching flow at desktop and phone-sized viewports, normal progression and reload persistence. It did not repeat the GPU-unavailable rendering cases above. See [story selection and deployment record](2026-10-22-story-selection.md). Mo remains idle and the findings remain open.

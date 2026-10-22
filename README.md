@@ -1,6 +1,6 @@
 # Muse Bloom
 
-**New: [Style Stories 2.0.1](https://style-room.muse-bloom.pages.dev/?v=2.0.1)** — the approved Mira/room style includes all **36 challenges, six chapters and 122 collectible items**, original scoring/ranks, rewards, best-look collection and save recovery. Version 2.0.1 fixes shoe and bag attachment, with an exhaustive wardrobe regression gate for these contacts. Run `npm run demo:style` and open the printed `campaign.html` URL. [Release notes](docs/STYLE-ROOM-RELEASE.md) describe this feature branch's Cloudflare delivery and test evidence; the classic game below remains a separate entry.
+**New: [Style Stories 2.0.2](https://style-room.muse-bloom.pages.dev/?v=2.0.2)** — the approved Mira/room style includes all **36 challenges, six chapters and 122 collectible items**, original scoring/ranks, rewards, best-look collection and save recovery. Version 2.0.2 adds Canvas2D character rendering when GPU APIs are unavailable and lets testers select every story with isolated QA saves. [Explore all stories](https://style-room.muse-bloom.pages.dev/?v=2.0.2&qa=1) or [test normal progression](https://style-room.muse-bloom.pages.dev/?v=2.0.2&qa=1&progression=normal). Run `npm run demo:style` and open the printed `campaign.html` URL. [Release notes](docs/STYLE-ROOM-RELEASE.md) record Cloudflare delivery and verification scope; the classic game below remains a separate entry.
 
 **v1.8.0 — Make It Yours**
 

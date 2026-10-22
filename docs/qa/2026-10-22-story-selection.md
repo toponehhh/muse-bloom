@@ -4,7 +4,7 @@
 
 The story map renders all 36 challenges. The original client disables every challenge beyond `G.nextLevel(save)`. With a fresh save that means only story 1 is enabled. `qa=1` previously classified feedback as automated but did not change story availability. There is no hosting-side story feed or database to reseed.
 
-Prepared release **2.0.2** adds an explicit QA mode:
+Published release **2.0.2** adds an explicit QA mode:
 
 | URL parameters | Available stories | Save behavior |
 | --- | --- | --- |
@@ -28,12 +28,26 @@ Implementation: `c52d294`. Targeted tests: `fb0d672`.
 - Both viewport cases recover from corrupt QA JSON. A separate browser context with blocked localStorage can still select another story. No unexpected page errors. Picker screenshots inspected visually.
 - Public UI flows do not use `test=1` or an internal app hook. No feedback is submitted to production D1/R2.
 
+The final release artifact was rebuilt at **`8e9e40497ced0eb558af31ca55d2de20d73b5eb7`**. `npm run test:stories` passed all 5 state tests and 5 UI checks again on **2026-10-22 14:07–14:08 Asia/Shanghai** in the same environment. `node dev/package-style-lab.js --verify` confirmed the packaged files before deployment.
+
 The release gate includes the targeted tests. Existing campaign/progression UI tests explicitly use `qa=1&progression=normal` so opening the QA picker does not hide real unlock regressions. No full remote QA run or Mo recheck was performed for this change.
 
 ## Publication
 
-Publishing requires replacing the Style Room Pages assets. The regular main-site deployment, D1 data and R2 objects do not need changes. The prepared build also includes the previously locally verified Canvas2D character-rendering fix.
+After the user's explicit approval, release **2.0.2** from **`8e9e40497ced0eb558af31ca55d2de20d73b5eb7`** was deployed to Cloudflare Pages project `muse-bloom`, branch alias `style-room`. The build includes the previously locally verified Canvas2D character-rendering fix. The regular main-site deployment, D1 data and R2 objects were not changed.
 
-Deployment is pending. Once published, use `https://style-room.muse-bloom.pages.dev/?v=2.0.2&qa=1` for freely selectable stories, or add `&progression=normal` to verify the ordinary unlock sequence. A query string alone cannot update an older hosted bundle; check `build.json` for the actual deployed source commit.
+- [QA story exploration](https://style-room.muse-bloom.pages.dev/?v=2.0.2&qa=1): all 36 stories selectable.
+- [QA normal progression](https://style-room.muse-bloom.pages.dev/?v=2.0.2&qa=1&progression=normal): ordinary sequential unlocks in a separate test save.
+- Immutable deployment: [3ea96cc8.muse-bloom.pages.dev](https://3ea96cc8.muse-bloom.pages.dev).
+
+Authorized hosted verification ran **2026-10-22 14:12–14:13 Asia/Shanghai**, using Windows and sandboxed headless ungoogled Chromium **150.0.7871.255**, with isolated browser contexts:
+
+- Served `build.json` reports 2.0.2 and the exact release commit. HTML, JavaScript and CSS SHA-256 hashes match the tested artifact.
+- Desktop 1440 × 1000: a fresh QA save enables all 36 stories; switching 1 → 2 → 36 → 2 updates the brief, and reload retains story 2.
+- Phone-sized 390 × 844: the picker switches away from the active story and back correctly.
+- Fresh regular play and QA normal-progression mode each enable only story 1. Returning to QA exploration restores its independent story 2 selection.
+- No unexpected page errors, feedback submissions or other state-changing network requests occurred.
+
+This hosted check covered story switching and persistence only. It did not repeat the earlier GPU-unavailable rendering regression or resume Mo. No new Mo fix-verification verdict exists. A query string alone does not select an older bundle; use `build.json` to identify what an alias currently serves.
 
 Local reports and screenshots are under ignored `artifacts/campaign-stories/`; these paths are not tracker attachments. Mo's existing findings and triage are unchanged.
