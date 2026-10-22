@@ -105,11 +105,11 @@ jobs:
         run: |
           npm run assets
           git diff --exit-code -- assets/ js/asset-data.js
-      - name: Create CrazyGames archive
+      - name: Create the legacy 1.8 CrazyGames archive
         run: npm run package
       - uses: actions/upload-artifact@v7.0.2
         with:
-          name: muse-bloom-crazygames
+          name: muse-bloom-classic-crazygames
           path: |
             dist/muse-bloom-crazygames-*.zip
             dist/package-manifest.json
@@ -139,7 +139,7 @@ jobs:
         with:
           path: dist/github-pages/
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && !contains(github.event.head_commit.message, '[skip deploy]')
     needs: game
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -156,7 +156,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5.0.1
   deploy-cloudflare:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && !contains(github.event.head_commit.message, '[skip deploy]')
     needs: game
     runs-on: ubuntu-latest
     timeout-minutes: 10

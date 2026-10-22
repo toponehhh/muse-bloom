@@ -6,6 +6,8 @@ on:
       - 'demos/skeletal/src/fitting.mjs'
       - 'dev/*style-lab*'
       - 'dev/style-release.test.js'
+      - 'dev/package-style-crazygames.js'
+      - 'dev/style-crazygames.test.js'
       - 'dev/style-progress.test.mjs'
       - 'dev/campaign*.test.*'
       - 'dev/wearable-probes.js'
@@ -26,6 +28,8 @@ on:
       - 'demos/skeletal/src/fitting.mjs'
       - 'dev/*style-lab*'
       - 'dev/style-release.test.js'
+      - 'dev/package-style-crazygames.js'
+      - 'dev/style-crazygames.test.js'
       - 'dev/style-progress.test.mjs'
       - 'dev/campaign*.test.*'
       - 'dev/wearable-probes.js'
@@ -65,6 +69,8 @@ jobs:
       - run: npm run test:style
       - name: Release progression and Pages feedback with isolated D1 and R2
         run: npm run test:style-release
+      - name: Standalone CrazyGames upload, sandboxed iframe and official viewport sizes
+        run: npm run test:style-crazygames
       - name: Keep screenshots and contact checks
         if: always()
         uses: actions/upload-artifact@v7.0.2
@@ -73,11 +79,21 @@ jobs:
           path: |
             artifacts/style-lab/
             artifacts/style-release/
+            artifacts/style-crazygames/
             artifacts/campaign/
             artifacts/campaign-rendering/
             artifacts/campaign-stories/
             artifacts/campaign-feedback/
             artifacts/wearable-fit/
+          retention-days: 14
+      - name: Keep the current Style Stories CrazyGames upload
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: muse-bloom-style-stories-crazygames
+          path: |
+            dist/crazygames-style-stories-v*/
+            dist/crazygames-style-stories-v*.manifest.json
+          if-no-files-found: error
           retention-days: 14
       - name: Keep the tested Cloudflare preview
         uses: actions/upload-artifact@v7.0.2
@@ -94,7 +110,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   deploy-preview:
-    if: github.ref == 'refs/heads/feat/pixi-skeletal-demo' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    if: github.ref == 'refs/heads/feat/pixi-skeletal-demo' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && !contains(github.event.head_commit.message, '[skip deploy]')
     needs: style-room
     runs-on: ubuntu-22.04
     timeout-minutes: 10

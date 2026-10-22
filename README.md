@@ -1,5 +1,7 @@
 # Muse Bloom
 
+**CrazyGames resubmission:** use `npm run package:style-crazygames` for the current **2.0.3** upload folder, `npm run test:style-crazygames` to check it, and `npm run promo:style` for matching covers/videos. [Current submission instructions](docs/CRAZYGAMES-2.0.3.md) distinguish these files from the legacy 1.8 outputs below.
+
 **New: [Style Stories 2.0.3](https://style-room.muse-bloom.pages.dev/?v=2.0.3)** — the approved Mira/room style includes all **36 challenges, six chapters and 122 collectible items**, original scoring/ranks, rewards, best-look collection and save recovery. Version 2.0.3 closes feedback after a confirmed submission, keeps its receipt visible in the game, and versions frontend asset URLs by content. It retains the Canvas2D rendering fallback and isolated QA saves. [Explore all stories](https://style-room.muse-bloom.pages.dev/?v=2.0.3&qa=1) or [test normal progression](https://style-room.muse-bloom.pages.dev/?v=2.0.3&qa=1&progression=normal). Run `npm run demo:style` and open the printed `campaign.html` URL. [Release notes](docs/STYLE-ROOM-RELEASE.md) record Cloudflare delivery and verification scope; the classic game below remains a separate entry.
 
 **v1.8.0 — Make It Yours**
