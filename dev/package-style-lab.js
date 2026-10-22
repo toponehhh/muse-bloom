@@ -53,5 +53,5 @@ async function build(){
   })},null,2)+'\n');
   verify();console.log('Style Room Pages release ready: '+out);return out;
 }
-module.exports={build,verify,out};
+module.exports={build,verify,out,publicFiles,uiAssets};
 if(require.main===module)(process.argv.includes('--verify')?Promise.resolve().then(()=>console.log('Verified release: '+verify().sourceCommit)):build()).catch(e=>{console.error(e);process.exitCode=1;});
