@@ -1,15 +1,15 @@
-import {D,G,E,LOOK_KEY,loadCampaign,persistCampaign,chooseItem,enterChallenge,submitChallenge,starterOutfit} from './campaign-state.mjs';
+import {D,G,E,campaignOptions,campaignStorageKeys,canEnterChallenge,loadCampaign,persistCampaign,chooseItem,enterChallenge,submitChallenge,starterOutfit} from './campaign-state.mjs';
 import {CampaignRenderer} from './campaign-renderer.js';
 import {openFeedback,recordAction} from './feedback.js';
 import release from '../release.json';
 import '../../../css/feedback.css';
 const $=s=>document.querySelector(s),reduced=matchMedia('(prefers-reduced-motion: reduce)');
 let storage;try{storage=localStorage;}catch{}
-const state={...loadCampaign(storage),category:'top',filter:null,view:'full'},history=[],thumbnails=new Map();
+const state={...loadCampaign(storage,campaignOptions(location.search)),category:'top',filter:null,view:'full'},history=[],thumbnails=new Map();
 state.paused||=reduced.matches;enterChallenge(state,state.level);
 const renderer=new CampaignRenderer($('#stage'));
 let audio,lastResult,activeImage,pictures={};
-const pictureKey=LOOK_KEY;
+const pictureKey=campaignStorageKeys(state).looks;
 try{const raw=JSON.parse(storage.getItem(pictureKey));if(raw&&typeof raw==='object'&&!Array.isArray(raw))for(const [key,value]of Object.entries(raw))if(D.themes.some(t=>t.id===key)&&typeof value==='string'&&value.startsWith('data:image/jpeg;')&&value.length<800000)pictures[key]=value;}catch{}
 const persist=()=>{const ok=persistCampaign(storage,state);if(!ok)$('#selection-note').textContent='Device storage is unavailable. Keep this page open to retain your progress.';return ok;};
 const currentTheme=()=>D.themes[state.level-1],equipped=()=>G.equippedItems(state.outfit);
@@ -41,8 +41,10 @@ function equip(id){const old=structuredClone(state.outfit);if(!chooseItem(state,
 function suggest(index){const checks=E.goals(currentTheme(),equipped()),s=E.suggestion(currentTheme(),state.outfit,equipped(),D.items.filter(i=>state.save.unlockedItems.includes(i.id)),index);$('#goal-hint').textContent=checks[index].done?'This note is already part of your look.':checks[index].hint;if(s){state.category=s.category;state.filter=s.ids;renderItems();$('#items').scrollTop=0;}}
 function selectLevel(index){const fresh=enterChallenge(state,index);if(!fresh)return false;history.length=0;state.filter=null;$('#goal-hint').textContent='Tap a note for a wardrobe suggestion.';$('#selection-note').textContent=fresh.length?`${fresh.length} chapter gifts added to your wardrobe.`:currentTheme().description;refreshBrief();renderItems();persist();recordAction('screen',{screen:'challenge',level:index});return true;}
 function map(){
+ const available=D.themes.filter(t=>canEnterChallenge(state,t.index)).length;
+ $('#story-availability').textContent=state.allStories?'QA preview: all 36 stories are selectable. QA progress is saved separately.':`${available} of 36 stories unlocked. Reveal a passing look to unlock the next story.${state.qa?' QA progress is saved separately.':''}`;
  $('#chapter-map').replaceChildren();for(let c=1;c<=6;c++){const chapter=D.chapters[c-1],section=document.createElement('section');section.className='chapter-block';const title=document.createElement('h3');title.textContent=`${String(c).padStart(2,'0')} · ${chapter.name}`;const note=document.createElement('p');note.textContent=chapter.note;const grid=document.createElement('div');grid.className='level-grid';
-  for(const theme of D.themes.filter(t=>t.chapter===c)){const b=document.createElement('button');b.className='level-tile'+(state.level===theme.index?' current':'');b.dataset.level=theme.index;const level=state.save.levels[theme.id];b.dataset.rank=level?.rank||'';b.disabled=!G.canPlay(state.save,theme.index);b.setAttribute('aria-label',`Level ${theme.index}: ${theme.name}${b.disabled?'. Locked':''}`);const num=document.createElement('strong');num.textContent=theme.index;const name=document.createElement('span');name.textContent=theme.name;const score=document.createElement('small');score.textContent=level?`${level.rank} · ${level.best} pts`:b.disabled?'Locked':'Ready to style';b.append(num,name,score);b.addEventListener('click',()=>{selectLevel(theme.index);$('#journey').close();});grid.append(b);}
+  for(const theme of D.themes.filter(t=>t.chapter===c)){const b=document.createElement('button');b.className='level-tile'+(state.level===theme.index?' current':'');b.dataset.level=theme.index;const level=state.save.levels[theme.id];b.dataset.rank=level?.rank||'';b.disabled=!canEnterChallenge(state,theme.index);if(state.level===theme.index)b.setAttribute('aria-current','true');b.setAttribute('aria-label',`Level ${theme.index}: ${theme.name}${b.disabled?'. Locked':state.level===theme.index?'. Current story':''}`);const num=document.createElement('strong');num.textContent=theme.index;const name=document.createElement('span');name.textContent=theme.name;const score=document.createElement('small');score.textContent=level?`${level.rank} · ${level.best} pts`:b.disabled?'Locked':state.level===theme.index?'Current story':'Ready to style';b.append(num,name,score);b.addEventListener('click',()=>{if(selectLevel(theme.index))$('#journey').close();});grid.append(b);}
   section.append(title,note,grid);$('#chapter-map').append(section);
  }$('#journey').showModal();
 }
@@ -82,6 +84,7 @@ async function start(){
  document.querySelectorAll('button').forEach(b=>b.disabled=true);let timeout;
  try{await Promise.race([renderer.init(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Asset loading timed out')),45000);})]);}finally{clearTimeout(timeout);}
  await renderer.prepareDetails(D.items);controls();applyOutfit();refreshSettings();$('#release-version').textContent=`STYLE STORIES · ${release.version}`;
+ if(state.qa){$('#qa-notice').hidden=false;$('#qa-notice').textContent=state.allStories?'QA preview · All stories selectable':'QA preview · Normal story progression';$('.privacy-note').textContent='QA progress is saved separately from your regular game.';}
  $('#loading').hidden=true;document.querySelectorAll('button:not([data-item])').forEach(b=>b.disabled=false);$('#undo').disabled=true;document.documentElement.dataset.ready='true';
  if(state.migrated)$('#selection-note').textContent='Your classic progress is here. Meet your new wardrobe.';
  if(new URLSearchParams(location.search).has('test'))window.__campaign={state,renderer,D,G,E,equip,selectLevel,showResult,snapshot:()=>({version:release.version,level:state.level,outfit:structuredClone(state.outfit),owned:state.save.unlockedItems.length,completed:D.themes.filter(t=>(state.save.levels[t.id]?.best||0)>=35).length,score:G.scoreBreakdown(currentTheme(),equipped()),save:structuredClone(state.save)}),setOutfit(outfit){state.outfit=G.normalizeOutfit(outfit,state.save.unlockedItems);applyOutfit();}};
