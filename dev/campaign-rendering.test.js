@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright'),{PNG}=require('pngjs'),{createServer}=require('./server');
 const out=path.resolve(__dirname,'../artifacts/campaign-rendering');fs.mkdirSync(out,{recursive:true});
-const report={kind:'automated-check',humanParticipants:0,scenarios:[],errors:[]},server=createServer();
+const report={kind:'automated-check',startedAt:new Date().toISOString(),platform:process.platform,node:process.version,humanParticipants:0,scenarios:[],errors:[]},server=createServer();
 let browser;
 
 async function withoutGpu(context){
@@ -66,19 +66,25 @@ async function ready(page,url){
       const equipped=await visibleCharacter(page,mode.name+'-equipped',scenario);
       assert.ok(difference(equipped,initial).changed>500,'Outfit selection must change visible clothing');
       await page.locator('#detail-view').click();assert.equal(await page.locator('#detail-view').getAttribute('aria-pressed'),'true');
-      assert.equal(await page.locator('#full-view').getAttribute('aria-pressed'),'false');await visibleCharacter(page,mode.name+'-details',scenario);
+      assert.equal(await page.locator('#full-view').getAttribute('aria-pressed'),'false');
+      const detail=await visibleCharacter(page,mode.name+'-details',scenario);assert.ok(difference(detail,equipped).changed>500,'Details must visibly zoom the character');
       await page.locator('#full-view').click();
       await page.locator('#reveal').click();assert.equal(await page.locator('#result').evaluate(el=>el.open),true);
       await page.waitForFunction(()=>{const img=document.querySelector('#result-image');return img.complete&&img.naturalWidth===600;});
       assert.equal(await page.locator('#portrait-warning').isVisible(),false);assert.equal(await page.locator('#download').isEnabled(),true);
       assert.match(await page.locator('#campaign-progress').innerText(),/^1 \/ 36/);
+      scenario.score=Number(await page.locator('#score').innerText());assert.ok(scenario.score>=35&&scenario.score<=100);
       await page.screenshot({path:path.join(out,mode.name+'-reveal.png')});
-      await page.locator('#retry-look').click();await page.locator('#book-open').click();await page.locator('[data-saved="1"]').click();
+      await page.locator('#retry-look').click();await page.locator('#reset').click();
+      assert.equal(await page.locator('[data-item=shoes_cute_02]').getAttribute('aria-pressed'),'false');
+      await page.locator('#book-open').click();await page.locator('[data-saved="1"]').click();
+      await page.locator('[data-category=shoes]').click();assert.equal(await page.locator('[data-item=shoes_cute_02]').getAttribute('aria-pressed'),'true');
+      await page.locator('[data-category=bottom]').click();assert.equal(await page.locator('[data-item=bottom_cute_02]').getAttribute('aria-pressed'),'true');
       await visibleCharacter(page,mode.name+'-wear-again',scenario);
       await page.locator('#reveal').click();await page.locator('#next-level').click();assert.match(await page.locator('#level-number').innerText(),/^02/);
       await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.ready==='true');
       await visibleCharacter(page,mode.name+'-reload',scenario);
-      assert.deepEqual(scenario.warnings,[]);scenario.result='passed';
+      assert.deepEqual(scenario.warnings,[]);scenario.result='passed';console.log('PASS: '+mode.name);
     }finally{await context.close();}
   }
   // A separate fault test may inspect the test hook after public-path coverage.
@@ -86,6 +92,8 @@ async function ready(page,url){
   const page=await context.newPage();page.on('pageerror',error=>report.errors.push({mode:'portrait-failure',message:error.message}));
   try{
     await ready(page,url+'&test=1');
+    await page.locator('#reveal').click();await page.waitForFunction(()=>document.querySelector('#result-image').naturalWidth===600);
+    await page.locator('#retry-look').click();
     const before=await page.evaluate(()=>{
       const r=window.__campaign.renderer,e=r.app.renderer.extract;
       window.__restoreExtract=()=>{e.canvas=window.__originalExtract;};window.__originalExtract=e.canvas;
@@ -94,7 +102,9 @@ async function ready(page,url){
     });
     await page.locator('#reveal').click();assert.equal(await page.locator('#result').evaluate(el=>el.open),true);
     assert.equal(await page.locator('#portrait-warning').isVisible(),true);assert.equal(await page.locator('#download').isDisabled(),true);
-    assert.equal(await page.locator('#result-image').isVisible(),false);assert.ok(Number(await page.locator('#score').innerText())>=35);
+    assert.equal(await page.locator('#result-image').isVisible(),false);assert.equal(await page.locator('#result-image').getAttribute('src'),null);
+    assert.ok(Number(await page.locator('#score').innerText())>=35);assert.match(await page.locator('#campaign-progress').innerText(),/^1 \/ 36/);
+    await page.screenshot({path:path.join(out,'portrait-failure.png')});
     assert.deepEqual(await page.evaluate(()=>{const m=window.__campaign.renderer.model;return{x:m.x,y:m.y,sx:m.scale.x,sy:m.scale.y};}),before,'Failed capture restores the pose');
     await page.evaluate(()=>window.__restoreExtract());await page.locator('#retry-look').click();await page.locator('#reveal').click();
     assert.equal(await page.locator('#portrait-warning').isVisible(),false);assert.equal(await page.locator('#download').isEnabled(),true);
@@ -102,5 +112,6 @@ async function ready(page,url){
   }finally{await context.close();}
   assert.deepEqual(report.errors,[]);console.log('PASS: GPU fallback, visible character, Details, reveal, saved looks and portrait failure recovery');
 })().catch(error=>{report.failure=error.stack;console.error(error);process.exitCode=1;}).finally(async()=>{
+  report.finishedAt=new Date().toISOString();
   fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));await browser?.close();server.close();
 });

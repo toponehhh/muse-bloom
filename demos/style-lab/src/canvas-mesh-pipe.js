@@ -53,7 +53,7 @@ export class CanvasMeshPipe {
     try{
       system.setContextTransform(mesh.groupTransform,(renderer._roundPixels|mesh._roundPixels)===1);
       ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=mesh.texture.source.style.scaleMode!=='nearest';
-      const transform=ctx.getTransform(),bleed=.35/Math.max(.01,Math.sqrt(Math.abs(transform.a*transform.d-transform.b*transform.c)));
+      const transform=ctx.getTransform(),bleed=.75/Math.max(.01,Math.sqrt(Math.abs(transform.a*transform.d-transform.b*transform.c)));
       for(let i=0;i<indices.length;i+=3){
         const points=[indices[i],indices[i+1],indices[i+2]].map(index=>{
           const u=uvs[index*2],v=uvs[index*2+1];
@@ -63,14 +63,21 @@ export class CanvasMeshPipe {
         const dx1=q[0]-p[0],dy1=q[1]-p[1],dx2=r[0]-p[0],dy2=r[1]-p[1];
         if(Math.abs(det)<1e-8||Math.abs(dx1*dy2-dx2*dy1)<1e-8)continue;
         const a=(dx1*dv2-dx2*dv1)/det,b=(dy1*dv2-dy2*dv1)/det,c=(dx2*du1-dx1*du2)/det,d=(dy2*du1-dy1*du2)/det;
-        const cx=(p[0]+q[0]+r[0])/3,cy=(p[1]+q[1]+r[1])/3;
-        const sx=Math.max(0,Math.floor(Math.min(p[2],q[2],r[2]))-1),sy=Math.max(0,Math.floor(Math.min(p[3],q[3],r[3]))-1);
-        const sw=Math.min(source.width,Math.ceil(Math.max(p[2],q[2],r[2]))+1)-sx,sh=Math.min(source.height,Math.ceil(Math.max(p[3],q[3],r[3]))+1)-sy;
+        const winding=Math.sign(dx1*dy2-dx2*dy1),inverse=1/(a*d-b*c);
+        const edges=points.map((point,j)=>{const next=points[(j+1)%3],x=next[0]-point[0],y=next[1]-point[1],length=Math.hypot(x,y);return[winding*y/length,-winding*x/length];});
+        const expanded=points.map((point,j)=>{
+          const before=edges[(j+2)%3],after=edges[j],amount=bleed/Math.max(.1,1+before[0]*after[0]+before[1]*after[1]);
+          const x=point[0]+(before[0]+after[0])*amount,y=point[1]+(before[1]+after[1])*amount;
+          return [x,y,p[2]+(d*(x-p[0])-c*(y-p[1]))*inverse,p[3]+(a*(y-p[1])-b*(x-p[0]))*inverse];
+        });
+        const sx=Math.max(0,Math.floor(Math.min(...expanded.map(v=>v[2])))-1),sy=Math.max(0,Math.floor(Math.min(...expanded.map(v=>v[3])))-1);
+        const sw=Math.min(source.width,Math.ceil(Math.max(...expanded.map(v=>v[2])))+1)-sx,sh=Math.min(source.height,Math.ceil(Math.max(...expanded.map(v=>v[3])))+1)-sy;
         if(sw<=0||sh<=0)continue;
         ctx.save();
         try{
-          // A subpixel overlap avoids transparent seams between adjacent faces.
-          ctx.beginPath();points.forEach(([x,y],j)=>{const length=Math.hypot(x-cx,y-cy),f=length?bleed/length:0;ctx[j?'lineTo':'moveTo'](x+(x-cx)*f,y+(y-cy)*f);});ctx.closePath();ctx.clip();
+          // Offset each edge, not just each vertex: shallow triangles also need
+          // a full antialiasing pixel of coverage along their shared edge.
+          ctx.beginPath();expanded.forEach(([x,y],j)=>ctx[j?'lineTo':'moveTo'](x,y));ctx.closePath();ctx.clip();
           ctx.transform(a,b,c,d,p[0]-a*p[2]-c*p[3],p[1]-b*p[2]-d*p[3]);
           ctx.drawImage(source,sx,sy,sw,sh,sx,sy,sw,sh);
         }finally{ctx.restore();}
