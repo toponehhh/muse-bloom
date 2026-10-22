@@ -12,7 +12,7 @@
     const a=document.createElement('a');a.href=url;a.download='Muse-Bloom-'+record.participant+'.json';a.click();
     setTimeout(()=>URL.revokeObjectURL(url),10000);
   }
-  function mount(form,{storageKey,getRecord,language='en',initial={},automated=false}) {
+  function mount(form,{storageKey,getRecord,language='en',initial={},automated=false,onSuccess}) {
     if(!form||form.dataset.feedbackMounted)return;
     form.dataset.feedbackMounted='true';
     const t=copy[language],submit=form.querySelector('[type="submit"]');
@@ -84,7 +84,7 @@
         state={values:current,signature,attachmentDraft:files,submission:{schemaVersion:1,submissionId:crypto.randomUUID(),consent:true,record:makeRecord(current),...(files.length?{attachments:files,uploadToken:crypto.randomUUID()}:{})}};
         persist();
       }
-      if(state.receipt){say(t.success+state.receipt.receipt,'success');return;}
+      if(state.receipt){say(t.success+state.receipt.receipt,'success');onSuccess?.(state.receipt);return;}
       busy=true;form.setAttribute('aria-busy','true');
       const controls=[...form.elements].map(element=>[element,element.disabled]);controls.forEach(([el])=>{el.disabled=true;});
       submit.textContent=t.sending;say(t.sending,'pending');
@@ -101,6 +101,9 @@
         say(abort.signal.aborted?u.cancelled:(u[error.code]||(error.status===410?u.expired:error.status===429?t.limited:([400,403,409,413,415].includes(error.status)?t.invalid:t.failed))),'error');
       }
       finally {busy=false;submissionAbort=null;cancel.hidden=true;form.removeAttribute('aria-busy');controls.forEach(([el,disabled])=>{el.disabled=disabled;});submit.textContent=state.receipt?t.send:t.retry;}
+      // Notify the host only after a validated receipt and after restoring controls.
+      // A UI callback failure must not turn an accepted submission into a retry.
+      if(state.receipt)onSuccess?.(state.receipt);
     });
   }
   root.MuseFeedback={online,mount,download};

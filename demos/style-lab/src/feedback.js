@@ -16,6 +16,9 @@ const rating=(name,label)=>`<label>${label}<select name="${name}" required><opti
 export function openFeedback() {
   const dialog=document.querySelector('#feedback');
   if(!dialog.querySelector('form')) {
+    const confirmation=document.createElement('p');confirmation.id='feedback-receipt';confirmation.className='feedback-receipt';
+    confirmation.setAttribute('role','status');confirmation.setAttribute('aria-live','polite');confirmation.setAttribute('aria-atomic','true');
+    document.querySelector('#feedback-open').closest('.save-row').after(confirmation);
     dialog.innerHTML=`<div class="feedback-heading"><div><p class="eyebrow">STYLE STORIES · ${release.version}</p><h2 id="feedback-title">Help shape the next look.</h2></div><button id="close-feedback" aria-label="Close feedback">×</button></div>
       <form class="feedback-form">
       ${rating('clarity','I knew what to do next')}
@@ -29,7 +32,12 @@ export function openFeedback() {
     globalThis.MuseFeedback.mount(dialog.querySelector('form'),{
       storageKey:'muse-style-room-feedback-'+release.version,automated,
       getRecord:answers=>({version:release.version,source:automated?'automated-check':'participant-session',participant,
-        startedAt,exportedAt:new Date().toISOString(),feedback:answers,events:[...events]})
+        startedAt,exportedAt:new Date().toISOString(),feedback:answers,events:[...events]}),
+      onSuccess:receipt=>{
+        dialog.close();
+        confirmation.textContent='Feedback received. Receipt: '+receipt.receipt;
+        document.querySelector('#feedback-open').focus({preventScroll:true});
+      }
     });
     document.querySelector('#close-feedback').addEventListener('click',()=>dialog.close());
   }

@@ -76,6 +76,7 @@ jobs:
             artifacts/campaign/
             artifacts/campaign-rendering/
             artifacts/campaign-stories/
+            artifacts/campaign-feedback/
             artifacts/wearable-fit/
           retention-days: 14
       - name: Keep the tested Cloudflare preview

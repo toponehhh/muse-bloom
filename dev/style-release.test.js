@@ -67,17 +67,19 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
   if(!live){await page.route('**/api/feedback',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));await submit.click();await page.locator('.feedback-status[data-state=error]').waitFor();await page.unroute('**/api/feedback');}
   const saved=page.waitForResponse(r=>r.url()===base+'/api/feedback'&&r.request().method()==='POST'&&[200,201].includes(r.status()),{timeout:90000});
   await submit.click();receipt=await(await saved).json();
-  await page.locator('.feedback-status[data-state=success]').waitFor();assert.equal(receipt.ok,true);
+  await page.waitForFunction(()=>document.querySelector('.feedback-status')?.dataset.state==='success'&&!document.querySelector('#feedback').open);assert.equal(receipt.ok,true);
+  assert.equal(await page.locator('#feedback').isVisible(),false);assert.match(await page.locator('#feedback-receipt').innerText(),new RegExp(receipt.receipt));
   await page.screenshot({path:path.join(out,'feedback-receipt.png')});
   if(runtime){
     const row=await runtime.db.prepare('SELECT game_version,test_type FROM feedback_submissions WHERE submission_id = ?').bind(receipt.receipt).first();
     assert.equal(row.game_version,release.version);assert.equal(row.test_type,'automated');
     const attachments=await runtime.db.prepare('SELECT object_key,size_bytes FROM feedback_attachments WHERE submission_id = ?').bind(receipt.receipt).all();
     assert.equal(attachments.results.length,2);for(const item of attachments.results)assert.equal((await runtime.bucket.head(item.object_key)).size,item.size_bytes);
-    await submit.click();assert.equal((await runtime.db.prepare('SELECT COUNT(*) AS n FROM feedback_submissions').first()).n,1);
+    await page.locator('#feedback-open').click();await submit.click();
+    assert.equal(await page.locator('#feedback').evaluate(el=>el.open),false);assert.equal((await runtime.db.prepare('SELECT COUNT(*) AS n FROM feedback_submissions').first()).n,1);
   }
   pass('Responsive feedback, oversized-file rejection, consent, screenshot/recording upload and confirmed receipt'+(runtime?' through isolated Pages → Worker → D1/R2, retry and idempotency':''));
-  await page.locator('#close-feedback').click();await page.locator('[data-category="top"]').click();await page.locator('[data-item="top_casual_01"]').click();
+  await page.locator('[data-category="top"]').click();await page.locator('[data-item="top_casual_01"]').click();
   assert.equal(await page.evaluate(()=>window.__campaign.state.outfit.top),'top_casual_01');assert.deepEqual(errors,[]);
   pass('Game continues after feedback with no page errors');
 })().catch(error=>{console.error(error);errors.push(error.stack);process.exitCode=1;}).finally(async()=>{
