@@ -1,6 +1,15 @@
-# CrazyGames resubmission candidate — Muse Bloom 2.0.3
+# CrazyGames submission — Muse Bloom 2.0.3
 
-Prepared 2026-10-22 (Asia/Shanghai). This is the current **Style Stories** edition with Mira, 36 challenges, six chapters and 122 collectible items. It is a **Basic Launch** candidate. It has not been resubmitted or accepted by CrazyGames.
+Prepared 2026-10-22; submitted 2026-10-23 (Asia/Shanghai). This is the current **Style Stories** edition with Mira, 36 challenges, six chapters and 122 collectible items. The **desktop-only Basic Launch** submission is **Awaiting review**. Submission is confirmed; acceptance and publication are still pending.
+
+## Submission record
+
+- Game ID: `959ab864-0c61-4214-9b5f-1a027dc4929a`.
+- Submitted build ID: `43ed02c0-4033-4b41-bccd-79f4962e46da`. The portal marks this build **Submitted** and says it passed QA and is under review. The earlier `f628ebad-f9d3-4811-8cee-bdb825942a36` build remains an unsubmitted draft.
+- Source revision: `99cc195e7324161a0c963d765c72733482199873`, merged by [PR #6](https://github.com/toponehhh/muse-bloom/pull/6) into main at `dd30fd1f61b1dd97801943d8d80b60905f634d32`. Their tracked source trees are identical.
+- Three current covers and both 18-second, silent preview videos were uploaded. Mobile support was explicitly disabled at the owner's request.
+- The owner confirmed that another human had played the current version from start to finish before the final submission declaration was checked. This confirmation is separate from automated QA evidence.
+- The portal still showed **Awaiting review** after reloading on 2026-10-23. It displays a submission date of 22.10.2026; the local date is 23 October in Asia/Shanghai.
 
 ## Upload the current game
 
@@ -22,12 +31,12 @@ The entry uses relative asset paths with content hashes. It contains the same ca
 | Game name | Muse Bloom |
 | Engine | HTML5 (PixiJS rendering) |
 | Launch | Basic |
-| Category | Beauty, if available |
-| Tags | Dress Up, Fashion, Casual, Singleplayer; choose only existing applicable tags |
+| Category | Beauty |
+| Tags | Dress Up, Fashion, Relaxing, 1 Player, 2D |
 | Save progress | Yes, using LocalStorage |
 | Online multiplayer | No |
 | CrazyGames SDK audio muting | No |
-| Mobile | Responsive mouse/touch controls are implemented; complete portal mobile preview and real-device checks before selecting supported orientations |
+| Mobile | Disabled for this submission; desktop only |
 | Store links/download counts | Leave blank; there are no published store versions |
 
 **Description**
@@ -58,13 +67,15 @@ Requires the current upload package, Playwright and FFmpeg (`ffmpeg` on PATH, or
 
 Covers render Mira and the real Lavender Day Dress with the game's own renderer, with only the title as text. Videos start with their matching cover, then show real wardrobe selection, Details and scoring at real-time speed. They contain no cursor, advertisements or promotional overlays. `media-manifest.json` records dimensions, sizes and source revision. The old root `promo/` images and videos show historical characters and must not be reused for this submission.
 
-## Evidence and remaining review
+## Verification and remaining review
 
 The 2026-10-22 automated feedback included an explicit retest reporting no reproduction of the four earlier character/Details/result/Wear again issues. The latest standalone 2.0.3 feedback reported no substantiated new defect. These are automated reports, not human playtest or approval evidence; private feedback text and media are not included in this public repository.
 
 `test:style-crazygames` checks the actual upload directory: fresh normal progression, no feedback/API requirement, visible character pixels, Details, score and subsequent actions, image export, refresh/Wear again, nested paths, a separate-origin sandboxed iframe and offline play after resources load. It checks the ten official DPR-1 viewport sizes plus 390 × 844 and 320 × 568. The existing `test:style-release` suite separately covers all 36 challenges, all 122 items, detailed shoe/bag combinations, WebGL/Canvas2D, score/reward/save rules and isolated feedback services. Local evidence is kept under ignored `artifacts/`; those paths are not public attachments.
 
-Before pressing Submit in the portal, use its Preview / QA tool on the uploaded build: first playable entry, clothing changes, Details, Reveal / Next challenge, reload / Lookbook, audio after tab switching, fullscreen and mobile orientation. Check the displayed version is 2.0.3 and that screenshots show Mira. Real phones, Safari/Chromebook performance, subjective enjoyment and CrazyGames review remain separate validation steps. No Mo session or issue triage is changed by packaging or merging this candidate.
+The actual CrazyGames preview rendered version 2.0.3 and Mira. The uploaded game passed checks for clothing changes, Details, readable Reveal results, image export, Next challenge, and reload / Lookbook / Wear again. Separate fresh desktop Chrome 155 and Edge 155 sessions using the exact upload directory passed the same core flows without page errors. An additional fresh Chrome startup measurement reached the playable state in 968 ms over local HTTP; this is not a hosted-network benchmark.
+
+The desktop QA checklist was completed before submission. Real-phone validation was not claimed: the owner chose desktop-only support. Safari/Chromebook performance, broader player enjoyment and CrazyGames review remain separate validation steps. No Mo session or issue triage was changed, and this submission did not redeploy Cloudflare or GitHub Pages.
 
 Release-preparation commits may include **`[skip deploy]`** to run CI and produce artifacts without publishing to GitHub Pages or Cloudflare. This marker does not skip verification. Merging this candidate does not itself submit a build to CrazyGames.
 
@@ -75,4 +86,4 @@ Release-preparation commits may include **`[skip deploy]`** to run CI and produc
 - [Gameplay requirements](https://docs.crazygames.com/requirements/gameplay/): readable controls at the listed iframe sizes, English, smooth original gameplay, and no prohibited cross-promotion.
 - [Cover requirements](https://docs.crazygames.com/requirements/game-covers/): three image shapes plus landscape/portrait preview videos, 15–20 seconds and at most 50 MB, without sound; cover text is limited to the title.
 
-These checks prepare a submission candidate and do not predict approval or establish the cause of the earlier quality rejection.
+These checks and submission confirmation do not predict approval or establish the cause of the earlier quality rejection.
