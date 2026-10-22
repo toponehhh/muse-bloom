@@ -8,6 +8,8 @@ on:
       - 'dev/style-release.test.js'
       - 'dev/style-progress.test.mjs'
       - 'dev/campaign*.test.*'
+      - 'dev/wearable-probes.js'
+      - 'dev/fixtures/wearable-contacts.json'
       - 'js/data.js'
       - 'js/game.js'
       - 'js/edit.js'
@@ -26,6 +28,8 @@ on:
       - 'dev/style-release.test.js'
       - 'dev/style-progress.test.mjs'
       - 'dev/campaign*.test.*'
+      - 'dev/wearable-probes.js'
+      - 'dev/fixtures/wearable-contacts.json'
       - 'js/data.js'
       - 'js/game.js'
       - 'js/edit.js'
@@ -49,7 +53,7 @@ jobs:
     # Keep Chromium sandboxing enabled. Ubuntu 24.04's hosted AppArmor policy
     # blocks the unprivileged user namespaces used by Playwright Chromium.
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -70,6 +74,7 @@ jobs:
             artifacts/style-lab/
             artifacts/style-release/
             artifacts/campaign/
+            artifacts/wearable-fit/
           retention-days: 14
       - name: Keep the tested Cloudflare preview
         uses: actions/upload-artifact@v4
