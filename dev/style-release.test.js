@@ -14,7 +14,7 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
   browser=await chromium.launch({headless:true,chromiumSandbox:true,...(process.platform==='win32'?{executablePath:process.env.MUSE_BROWSER_EXECUTABLE||'C:\\Tools\\ugchromium\\app\\chrome.exe'}:{})});
   const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();
   page.on('pageerror',error=>errors.push(error.message));
-  await page.goto(base+'/?test=1&qa=1');await page.waitForFunction(()=>document.documentElement.dataset.ready==='true');
+  await page.goto(base+'/?test=1&qa=1&progression=normal');await page.waitForFunction(()=>document.documentElement.dataset.ready==='true');
   const build=await(await context.request.get(base+'/build.json')).json();assert.equal(build.version,release.version);assert.equal(build.channel,'style-room');
   assert.equal(await page.evaluate(()=>window.MuseFeedback.online),true);
   assert.equal(build.themes,36);assert.equal(build.pieces,122);

@@ -8,7 +8,7 @@ const pass=text=>{report.checks.push(text);console.log('PASS: '+text);};
 let browser;const server=createServer();
 async function load(page,url){await page.goto(url);await page.waitForFunction(()=>document.documentElement.dataset.ready==='true',null,{timeout:60000});}
 (async()=>{
- await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port,url=base+'/dist/style-room-pages/index.html?test=1&qa=1';
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port,url=base+'/dist/style-room-pages/index.html?test=1&qa=1&progression=normal';
  browser=await chromium.launch({headless:true,chromiumSandbox:true,...(process.platform==='win32'?{executablePath:process.env.MUSE_BROWSER_EXECUTABLE||'C:\\Tools\\ugchromium\\app\\chrome.exe'}:{})});
  const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true}),page=await context.newPage(),external=[];
  page.on('pageerror',e=>report.errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url())&&!r.url().startsWith(base))external.push(r.url());});
