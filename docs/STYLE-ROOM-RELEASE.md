@@ -1,6 +1,15 @@
-# Style Stories · 2.0.2
+# Style Stories · 2.0.3
 
 沿用已确认的 Mira 人物、马尾发型、居家场景和奶油/柔紫界面，将原来的完整游戏规则接入新绘图层：**36 关、6 章、122 件物品**。
+
+## 2.0.3 反馈提交后关闭弹窗
+
+- 收到并校验成功回执后，反馈弹窗自动关闭，背景遮罩移除，焦点返回 Feedback 按钮；游戏内保留可读回执。失败或无效回执保持表单打开，填写内容可继续重试。
+- 重新打开可查看填写内容和回执；已确认的重复提交直接使用原回执，不重复写入。修改答案后仍可提交新反馈。离线下载保持原有行为。
+- JS/CSS 地址加入内容哈希参数，打包校验入口引用与文件哈希的一致性；静态资源使用 `no-cache, max-age=0, must-revalidate`。
+- `npm run test:style-feedback` 已通过：桌面/手机尺寸、等待/错误/成功回执、重开/刷新/重复提交、离线导出，以及隔离的 Pages → Worker → D1/R2 截图/录屏上传、重试、幂等性和游戏继续操作。
+
+经授权，在现有 `feat/pixi-skeletal-demo` 分支发布 **`7e0ed73dcfb82c5600c6895ad1c7b6021b3cbcfb`**；不可变部署地址：[37e8a08c.muse-bloom.pages.dev](https://37e8a08c.muse-bloom.pages.dev)。2026-10-22 **15:11（Asia/Shanghai）** 完成线上前端检查：API 响应在本机浏览器中模拟，没有写入线上反馈。新旧试玩 URL 均返回匹配当前构建的 HTML/JS/CSS，旧 ETag 请求返回新内容；没有检测到 Service Worker。详情见 [反馈修复与缓存验证记录](qa/2026-10-22-feedback-dismissal.md)。
 
 ## 2.0.2 人物渲染与 QA 选关
 
