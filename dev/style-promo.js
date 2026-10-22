@@ -68,7 +68,7 @@ async function record(base, name, viewport, scale) {
 (async () => {
   fs.mkdirSync(out, {recursive:true}); fs.mkdirSync(scratch, {recursive:true});
   await new Promise(resolve => server.listen(0,'127.0.0.1',resolve));
-  const base = 'http://127.0.0.1:' + server.address().port + '/' + path.relative(root,upload).replaceAll('\\','/') + '/';
+  const base = 'http://127.0.0.1:' + server.address().port + '/' + path.relative(root,upload).replaceAll('\\','/') + '/index.html';
   browser = await chromium.launch({headless:true,chromiumSandbox:true,...(process.platform==='win32'?{executablePath:process.env.MUSE_BROWSER_EXECUTABLE||'C:\\Tools\\ugchromium\\app\\chrome.exe'}:{})});
   const page = await browser.newPage({viewport:{width:1440,height:1000}});
   await page.goto(base+'?test=1'); await page.waitForFunction(()=>document.documentElement.dataset.ready==='true',null,{timeout:60000});
@@ -86,7 +86,7 @@ async function record(base, name, viewport, scale) {
       c.drawImage(room,(width-room.width*roomScale)/2,(height-room.height*roomScale)/2,room.width*roomScale,room.height*roomScale);
       const wash=landscape?c.createLinearGradient(0,0,width,0):c.createLinearGradient(0,0,0,height);
       wash.addColorStop(0,'#f8e9f5');wash.addColorStop(landscape?.43:.22,'#f4e2f2f2');wash.addColorStop(1,'#f8e9f500');c.fillStyle=wash;c.fillRect(0,0,width,height);
-      const heroHeight=height*(landscape?.94:portrait?.76:.95),scale=heroHeight/1480;
+      const heroHeight=height*(landscape?.94:portrait?.76:.88),scale=heroHeight/1480;
       const centerX=width*(landscape?.72:portrait?.5:.72),top=height*(landscape?.06:portrait?.235:.08);
       c.shadowColor='#67475c38';c.shadowBlur=18;c.shadowOffsetY=9;
       c.drawImage(figure,centerX+(bounds.x-515)*scale,top+(bounds.y-40)*scale,bounds.width*scale,bounds.height*scale);c.shadowColor='transparent';
