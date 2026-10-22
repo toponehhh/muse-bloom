@@ -1,5 +1,9 @@
 # Muse Bloom
 
+**CrazyGames resubmission:** use `npm run package:style-crazygames` for the current **2.0.3** upload folder, `npm run test:style-crazygames` to check it, and `npm run promo:style` for matching covers/videos. [Current submission instructions](docs/CRAZYGAMES-2.0.3.md) distinguish these files from the legacy 1.8 outputs below.
+
+**New: [Style Stories 2.0.3](https://style-room.muse-bloom.pages.dev/?v=2.0.3)** — the approved Mira/room style includes all **36 challenges, six chapters and 122 collectible items**, original scoring/ranks, rewards, best-look collection and save recovery. Version 2.0.3 closes feedback after a confirmed submission, keeps its receipt visible in the game, and versions frontend asset URLs by content. It retains the Canvas2D rendering fallback and isolated QA saves. [Explore all stories](https://style-room.muse-bloom.pages.dev/?v=2.0.3&qa=1) or [test normal progression](https://style-room.muse-bloom.pages.dev/?v=2.0.3&qa=1&progression=normal). Run `npm run demo:style` and open the printed `campaign.html` URL. [Release notes](docs/STYLE-ROOM-RELEASE.md) record Cloudflare delivery and verification scope; the classic game below remains a separate entry.
+
 **v1.8.0 — Make It Yours**
 
 [Play online](https://toponehhh.github.io/muse-bloom/) · [Playtest tasks & feedback](https://toponehhh.github.io/muse-bloom/playtest/) · [Build & deployment status](https://github.com/toponehhh/muse-bloom/actions/workflows/verify.yml)
@@ -15,6 +19,8 @@ Version 1.8 keeps goals and the live score in the studio, adds optional clothing
 The first occasions are Coffee with friends, The gallery opening and Weekend flower market. Their visible goals reward a complete outfit (40 points) and two occasion details (27 each). An incomplete outfit cannot be revealed. Maximum 94; a complete base can pass, while meeting the details earns the best rank. Later challenges retain the original mood-tag rules. Stored IDs, unlocks and historical look scores are preserved.
 
 ## Play and develop
+
+The experimental [Motion Atelier](demos/skeletal/README.md) runs a new original character on **PixiJS 8 + DragonBones** with 20 bones, weighted clothing meshes, 6 garments and 3 animations. Use `npm run demo:skeletal` to open the separate demo at `http://localhost:4175/demos/skeletal/index.html`; `npm run test:skeletal` checks its motion, fit and UI. This experiment does not replace the v1.8 game or its production deployment.
 
 Open the source `index.html`, or run `npm start` and visit `http://localhost:4173`. The delivered standalone file needs no server, account, CDN or installation.
 

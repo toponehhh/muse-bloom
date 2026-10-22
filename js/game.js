@@ -55,21 +55,21 @@
     return outfit;
   }
   function nextLevel(save) { return D.themes.find(t => (save.levels[t.id]?.best ?? 0) < 35)?.index || 36; }
-  function canPlay(save, index) { return Number.isInteger(index) && index >= 1 && index <= nextLevel(save); }
+  function canPlay(save, index, options = {}) { return Number.isInteger(index) && index >= 1 && index <= D.themes.length && (options.allStories === true || index <= nextLevel(save)); }
   function unlock(save, ids) {
     const fresh = [...new Set(ids)].filter(id => !save.unlockedItems.includes(id));
     save.unlockedItems.push(...fresh); return fresh;
   }
-  function enterLevel(value, index) {
+  function enterLevel(value, index, options = {}) {
     const save = structuredCopy(value);
-    if (!canPlay(save, index)) return { save, fresh: [], allowed: false };
+    if (!canPlay(save, index, options)) return { save, fresh: [], allowed: false };
     const fresh = [];
     for (const theme of D.themes.filter(t => t.index <= index)) fresh.push(...unlock(save, theme.entryItems));
     return { save, fresh, allowed: true };
   }
-  function finishLevel(value, index, valueOutfit) {
-    if (!canPlay(value, index)) throw new Error('This challenge is locked.');
-    const { save } = enterLevel(value, index);
+  function finishLevel(value, index, valueOutfit, options = {}) {
+    if (!canPlay(value, index, options)) throw new Error('This challenge is locked.');
+    const { save } = enterLevel(value, index, options);
     const theme = D.themes[index - 1];
     const outfit = normalizeOutfit(valueOutfit, save.unlockedItems);
     const result = scoreBreakdown(theme, equippedItems(outfit));
@@ -92,18 +92,19 @@
     return { save, result, fresh, streakReward, savedLook, isBest: result.score > previous, outfit, complete: D.themes.every(t => (save.levels[t.id]?.best ?? 0) >= 35) };
   }
   function structuredCopy(value) { return JSON.parse(JSON.stringify(value)); }
-  function sanitizeSave(raw) {
+  function sanitizeSave(raw, options = {}) {
     const save = newSave();
     if (!raw || raw.version !== 1 || typeof raw !== 'object') return save;
-    // A malformed/future locked-level record cannot open the whole map.
+    // Regular saves require sequential progress. Explicit QA preview saves may
+    // contain real results from stories played out of order, never seeded wins.
     for (const theme of D.themes) {
       const best = raw.levels?.[theme.id]?.best;
-      if (!Number.isFinite(best) || best < 0 || best > 94) break;
+      if (!Number.isFinite(best) || best < 0 || best > 94) { if (options.allStories === true) continue; break; }
       save.levels[theme.id] = { best: Math.floor(best), rank: rankOf(best) };
-      if (best >= 35) unlock(save, theme.unlockItems); else break;
+      if (best >= 35) unlock(save, theme.unlockItems); else if (options.allStories !== true) break;
     }
     for (const theme of D.themes.filter(t => t.index <= nextLevel(save))) unlock(save, theme.entryItems);
-    if (Array.isArray(raw.unlockedItems)) unlock(save, raw.unlockedItems.filter(id => byId[id]?.unlockType === 'streak'));
+    if (Array.isArray(raw.unlockedItems)) unlock(save, raw.unlockedItems.filter(id => byId[id] && (options.allStories === true || byId[id].unlockType === 'streak')));
     if (Array.isArray(raw.streakLevels)) save.streakLevels = [...new Set(raw.streakLevels)].filter(id => save.levels[id]?.rank === 'S').slice(0, 2);
     save.streak = save.streakLevels.length;
     if (D.characters.some(s => s.id === raw.character)) save.character = raw.character;

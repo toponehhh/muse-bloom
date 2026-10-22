@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4eee8">
+  <title>Muse Bloom · Motion Atelier</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="header">
+      <a class="brand" href="./index.html" aria-label="Restart Muse Bloom Motion Atelier"><span class="brand-flower">✳</span>muse bloom<span class="brand-dot">.</span></a>
+      <span class="edition">THE MOTION ATELIER <i>01</i></span>
+      <button class="icon-button" id="sound" aria-label="Enable sound" aria-pressed="false" title="Sound">♪</button>
+    </header>
+    <main class="atelier">
+      <section class="stage-panel" aria-label="Animated fitting room">
+        <div class="scene" id="scene">
+          <div class="room-window" aria-hidden="true"><i></i></div><div class="room-moulding" aria-hidden="true"></div>
+          <div class="room-plant" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
+          <div class="scene-heading"><span class="eyebrow">A LITTLE MORE YOU</span><h1>Made to move.</h1><p>A new look. A little personality.</p></div>
+          <div class="stage" id="stage" role="img" aria-label="Nora wearing the selected outfit, animated with a shared skeleton"></div>
+          <div class="loading" id="loading" role="status"><span>✳</span><p>Opening the atelier…</p></div>
+          <div class="model-tag"><span class="live-dot"></span>Nora <span> / </span> The everyday muse</div>
+          <div class="photo-flash" id="flash" aria-hidden="true"></div>
+          <span class="scene-caption">A wardrobe with a life of its own.</span>
+        </div>
+        <div class="motion-bar" aria-label="Animation controls">
+          <div class="motion-options">
+            <button data-motion="idle" aria-pressed="true"><span>◌</span> Breathe</button>
+            <button data-motion="wave" aria-pressed="false"><span>✋</span> Say hi</button>
+            <button data-motion="pose" aria-pressed="false"><span>✧</span> Strike a pose</button>
+          </div>
+          <button class="pause-button" id="pause" aria-label="Pause animation" aria-pressed="false">Ⅱ</button>
+        </div>
+      </section>
+      <aside class="wardrobe" aria-label="Wardrobe">
+        <div class="wardrobe-heading"><div><span class="eyebrow">YOUR DAILY EDIT</span><h2>The fitting room</h2></div><span class="collection-count">06<br><small>PIECES</small></span></div>
+        <p class="intro">Mix your favourites. See how they move.</p>
+        <div class="look-presets" aria-label="Outfit presets">
+          <button data-look="studio" aria-pressed="false"><span style="--swatch:#c38c98"></span>Studio</button>
+          <button data-look="coffee" aria-pressed="true"><span style="--swatch:#c87987"></span>Coffee date</button>
+          <button data-look="gallery" aria-pressed="false"><span style="--swatch:#9eafc5"></span>Gallery day</button>
+        </div>
+        <div class="category-tabs" role="tablist" aria-label="Clothing category">
+          <button id="tops-tab" role="tab" aria-selected="true" aria-controls="items" data-category="tops">Tops <span>03</span></button>
+          <button id="bottoms-tab" role="tab" aria-selected="false" aria-controls="items" tabindex="-1" data-category="bottoms">Bottoms <span>03</span></button>
+        </div>
+        <div class="items" id="items" role="tabpanel" aria-labelledby="tops-tab"></div>
+        <div class="look-note"><span>✧</span><div><strong id="look-title">The coffee-date edit</strong><p id="look-copy">A rosy knit, a little denim, and nowhere to rush.</p></div></div>
+        <div class="wardrobe-bottom"><button class="primary" id="photo"><span>▣</span> Save a portrait <span>↗</span></button><button class="reset" id="reset">Reset look</button></div>
+        <details class="rig-panel"><summary>Behind the movement <span>+</span></summary><div class="rig-content">
+          <p>22 bones. Fitted sleeves. Softer elbows and a little follow-through.</p>
+          <label><input type="checkbox" id="show-rig"> Show bones &amp; joints</label>
+          <label>Animation speed <select id="speed"><option value="0.5">0.5× — inspect fit</option><option value="1" selected>1× — natural</option><option value="1.5">1.5× — quick</option></select></label>
+          <a href="./assets/nora_ske.json" download>Download DragonBones skeleton ↗</a>
+          <a href="https://morenoise.it/en/apps/animo" target="_blank" rel="noopener">Explore the free Animo editor ↗</a>
+          <small>Prototype · PixiJS + DragonBones. Mesh fitting is authored in source; Animo currently edits rigid bone animation, not mesh weights.</small>
+        </div></details>
+        <span class="prototype-note">MOTION STUDY / 01 &nbsp; · &nbsp; NOT THE FULL GAME</span>
+      </aside>
+    </main>
+    <footer class="footer"><span>Made for your next little moment.</span><span>STYLE IN MOTION <i>✳</i></span></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script defer src="./app.js"></script>
+</body>
+</html>

@@ -11,3 +11,4 @@
 .feedback-attachment-list .feedback-preview-warning{margin:8px 0 0;padding:10px 12px;border-left:3px solid #9a650e;border-radius:6px;background:#fff3d9;color:#6b4512;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 .feedback-attachment-list .feedback-remove{min-height:44px;justify-self:start;padding:8px 16px;border:1px solid #d7bfcd;border-radius:8px;cursor:pointer}
 .feedback-upload-status:empty{display:none}.feedback-cancel[hidden]{display:none!important}
+.feedback-receipt{margin:10px 0 0;padding:9px 12px;border-radius:9px;background:#edf3e8;color:#486040;font-size:11px;line-height:1.6;overflow-wrap:anywhere}.feedback-receipt:empty{display:none}

@@ -12,3 +12,11 @@ Thumbs.db
 .dev.vars.*
 wrangler.deploy.json
 playtest-responses/
+demos/skeletal/app.js
+demos/skeletal/app.js.LEGAL.txt
+demos/style-lab/app.js
+demos/style-lab/app.js.LEGAL.txt
+demos/style-lab/app.css
+demos/style-lab/campaign-app.js
+demos/style-lab/campaign-app.css
+demos/style-lab/campaign-app.js.LEGAL.txt

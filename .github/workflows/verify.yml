@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: '22'
           cache: npm
@@ -26,6 +26,22 @@ jobs:
         run: npm ci
       - name: Install test browser
         run: npx playwright install --with-deps chromium
+      - name: PixiJS skeletal demo, garment contacts and responsive layout
+        run: npm run test:skeletal
+      - name: Keep skeletal fit and motion evidence immediately
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: skeletal-motion-evidence
+          path: |
+            artifacts/skeletal/
+            artifacts/skeletal-offline/
+      - name: Keep the independent skeletal demo for review
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: muse-bloom-skeletal-demo
+          path: dist/skeletal-demo/
+          if-no-files-found: error
       - name: Feedback API against an isolated local D1
         run: npm run test:feedback-api
       - name: Bounded private R2 attachments and D1 consistency
@@ -64,7 +80,7 @@ jobs:
         run: npm run test:pages
       - name: Keep UI evidence and failure diffs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ui-regression-evidence
           path: |
@@ -84,45 +100,46 @@ jobs:
             artifacts/feedback-uploads/
             artifacts/playtest-ui/
             artifacts/quality/
+            artifacts/skeletal/
       - name: Check generated art stays reproducible
         run: |
           npm run assets
           git diff --exit-code -- assets/ js/asset-data.js
-      - name: Create CrazyGames archive
+      - name: Create the legacy 1.8 CrazyGames archive
         run: npm run package
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         with:
-          name: muse-bloom-crazygames
+          name: muse-bloom-classic-crazygames
           path: |
             dist/muse-bloom-crazygames-*.zip
             dist/package-manifest.json
             dist/crazygames-upload/
           if-no-files-found: error
       - name: Keep the tested website for download
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: muse-bloom-website
           path: dist/github-pages/
           if-no-files-found: error
       - name: Keep the tested Cloudflare website
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: muse-bloom-cloudflare
           path: dist/cloudflare/
           if-no-files-found: error
       - name: Keep the tested Cloudflare Pages website
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: muse-bloom-cloudflare-pages
           path: dist/cloudflare-pages/
           if-no-files-found: error
       - name: Upload the tested Pages site
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: dist/github-pages/
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && !contains(github.event.head_commit.message, '[skip deploy]')
     needs: game
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -134,12 +151,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6.0.0
       - name: Publish the verified website
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5.0.1
   deploy-cloudflare:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && !contains(github.event.head_commit.message, '[skip deploy]')
     needs: game
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -152,8 +169,8 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: '22'
           cache: npm
@@ -163,11 +180,11 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_D1_DATABASE_ID"
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: muse-bloom-cloudflare
           path: dist/cloudflare/
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: muse-bloom-cloudflare-pages
           path: dist/cloudflare-pages/

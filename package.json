@@ -43,14 +43,37 @@
     "test:cloudflare": "npm run package:cloudflare && node dev/cloudflare.test.js",
     "cf:dev": "npm run package:cloudflare && node dev/cloudflare-command.js dev",
     "cf:configure": "node dev/cloudflare-command.js configure",
-    "cf:deploy": "npm run package:cloudflare-pages && node dev/cloudflare-command.js deploy"
+    "cf:deploy": "npm run package:cloudflare-pages && node dev/cloudflare-command.js deploy",
+    "demo:style": "node dev/style-lab-server.js",
+    "build:style": "node dev/build-style-lab.js",
+    "test:style": "npm run build:style && node dev/style-lab.test.js",
+    "package:style-pages": "node dev/package-style-lab.js",
+    "package:style-crazygames": "node dev/package-style-crazygames.js",
+    "test:style-crazygames": "npm run package:style-crazygames && node dev/style-crazygames.test.js",
+    "promo:style": "node dev/style-promo.js",
+    "test:campaign": "node dev/campaign-rules.test.mjs && npm run package:style-pages && node dev/campaign.test.js",
+    "test:wearables": "npm run package:style-pages && node dev/campaign-wearables.test.js",
+    "test:rendering": "npm run package:style-pages && node dev/campaign-rendering.test.js",
+    "test:stories": "node dev/campaign-stories.test.mjs && npm run package:style-pages && node dev/campaign-stories-ui.test.js",
+    "test:style-feedback": "npm run package:style-pages && node dev/campaign-feedback.test.js && node dev/style-release.test.js",
+    "test:style-release": "node dev/style-progress.test.mjs && node dev/campaign-stories.test.mjs && npm run test:campaign && node dev/campaign-stories-ui.test.js && node dev/campaign-wearables.test.js && node dev/campaign-rendering.test.js && node dev/campaign-feedback.test.js && node dev/style-release.test.js",
+    "demo:skeletal": "node dev/skeletal-server.js",
+    "build:skeletal": "node dev/build-skeletal.js",
+    "test:skeletal:rig": "node dev/skeletal-rig.test.mjs && node dev/skeletal-offline.mjs",
+    "test:skeletal": "npm run build:skeletal && npm run test:skeletal:rig && node dev/skeletal.test.js"
   },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "miniflare": "5.20261019.0-beta",
     "playwright": "1.62.1",
+    "pngjs": "7.0.0",
     "wrangler": "4.151.2"
+  },
+  "dependencies": {
+    "pixi-dragonbones-runtime": "8.0.3",
+    "pixi.js": "8.22.0"
   }
 }
