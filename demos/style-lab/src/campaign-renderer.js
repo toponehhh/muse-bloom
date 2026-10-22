@@ -1,4 +1,5 @@
-import {Application,Assets,Container,Graphics,Mesh,MeshGeometry,Sprite,Texture,ColorMatrixFilter} from 'pixi.js';
+import {Application,Assets,Container,Graphics,Mesh,MeshGeometry,Sprite,Texture,ColorMatrixFilter,RendererType} from 'pixi.js';
+import {setCanvasMeshColor} from './canvas-mesh-pipe.js';
 import {PixiFactory} from 'pixi-dragonbones-runtime';
 import Art from '../../../js/art.js';
 import {makeSkeleton,mesh,bones} from './rig.mjs';
@@ -12,6 +13,9 @@ export class CampaignRenderer {
   async init(){
     let count=0;await Promise.all(Object.entries(files).map(async([key,file])=>{const t=await Assets.load('./assets/'+file);this.textures[key]=t;this.images[key]=t.source.resource;document.querySelector('#loading-copy').textContent=`Opening your wardrobe… ${++count} / ${Object.keys(files).length}`;}));
     this.app=new Application();await this.app.init({backgroundAlpha:0,antialias:true,resolution:Math.min(devicePixelRatio,2),autoDensity:true,preference:'webgl',autoStart:false});this.stage.prepend(this.app.canvas);this.app.canvas.setAttribute('aria-hidden','true');
+    this.canvasMode=this.app.renderer.type===RendererType.CANVAS;this.stage.dataset.renderer=this.canvasMode?'canvas':this.app.renderer.type===RendererType.WEBGL?'webgl':'webgpu';
+    if(!this.app.renderer.renderPipes.mesh)throw new Error('Character mesh renderer is unavailable');
+    if(this.canvasMode)this.app.ticker.maxFPS=24;
     PixiFactory.useSharedTicker=false;const f=PixiFactory.factory;f.parseDragonBonesData(makeSkeleton({campaign:true}));
     for(const key of ['mira','rose','blue'])f.parseTextureAtlasData({name:'muse-style-lab',width:1024,height:1536,SubTexture:[{name:key,x:0,y:0,width:1024,height:1536}]},this.textures[key]);
     this.body=f.buildArmatureDisplay('Mira','muse-style-lab');this.body.animation.play('breathe');this.body.animation.lastAnimationState.displayControl=false;
@@ -38,11 +42,12 @@ export class CampaignRenderer {
     if(this.cache.has(item.id))return this.cache.get(item.id);
     const template=templates[templateFor(item)];if(!template)throw new Error('Missing art for '+item.id);
     const front=template.parts?{...template,parts:template.parts.map(p=>({...p,keep:p.frontKeep}))}:template;
-    const layer=this.makeMesh(front,item.id),filter=new ColorMatrixFilter();filter.matrix=colorMatrix(item.color);layer.mesh.filters=[filter];
+    const layer=this.makeMesh(front,item.id);this.colorGarment(layer.mesh,item.color);
     layer.mesh.zIndex={top:25,bottom:20,dress:24,shoes:10}[item.category];layer.mesh.visible=false;this.model.addChild(layer.mesh);
-    if(template.parts){layer.back=this.makeMesh(template,item.id+'-rear');const f=new ColorMatrixFilter();f.matrix=colorMatrix(item.color);layer.back.mesh.filters=[f];layer.back.mesh.zIndex=-1;layer.back.mesh.visible=false;this.model.addChild(layer.back.mesh);}
+    if(template.parts){layer.back=this.makeMesh(template,item.id+'-rear');this.colorGarment(layer.back.mesh,item.color);layer.back.mesh.zIndex=-1;layer.back.mesh.visible=false;this.model.addChild(layer.back.mesh);}
     this.cache.set(item.id,layer);return layer;
   }
+  colorGarment(mesh,color){const matrix=colorMatrix(color);if(this.canvasMode)setCanvasMeshColor(mesh,matrix);else{const filter=new ColorMatrixFilter();filter.matrix=matrix;mesh.filters=[filter];}}
   async prepareDetails(items){
     for(const item of items.filter(x=>['hair','accessory'].includes(x.category))){
       const source=Art.itemSvg(item,false,true),doc=new DOMParser().parseFromString(source,'image/svg+xml'),svg=doc.documentElement;
@@ -86,9 +91,12 @@ export class CampaignRenderer {
     const pixels=ctx.getImageData(0,0,240,240);for(let py=0;py<240;py++)for(let px=0;px<240;px++)if(!template.keep(r[0]+(px-x)/s,r[1]+(py-y)/s))pixels.data[(py*240+px)*4+3]=0;ctx.putImageData(pixels,0,0);return c.toDataURL();
   }
   portrait(title,score){
-    const pos={x:this.model.x,y:this.model.y,s:this.model.scale.x};this.model.position.set(0,0);this.model.scale.set(1);this.app.render();const b=this.model.getBounds(),figure=this.app.renderer.extract.canvas({target:this.model,resolution:1});
-    const c=document.createElement('canvas');c.width=600;c.height=900;const ctx=c.getContext('2d');ctx.drawImage(this.images.room,0,0,600,900);ctx.drawImage(figure,300+(b.x-515)*.54,30+(b.y-40)*.54,b.width*.54,b.height*.54);ctx.fillStyle='#fffaf4f2';ctx.fillRect(0,838,600,62);ctx.fillStyle='#654459';ctx.font='600 17px Segoe UI,sans-serif';ctx.fillText('Muse Bloom',20,866);ctx.font='13px Segoe UI,sans-serif';ctx.fillText(title,20,887);ctx.textAlign='right';ctx.fillText(score,579,873);
-    this.model.position.set(pos.x,pos.y);this.model.scale.set(pos.s);this.app.render();return c.toDataURL('image/jpeg',.82);
+    const pos={x:this.model.x,y:this.model.y,sx:this.model.scale.x,sy:this.model.scale.y};
+    try{
+      this.model.position.set(0,0);this.model.scale.set(1);this.app.render();const b=this.model.getBounds(),figure=this.app.renderer.extract.canvas({target:this.model,resolution:1});
+      const c=document.createElement('canvas');c.width=600;c.height=900;const ctx=c.getContext('2d');ctx.drawImage(this.images.room,0,0,600,900);ctx.drawImage(figure,300+(b.x-515)*.54,30+(b.y-40)*.54,b.width*.54,b.height*.54);ctx.fillStyle='#fffaf4f2';ctx.fillRect(0,838,600,62);ctx.fillStyle='#654459';ctx.font='600 17px Segoe UI,sans-serif';ctx.fillText('Muse Bloom',20,866);ctx.font='13px Segoe UI,sans-serif';ctx.fillText(title,20,887);ctx.textAlign='right';ctx.fillText(score,579,873);
+      return c.toDataURL('image/jpeg',.82);
+    }finally{this.model.position.set(pos.x,pos.y);this.model.scale.set(pos.sx,pos.sy);this.app.render();}
   }
   seek(time){this.body.animation.gotoAndStopByTime('breathe',time);this.body.animation.lastAnimationState.displayControl=false;this.body.armature.advanceTime(0);this.deform();this.app.render();}
 }

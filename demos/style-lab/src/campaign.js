@@ -55,8 +55,9 @@ function book(){
 }
 function showResult(){
  lastResult=submitChallenge(state);const {result,fresh,streakReward,isBest,savedLook,complete}=lastResult,theme=currentTheme();persist();refreshBrief();renderItems();
- activeImage=renderer.portrait(theme.name,`${result.rank} · ${result.score} points`);$('#result-image').src=activeImage;
- if(savedLook){const mini=document.createElement('canvas');mini.width=200;mini.height=300;const img=new Image();img.onload=()=>{mini.getContext('2d').drawImage(img,0,0,200,300);pictures[theme.id]=mini.toDataURL('image/jpeg',.65);try{storage.setItem(pictureKey,JSON.stringify(pictures));}catch{}};img.src=activeImage;}
+ activeImage=null;try{activeImage=renderer.portrait(theme.name,`${result.rank} · ${result.score} points`);}catch(error){console.warn('Outfit image could not be created',error);}
+ const image=$('#result-image');image.hidden=!activeImage;if(activeImage)image.src=activeImage;else image.removeAttribute('src');$('#download').disabled=!activeImage;$('#portrait-warning').hidden=!!activeImage;$('#result').dataset.pictureMissing=String(!activeImage);
+ if(savedLook&&activeImage){const mini=document.createElement('canvas');mini.width=200;mini.height=300;const img=new Image();img.onload=()=>{mini.getContext('2d').drawImage(img,0,0,200,300);pictures[theme.id]=mini.toDataURL('image/jpeg',.65);try{storage.setItem(pictureKey,JSON.stringify(pictures));}catch{}};img.src=activeImage;}
  $('#rank').textContent=result.rank;$('#score').textContent=result.score;$('#result-kicker').textContent=complete?'ALL 36 STORIES, STYLED':isBest?'YOUR NEW PERSONAL BEST':'THE REVEAL';
  $('#result-title').textContent=result.rank==='S'?'A signature look.':result.score>=35?'Your story, styled.':'Another little idea?';
  $('#result-note').textContent=complete?'Your whole collection is open. Replay any story and make it even more you.':result.score>=35?'Look saved. Your next story is ready.':'Try the notes in the brief. Retrying is free, and your best result stays saved.';
