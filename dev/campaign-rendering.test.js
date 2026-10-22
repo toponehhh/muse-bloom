@@ -4,6 +4,15 @@ const {chromium}=require('playwright'),{PNG}=require('pngjs'),{createServer}=req
 const out=path.resolve(__dirname,'../artifacts/campaign-rendering');fs.mkdirSync(out,{recursive:true});
 const report={kind:'automated-check',startedAt:new Date().toISOString(),platform:process.platform,node:process.version,humanParticipants:0,scenarios:[],errors:[]},server=createServer();
 let browser;
+// Chromium's software GPU reports synchronous readback during screenshots and
+// portrait extraction. Preserve it as evidence, but do not mistake that exact
+// performance notice for a missing mesh pipe, JS exception or lost context.
+const readbackNotice=/^\[\.WebGL-0x[0-9a-f]+\]GL Driver Message \(OpenGL, Performance, GL_CLOSE_PATH_NV, High\): GPU stall due to ReadPixels(?: \(this message will no longer repeat\))?$/;
+const expectedReadback=(type,text)=>type==='warning'&&readbackNotice.test(text);
+const observedReadback='[.WebGL-0xee401e33800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels';
+assert.equal(expectedReadback('warning',observedReadback),true);
+assert.equal(expectedReadback('warning',observedReadback+' (this message will no longer repeat)'),true);
+for(const [type,text]of [['error',observedReadback],['warning','WebGL context lost'],['error',"Cannot read properties of undefined (reading 'validateRenderable')"],['warning','Application: GPU stall due to ReadPixels']])assert.equal(expectedReadback(type,text),false);
 
 async function withoutGpu(context){
   await context.addInitScript(()=>{
@@ -51,11 +60,11 @@ async function ready(page,url){
   browser=await chromium.launch({headless:true,chromiumSandbox:true,...(process.platform==='win32'?{executablePath:process.env.MUSE_BROWSER_EXECUTABLE||'C:\\Tools\\ugchromium\\app\\chrome.exe'}:{})});
   report.browser=browser.version();
   for(const mode of [{name:'default-desktop',width:1920,height:1080},{name:'canvas-desktop',width:1920,height:1080,noGpu:true},{name:'canvas-phone',width:390,height:844,noGpu:true}]){
-    const scenario={name:mode.name,viewport:{width:mode.width,height:mode.height},frames:[],warnings:[]};report.scenarios.push(scenario);
+    const scenario={name:mode.name,viewport:{width:mode.width,height:mode.height},frames:[],warnings:[],unexpectedConsole:[]};report.scenarios.push(scenario);
     const context=await browser.newContext({viewport:scenario.viewport});if(mode.noGpu)await withoutGpu(context);
     const page=await context.newPage();page.setDefaultTimeout(30000);
     page.on('pageerror',error=>report.errors.push({mode:mode.name,message:error.message}));
-    page.on('console',message=>{if(['error','warning'].includes(message.type()))scenario.warnings.push(message.text());});
+    page.on('console',message=>{const type=message.type(),text=message.text();if(['error','warning'].includes(type)){scenario.warnings.push(text);if(!expectedReadback(type,text))scenario.unexpectedConsole.push({type,text});}});
     try{
       await ready(page,url);scenario.renderer=await page.locator('#stage').getAttribute('data-renderer');
       if(mode.noGpu)assert.equal(scenario.renderer,'canvas');
@@ -84,7 +93,7 @@ async function ready(page,url){
       await page.locator('#reveal').click();await page.locator('#next-level').click();assert.match(await page.locator('#level-number').innerText(),/^02/);
       await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.ready==='true');
       await visibleCharacter(page,mode.name+'-reload',scenario);
-      assert.deepEqual(scenario.warnings,[]);scenario.result='passed';console.log('PASS: '+mode.name);
+      assert.deepEqual(scenario.unexpectedConsole,[]);scenario.result='passed';console.log('PASS: '+mode.name);
     }finally{await context.close();}
   }
   // A separate fault test may inspect the test hook after public-path coverage.
