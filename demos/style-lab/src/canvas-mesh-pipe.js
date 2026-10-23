@@ -52,7 +52,7 @@ export class CanvasMeshPipe {
     system.setBlendMode(mesh.groupBlendMode);ctx.save();
     try{
       system.setContextTransform(mesh.groupTransform,(renderer._roundPixels|mesh._roundPixels)===1);
-      ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=mesh.texture.source.style.scaleMode!=='nearest';
+      ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=mesh.texture.source.style.scaleMode!=='nearest';ctx.imageSmoothingQuality='high';
       const transform=ctx.getTransform(),bleed=.75/Math.max(.01,Math.sqrt(Math.abs(transform.a*transform.d-transform.b*transform.c)));
       for(let i=0;i<indices.length;i+=3){
         const points=[indices[i],indices[i+1],indices[i+2]].map(index=>{

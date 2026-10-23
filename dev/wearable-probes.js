@@ -44,5 +44,5 @@ module.exports=function installWearableProbes(reference){
   for(const x of [453,458,463,616,622,628])for(let y=1318;y<=1370;y+=4){const i=((y-1310)*240+x-425)*4;fail(full.pixels[i+3]>230,`Disconnected ankle at ${x},${y}`);}
   let oldShoe=0;for(let y=1328;y<1370;y++)for(let x=0;x<240;x++)if(body.pixels[((y-1310)*240+x)*4+3]>10)oldShoe++;fail(oldShoe===0,'Old shoe pixels remain in body: '+oldShoe);
  }
- window.fitProbe={outfit,shoeContacts,handContacts,shoulderContact,capture,fingerOcclusion,hemOcclusion,anklePixels};
+ window.fitProbe={outfit,shoeContacts,handContacts,shoulderContact,capture,fingerOcclusion,hemOcclusion,anklePixels,uvPoint};
 };

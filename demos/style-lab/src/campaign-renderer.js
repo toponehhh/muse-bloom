@@ -2,7 +2,7 @@ import {Application,Assets,Container,Graphics,Mesh,MeshGeometry,Sprite,Texture,C
 import {setCanvasMeshColor} from './canvas-mesh-pipe.js';
 import {PixiFactory} from 'pixi-dragonbones-runtime';
 import Art from '../../../js/art.js';
-import {makeSkeleton,mesh,bones} from './rig.mjs';
+import {makeSkeleton,mesh,bones,inside} from './rig.mjs';
 import {templates,templateFor,accessoryPlacement} from './campaign-art.mjs';
 import {footSkin,isHandheld} from './wearable-fit.mjs';
 const files={mira:'mira.png',rose:'rose-lilac.png',blue:'blue-ivory.png',tops:'campaign-tops.png',dresses:'campaign-dresses.png',shoes:'campaign-shoes.png',room:'room.png'};
@@ -25,6 +25,10 @@ export class CampaignRenderer {
     // tee pixels are not used as a permanent visible undershirt in the campaign.
     const neckMap=(x,y)=>[433+(x-486)/61*164,322+(y-313)/19*99];
     this.neck=this.makeMesh({texture:'mira',rect:[486,313,547,332],map:neckMap,keep:(u,v)=>{const[x,y]=neckMap(u,v),edge=Math.max(433,455-(y-330)*.7);return y>=330&&x>=edge&&x<=1030-edge;},role:'top'},'neck');this.neck.mesh.zIndex=1;this.model.addChild(this.neck.mesh);
+    // The base art's original tee is cut out. Supply skin behind open jacket
+    // hems so a small gap above the waistband shows Mira, not the room.
+    const waistMap=(x,y)=>[422+(x-486)/61*188,520+(y-313)/19*105];
+    this.waistSkin=this.makeMesh({texture:'mira',rect:[486,313,547,332],map:waistMap,keep:(x,y)=>inside(...waistMap(x,y),[[428,520],[602,520],[607,563],[621,625],[409,625],[423,563]]),role:'bottom'},'waist-skin');this.waistSkin.mesh.zIndex=2;this.model.addChild(this.waistSkin.mesh);
     this.feet=['L','R'].map(side=>{const layer=this.makeMesh(footSkin(side),'bare-foot-'+side);layer.mesh.zIndex=3;this.model.addChild(layer.mesh);return layer;});
     this.toes=new Graphics();for(let i=0;i<5;i++){const x=416+i*12,y=1448-i*1.2;this.toes.moveTo(x,y).quadraticCurveTo(x+4,y-5,x+8,y);this.toes.moveTo(1089-x,y).quadraticCurveTo(1085-x,y-5,1081-x,y);}this.toes.stroke({color:0x9c6147,alpha:.44,width:1.5});this.toes.zIndex=4;this.toes.visible=false;this.model.addChild(this.toes);
     this.hands=Object.fromEntries(['L','R'].map(side=>{const layer=this.makeMesh({texture:'mira',rect:side==='L'?[276,790,337,876]:[697,790,752,876],map:(x,y)=>[x,y],keep:()=>true,role:'hand'},'gripping-hand-'+side);layer.mesh.zIndex=50;layer.mesh.visible=false;this.model.addChild(layer.mesh);return [side,layer];}));
@@ -42,12 +46,20 @@ export class CampaignRenderer {
     if(this.cache.has(item.id))return this.cache.get(item.id);
     const template=templates[templateFor(item)];if(!template)throw new Error('Missing art for '+item.id);
     const front=template.parts?{...template,parts:template.parts.map(p=>({...p,keep:p.frontKeep}))}:template;
-    const layer=this.makeMesh(front,item.id);this.colorGarment(layer.mesh,item.color);
+    // A waistband is in front of a tucked top; the rest of the trousers/skirt
+    // stays behind sleeves. Split the same texture at one shared seam rather
+    // than painting translucent waistband pixels twice.
+    const waistY=620,lower=item.category==='bottom';
+    const layer=this.makeMesh(lower?{...front,keep:(x,y)=>front.keep(x,y)&&front.map(x,y)[1]>=waistY}:front,item.id);this.colorGarment(layer.mesh,item.color);
     layer.mesh.zIndex={top:25,bottom:20,dress:24,shoes:10}[item.category];layer.mesh.visible=false;this.model.addChild(layer.mesh);
     if(template.parts){layer.back=this.makeMesh(template,item.id+'-rear');this.colorGarment(layer.back.mesh,item.color);layer.back.mesh.zIndex=-1;layer.back.mesh.visible=false;this.model.addChild(layer.back.mesh);}
+    if(lower){layer.waist=this.makeMesh({...template,keep:(x,y)=>template.keep(x,y)&&template.map(x,y)[1]<waistY},item.id+'-waist');this.colorGarment(layer.waist.mesh,item.color);layer.waist.mesh.zIndex=26;layer.waist.mesh.visible=false;this.model.addChild(layer.waist.mesh);}
+    if(item.category==='top'&&['blazer','jacket','vest'].includes(item.shape)){
+      const tee=templates.tee;layer.lining=this.makeMesh({...tee,rect:[422,495,609,577],keep:(x,y)=>tee.keep(x,y)},item.id+'-inner-tee');this.colorGarment(layer.lining.mesh,item.color);layer.lining.mesh.zIndex=23;layer.lining.mesh.visible=false;this.model.addChild(layer.lining.mesh);
+    }
     this.cache.set(item.id,layer);return layer;
   }
-  colorGarment(mesh,color){const matrix=colorMatrix(color);if(this.canvasMode)setCanvasMeshColor(mesh,matrix);else{const filter=new ColorMatrixFilter();filter.matrix=matrix;mesh.filters=[filter];}}
+  colorGarment(mesh,color){const matrix=colorMatrix(color);if(this.canvasMode)setCanvasMeshColor(mesh,matrix);else{const filter=new ColorMatrixFilter({antialias:true,resolution:'inherit',padding:2});filter.matrix=matrix;mesh.filters=[filter];}}
   async prepareDetails(items){
     for(const item of items.filter(x=>['hair','accessory'].includes(x.category))){
       const source=Art.itemSvg(item,false,true),doc=new DOMParser().parseFromString(source,'image/svg+xml'),svg=doc.documentElement;
@@ -59,7 +71,7 @@ export class CampaignRenderer {
     }
   }
   setOutfit(items){
-    for(const layer of this.cache.values()){layer.mesh.visible=false;if(layer.back)layer.back.mesh.visible=false;}for(const d of this.details.values())d.sprite.visible=false;for(const h of Object.values(this.hands))h.mesh.visible=false;this.active=[];this.activeDetails=[];
+    for(const layer of this.cache.values()){layer.mesh.visible=false;for(const part of ['back','waist','lining'])if(layer[part])layer[part].mesh.visible=false;}for(const d of this.details.values())d.sprite.visible=false;for(const h of Object.values(this.hands))h.mesh.visible=false;this.active=[];this.activeDetails=[];
     const bottom=items.find(i=>i.category==='bottom'),dress=items.find(i=>i.category==='dress');
     this.toes.visible=items.some(i=>i.category==='shoes'&&i.shape==='sandal');
     const hideLegs=bottom&&['trousers','jeans','cargo','flare'].includes(bottom.shape)&&bottom.id!=='bottom_casual_01'||dress&&['gown','hanfu'].includes(dress.shape);
@@ -67,12 +79,12 @@ export class CampaignRenderer {
     let held=0;
     for(const item of items){
       if(['hair','accessory'].includes(item.category)){const detail=this.details.get(item.id);detail.placement=accessoryPlacement(item,held>0);if(isHandheld(item)){held++;this.hands[detail.placement.side].mesh.visible=true;}detail.sprite.visible=true;this.activeDetails.push(detail);}
-      else{const layer=this.garment(item);layer.mesh.visible=true;if(layer.back){layer.back.mesh.visible=true;this.active.push(layer.back);}this.active.push(layer);}
+      else{const layer=this.garment(item);layer.mesh.visible=true;for(const part of ['back','waist','lining'])if(layer[part]){layer[part].mesh.visible=true;this.active.push(layer[part]);}this.active.push(layer);}
     }
     this.deform();this.app.render();
   }
   deform(){
-    for(const layer of [this.neck,...this.feet,...Object.values(this.hands),...this.active]){
+    for(const layer of [this.neck,this.waistSkin,...this.feet,...Object.values(this.hands),...this.active]){
       for(let i=0;i<layer.blends.length;i++){let x=0,y=0;const ox=layer.original[i*2],oy=layer.original[i*2+1];for(const [name,w]of layer.blends[i]){const m=this.body.armature.getBone(name).globalTransformMatrix,b=bind[name],dx=ox-b.x,dy=oy-b.y;x+=(m.a*dx+m.c*dy+m.tx)*w;y+=(m.b*dx+m.d*dy+m.ty)*w;}layer.position[i*2]=x;layer.position[i*2+1]=y;}
       layer.mesh.geometry.getBuffer('aPosition').update();
     }
