@@ -1,6 +1,15 @@
-# Style Stories · 2.0.3
+# Style Stories · 2.0.4
 
 沿用已确认的 Mira 人物、马尾发型、居家场景和奶油/柔紫界面，将原来的完整游戏规则接入新绘图层：**36 关、6 章、122 件物品**。
+
+## 2.0.4 主站统一与腰线修复
+
+- 统一由 `main` 向 `https://muse-bloom.pages.dev` 发布当前游戏。停止经典版自动部署；旧 `style-room` 试玩地址仅跳转主站。`/playtest/` 转到同一游戏的 QA 模式，反馈继续使用原 D1/R2。
+- 下装分成共享接缝的腰部和裤腿/裙摆图层：裤腰在上衣下摆前，裤腿保持在袖子后。开襟外套的内搭延伸到腰线；没有把整条裤子简单提到所有衣物前面。
+- 鞋子继续使用左右脚独立素材与脚踝/鞋底定位，玛丽珍搭扣朝外。换色滤镜启用抗锯齿并继承渲染分辨率，Canvas2D 使用高质量纹理缩放。
+- 新增 `dev/campaign-waist.test.js`：23 × 21 = 483 套上下装、四个动画时刻共 1,932 帧，逐像素核对裤腰遮挡；18 双鞋检查脚尖方向、搭扣位置和边缘覆盖；包含故意恢复错误图层的失败对照。
+
+该版本的发布与线上核验结果在完成后单独记录；下方 2.0.3 等地址和分支是历史记录。CrazyGames 已提交的 2.0.3 不由此次 Cloudflare 发布自动替换。
 
 ## 2.0.3 反馈提交后关闭弹窗
 
@@ -58,18 +67,18 @@ npm run test:style-release
 
 `test:style-release` 包含：全部 36 关经真实 Reveal/Next 控件完成；122 件物品在四个动画时刻进行 4,880 个身体/衣物接点采样；六种桌面/手机/横屏尺寸；最高分、奖励、重试、存档和 Lookbook；五种反馈窗口；隔离的 Pages → Worker → D1/R2 附件上传、大小限制、同意、失败重试及幂等性。规则测试还校验经典存档导入与不可用存储。
 
-报告和各版型截图位于 `artifacts/campaign/`，反馈报告位于 `artifacts/style-release/`，小衣柜回归报告位于 `artifacts/style-lab/`，鞋包报告与截图位于 `artifacts/wearable-fit/`。覆盖范围是当前衣柜、当前呼吸动画及上述组合维度，不等于所有 122 件物品的完整笛卡尔积，也不代替人工审美检查。没有真人试玩结果，也没有再次提交 CrazyGames 审核。
+报告和各版型截图位于 `artifacts/campaign/`，反馈报告位于 `artifacts/style-release/`，小衣柜回归报告位于 `artifacts/style-lab/`，鞋包报告与截图位于 `artifacts/wearable-fit/`，腰线报告位于 `artifacts/waist-fit/`。覆盖范围是当前衣柜、当前呼吸动画及上述组合维度，不等于所有 122 件物品的完整笛卡尔积，也不代替人工审美检查。2.0.3 的真人试玩确认和 CrazyGames 提交状态见 [提交记录](CRAZYGAMES-2.0.3.md)，不作为 2.0.4 已获审核通过的证据。
 
 ## 发布与回退
 
-分支：`feat/pixi-skeletal-demo`。Cloudflare Pages 项目 `muse-bloom`，分支别名 `style-room`，访问 **https://style-room.muse-bloom.pages.dev**。版本独立于经典版根目录 `package.json` 的 1.8.0；原主域名仍服务经典版。
+发布分支：`main`。Cloudflare Pages 项目 `muse-bloom` 的生产域名为 **https://muse-bloom.pages.dev**。正式游戏版本来自 `demos/style-lab/release.json`，根目录 `package.json` 的 1.8.0 仅保留经典构建元数据。
 
-上述为常规自动发布分支。2.0.2 的修复分支、实际源提交与经授权手动发布记录见本页开头；文档后续提交不代表已部署应用发生变化。
+2.0.2 / 2.0.3 的旧分支、源提交与手动发布记录见上方历史章节；文档后续提交不代表已部署应用发生变化。
 
-GitHub Actions **Style Room preview** 运行规则、穿搭和反馈测试，上传证据，再部署经过 SHA-256 校验的 `dist/style-room-pages`。入口为完整 campaign，配置 `cloudflare/style-room/wrangler.jsonc`；复用现有私有 `FEEDBACK_API` 服务，不新增数据库或公开 R2。
+GitHub Actions **Test and deploy Muse Bloom**（`style-lab.yml`）运行规则、穿搭和反馈测试，上传证据，再部署经过 SHA-256 校验的 `dist/style-room-pages`。入口为完整 campaign，配置 `cloudflare/pages/wrangler.jsonc`；复用现有私有 `FEEDBACK_API` 服务，不新增数据库或公开 R2。`verify.yml` 只保留经典回归，不再竞争主域名部署。
 
 发布后核对 `/build.json` 的版本、36/122 内容计数与源提交号。设置 `MUSE_STYLE_URL` 后运行 `node dev/style-release.test.js`，从实际 HTTPS 地址完成前三关并提交一条明确标记 `automated` 的合成反馈；远端 D1 按回执查版本与两个附件记录，R2 核对文件长度/哈希后才能报告实际入库成功。
 
 纯鞋包修复可设置 `MUSE_WEARABLE_URL` 后运行 `node dev/campaign-wearables.test.js`，对实际线上构建重复视觉回归，不提交反馈。通过 `MUSE_WEARABLE_ARTIFACTS` 分开保存线上证据；报告记录访问 URL、实际版本和源提交号。
 
-回退时从已通过测试的旧提交重新构建并以 `--branch style-room` 发布，保留 manifest 与源提交的一致性；不要混合旧静态文件或手改哈希。
+回退时从已通过测试的旧提交重新构建并以 `--branch main` 发布，保留 manifest 与源提交的一致性；不要混合旧静态文件或手改哈希。旧试玩别名保持跳转，不恢复第二套游戏。

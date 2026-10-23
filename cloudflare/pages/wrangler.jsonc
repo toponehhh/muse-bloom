@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "muse-bloom",
-  "pages_build_output_dir": "../../dist/cloudflare-pages",
+  "pages_build_output_dir": "../../dist/style-room-pages",
   "compatibility_date": "2026-10-19",
   "services": [
     { "binding": "FEEDBACK_API", "service": "muse-bloom" }

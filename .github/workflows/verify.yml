@@ -1,4 +1,4 @@
-name: Test and deploy Muse Bloom
+name: Legacy and feedback regression
 on:
   push:
   pull_request:
@@ -133,60 +133,3 @@ jobs:
           name: muse-bloom-cloudflare-pages
           path: dist/cloudflare-pages/
           if-no-files-found: error
-      - name: Upload the tested Pages site
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v5.0.0
-        with:
-          path: dist/github-pages/
-  deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && !contains(github.event.head_commit.message, '[skip deploy]')
-    needs: game
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Configure Pages
-        uses: actions/configure-pages@v6.0.0
-      - name: Publish the verified website
-        id: deployment
-        uses: actions/deploy-pages@v5.0.1
-  deploy-cloudflare:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && !contains(github.event.head_commit.message, '[skip deploy]')
-    needs: game
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: cloudflare
-    concurrency:
-      group: muse-bloom-cloudflare-production
-      cancel-in-progress: false
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-      CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-node@v7.1.0
-        with:
-          node-version: '22'
-          cache: npm
-      - name: Check Cloudflare credentials are configured
-        run: |
-          test -n "$CLOUDFLARE_API_TOKEN"
-          test -n "$CLOUDFLARE_ACCOUNT_ID"
-          test -n "$CLOUDFLARE_D1_DATABASE_ID"
-      - run: npm ci
-      - uses: actions/download-artifact@v8.0.2
-        with:
-          name: muse-bloom-cloudflare
-          path: dist/cloudflare/
-      - uses: actions/download-artifact@v8.0.2
-        with:
-          name: muse-bloom-cloudflare-pages
-          path: dist/cloudflare-pages/
-      - name: Apply D1 migrations and deploy the tested artifact
-        run: node dev/cloudflare-command.js deploy

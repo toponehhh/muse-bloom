@@ -1,16 +1,16 @@
 # Muse Bloom
 
-**CrazyGames resubmission:** use `npm run package:style-crazygames` for the current **2.0.3** upload folder, `npm run test:style-crazygames` to check it, and `npm run promo:style` for matching covers/videos. [Current submission instructions](docs/CRAZYGAMES-2.0.3.md) distinguish these files from the legacy 1.8 outputs below.
+**Current release: Style Stories 2.0.4.** One production site, built from `main`: [Play Muse Bloom](https://muse-bloom.pages.dev/) · [QA playtest](https://muse-bloom.pages.dev/?qa=1) · [CI and deployment](https://github.com/toponehhh/muse-bloom/actions/workflows/style-lab.yml). Use the in-game Feedback button to submit ratings, screenshots or recordings to the existing private D1/R2 service. The former `style-room` alias redirects to this site.
 
-**New: [Style Stories 2.0.3](https://style-room.muse-bloom.pages.dev/?v=2.0.3)** — the approved Mira/room style includes all **36 challenges, six chapters and 122 collectible items**, original scoring/ranks, rewards, best-look collection and save recovery. Version 2.0.3 closes feedback after a confirmed submission, keeps its receipt visible in the game, and versions frontend asset URLs by content. It retains the Canvas2D rendering fallback and isolated QA saves. [Explore all stories](https://style-room.muse-bloom.pages.dev/?v=2.0.3&qa=1) or [test normal progression](https://style-room.muse-bloom.pages.dev/?v=2.0.3&qa=1&progression=normal). Run `npm run demo:style` and open the printed `campaign.html` URL. [Release notes](docs/STYLE-ROOM-RELEASE.md) record Cloudflare delivery and verification scope; the classic game below remains a separate entry.
+The current game uses Mira and the illustrated room, with **36 challenges, six chapters and 122 items**. Version 2.0.4 keeps waistbands visible over tucked tops and enables antialiasing on colored garments and footwear. It retains GPU fallback, story selection, scoring, Lookbook recovery and feedback receipts. Run `npm run demo:style` for development, `npm run test:style-release` for regression, and `npm run cf:deploy` for a verified main release. The release version is defined in `demos/style-lab/release.json`; the legacy package metadata below is not the live game version. [Release notes](docs/STYLE-ROOM-RELEASE.md) record delivery and validation separately.
 
-**v1.8.0 — Make It Yours**
+**CrazyGames:** version **2.0.3** was submitted and is awaiting review; see the [submission record](docs/CRAZYGAMES-2.0.3.md). Building `package:style-crazygames` now prepares a separate 2.0.4 candidate. Publishing to Cloudflare does not replace the submitted CrazyGames build.
 
-[Play online](https://toponehhh.github.io/muse-bloom/) · [Playtest tasks & feedback](https://toponehhh.github.io/muse-bloom/playtest/) · [Build & deployment status](https://github.com/toponehhh/muse-bloom/actions/workflows/verify.yml)
+## Archived classic 1.8 development notes
 
-Cloudflare delivery targets `muse-bloom.pages.dev`: Pages serves the game and forwards `/api/*` through a private service binding to the Worker with D1 and native rate limiting. See [Cloudflare deployment](docs/CLOUDFLARE.md) for setup and live verification; GitHub Pages feedback stays in download mode.
+The notes and commands below describe the retained classic code and offline artifacts. They are historical; the classic workflow runs regression checks but no longer publishes either Cloudflare or GitHub Pages. Use the current release commands and links above for production.
 
-The public preview updates automatically after the `main` branch passes all checks. The initial URL becomes available when the first deployment completes.
+See [Cloudflare deployment](docs/CLOUDFLARE.md) for the current main deployment and private feedback architecture.
 
 An offline HTML5 dress-up game with three painted characters, 36 challenges and 122 collectible pieces. The first three occasions use 14 painted wardrobe pieces, a warm ivory/rose studio, an adaptive guide, an animated reveal and before/after comparison.
 
@@ -74,4 +74,4 @@ The polished starter capsule has 14 painted pieces. The remaining 108 collectibl
 
 Use `dist/crazygames-upload/index.html` for the portal's file/folder upload, not the source HTML alone or the playtest guide. SDK, cloud saves, ads and platform mute integration remain unimplemented. This version is a playtest candidate; it has not been resubmitted or accepted by CrazyGames. Existing v1.6 promotional media is historical, not a current capture.
 
-Changes are checked in in steps. The GitHub Actions workflow tests the game, prepares the upload artifact and deploys the tested website from `main` to GitHub Pages. Pull requests and other branches run checks without publishing. See [GitHub deployment](docs/GITHUB.md), [QA evidence](docs/QA.md), [test contracts](docs/UI-TESTS.md) and [submission notes](docs/CRAZYGAMES.md). Remote publication status is recorded separately from local checks. No open-source license is granted by default.
+Changes are checked in in steps. The current workflow publishes the tested Style Stories artifact from `main` to Cloudflare Pages. Pull requests run checks without publishing. [Classic QA evidence](docs/QA.md), [test contracts](docs/UI-TESTS.md) and [older submission notes](docs/CRAZYGAMES.md) are retained for reference. Remote publication status is recorded separately from local checks. No open-source license is granted by default.

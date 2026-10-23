@@ -6,7 +6,7 @@ const publicFiles=['index.html','style.css','campaign.css','campaign-app.js','ca
   'assets/mira.png','assets/rose-lilac.png','assets/blue-ivory.png','assets/room.png','assets/provenance.json',
   'assets/campaign-tops.png','assets/campaign-dresses.png','assets/campaign-shoes.png','assets/campaign-provenance.json',
   'licenses/dragonbones-pixi.txt','licenses/dragonbones.txt','licenses/pixi.txt'];
-const published=[...publicFiles,'_worker.js','_routes.json','_headers'];
+const published=[...publicFiles,'_worker.js','_routes.json','_headers','_redirects'];
 const uiAssets=['style.css','campaign.css','campaign-app.css','campaign-app.js'];
 function inventory(dir,prefix='') {
   if(!fs.existsSync(dir))return [];
@@ -14,7 +14,7 @@ function inventory(dir,prefix='') {
 }
 function verify() {
   const manifest=JSON.parse(fs.readFileSync(path.join(out,'build.json'),'utf8'));
-  if(manifest.target!=='cloudflare-pages-style-room'||manifest.channel!=='style-room')throw new Error('Wrong release target');
+  if(manifest.target!=='cloudflare-pages-style-stories'||manifest.channel!=='production')throw new Error('Wrong release target');
   if(process.env.GITHUB_SHA&&manifest.sourceCommit!==process.env.GITHUB_SHA)throw new Error('Artifact does not belong to this workflow commit');
   const actual=inventory(out).sort(),expected=[...published,'build.json'].sort();
   if(JSON.stringify(actual)!==JSON.stringify(expected))throw new Error('Unexpected or missing release file');
@@ -45,10 +45,12 @@ async function build(){
   fs.copyFileSync(path.join(root,'cloudflare/pages/worker.mjs'),path.join(out,'_worker.js'));
   fs.writeFileSync(path.join(out,'_routes.json'),JSON.stringify({version:1,include:['/api/*'],exclude:[]},null,2)+'\n');
   fs.writeFileSync(path.join(out,'_headers'),'/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Cache-Control: no-cache, max-age=0, must-revalidate\n');
+  // Retain shared playtest links while serving the same current game at /.
+  fs.writeFileSync(path.join(out,'_redirects'),'/playtest /?qa=1 302\n/playtest/ /?qa=1 302\n/playtest/Muse-Bloom.html /?qa=1 302\n');
   const sourceCommit=process.env.GITHUB_SHA||execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
   if(!/^[a-f0-9]{40}$/.test(sourceCommit))throw new Error('Invalid source commit');
   const release=require('../demos/style-lab/release.json');
-  fs.writeFileSync(path.join(out,'build.json'),JSON.stringify({...release,sourceCommit,target:'cloudflare-pages-style-room',feedback:'D1 + private R2',files:published.map(file=>{
+  fs.writeFileSync(path.join(out,'build.json'),JSON.stringify({...release,sourceCommit,target:'cloudflare-pages-style-stories',feedback:'D1 + private R2',files:published.map(file=>{
     const data=fs.readFileSync(path.join(out,file));return {file,bytes:data.length,sha256:crypto.createHash('sha256').update(data).digest('hex')};
   })},null,2)+'\n');
   verify();console.log('Style Room Pages release ready: '+out);return out;

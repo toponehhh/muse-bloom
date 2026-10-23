@@ -1,10 +1,10 @@
 # Cloudflare 部署与在线反馈
 
-当前源码为 v1.8.0，按用户选择使用 **Cloudflare Pages 的 pages.dev 域名**：游戏入口 `/`，试玩与反馈页 `/playtest/`，提交接口 `POST /api/feedback`。实际线上版本以该网站的 `build.json` 和部署记录为准。
+当前正式发布系列为 **Style Stories 2.0.4**，从 `main` 部署到 **https://muse-bloom.pages.dev**：游戏入口 `/`，QA 入口 `/?qa=1`，游戏内 Feedback 提交到 `POST /api/feedback`。`/playtest/` 跳转到当前 QA 游戏；旧 `style-room` 别名跳转主站。实际线上版本以网站的 `build.json` 和部署记录为准。
 
 ## 部署结构
 
-- Pages 项目 `muse-bloom` 提供 `https://muse-bloom.pages.dev`。静态文件来自 `dist/cloudflare-pages`，`_routes.json` 只将 `/api/*` 交给 Pages Function。
+- Pages 项目 `muse-bloom` 提供 `https://muse-bloom.pages.dev`。静态文件来自 `dist/style-room-pages`（保留的内部构建目录名），`_routes.json` 只将 `/api/*` 交给 Pages Function。
 - Pages Function 通过 `FEEDBACK_API` 服务绑定调用私有 Worker `muse-bloom`。原始 URL、Origin、方法和请求体原样传递，浏览器不跨域。
 - 私有 Worker 使用 `DB` 绑定连接 D1 `muse-bloom-feedback`，保留原生 `FEEDBACK_RATE_LIMIT`。Workers 的 `workers_dev` 和 `preview_urls` 都关闭，公开入口只有 Pages。
 - 私有 Worker 使用 `FEEDBACK_FILES` 绑定访问 R2 `muse-bloom-feedback-files`。截图和录屏没有公开下载 URL；Pages 不直接暴露存储桶。
@@ -13,8 +13,8 @@
 
 ## 已实现的行为
 
-- 游戏内 Feedback 和试玩说明页均可提交四项评分、继续意愿、文字意见；说明页还支持设备、是否独立完成及组织者观察。
-- 两处在线表单均可选填截图或录屏，支持预览、移除、逐文件上传进度及取消。文件全部确认后才写入最终反馈并显示回执，具体限制和恢复方式见下方“截图与录屏附件”。
+- 当前游戏内 Feedback 可提交四项评分、继续意愿、文字意见。经典版独立说明页保留在历史离线构建中，线上链接进入同一新版游戏。
+- 表单可选填截图或录屏，支持预览、移除、逐文件上传进度及取消。文件全部确认后才写入最终反馈并显示回执、关闭弹窗，具体限制和恢复方式见下方“截图与录屏附件”。
 - 匿名编号与试玩存档分开保存，不要求姓名、邮箱或账号。游戏操作仅在试玩模式记录在本机；提交时明确勾选同意才上传。说明页使用同一编号时会附上本机对应的试玩操作记录。
 - 草稿自动保存在当前浏览器。接口超时、断线、503 时保留提交快照，刷新后重试沿用相同 UUID；D1 主键保证同一份反馈只写一条。只有收到 D1 写入后的回执才显示提交成功。修改答案再提交会产生新版本。
 - 可随时下载 JSON 备份。GitHub Pages、CrazyGames 单文件、离线试玩包继续使用下载模式，不会尝试向不存在的接口提交。
@@ -62,20 +62,20 @@ $env:CLOUDFLARE_D1_DATABASE_ID = '创建 D1 后返回的 UUID'
 npm run cf:deploy
 ```
 
-命令构建两份产物，校对提交号及文件哈希，再生成被 Git 忽略的 `wrangler.deploy.json`，应用远程迁移，部署私有 Worker，最后发布 Pages。`wrangler.jsonc` 中全零 ID 仅用于本地开发；部署脚本拒绝缺失或全零 ID。无需手动把账号信息写进源码。
+命令构建当前 `dist/style-room-pages` 和反馈服务 `dist/cloudflare` 两份产物，校对提交号及文件哈希，再生成被 Git 忽略的 `wrangler.deploy.json`，应用远程迁移，部署私有 Worker，最后发布 Pages。可先运行 `node dev/cloudflare-command.js verify-deploy` 只校验不部署。`wrangler.jsonc` 中全零 ID 仅用于本地开发；部署脚本拒绝缺失或全零 ID。无需手动把账号信息写进源码。
 
 Pages 发布使用 `--cwd cloudflare/pages`，从专用配置读取服务绑定，`--branch main` 更新正式域名。Wrangler 会返回本次部署独立地址；正式入口为 Pages 项目的 `muse-bloom.pages.dev`。游戏和 API 位于同一域名，把 `/playtest/` 发给测试者即可。确认主域名的 `build.json` 与本次提交一致后，再执行一次标记为自动化的实际提交并到 D1 核对回执。
 
 ```powershell
-$env:MUSE_CF_URL = 'https://muse-bloom.pages.dev'
-npm run test:cloudflare-live
+$env:MUSE_STYLE_URL = 'https://muse-bloom.pages.dev'
+node dev/style-release.test.js
 ```
 
-线上检查必须显式设置 HTTPS 地址。它对比已测试产物的提交号及三个页面的哈希，实际完成桌面/手机首套造型，并创建一条 `automated-check` / `automated` 反馈，再原样重试确认回执一致。报告及回执位于 `artifacts/cloudflare-live/report.json`。该脚本不读取其他参与者的反馈；管理员应按报告中的准确回执在远程 D1 核对数据库行，不能只以网页提示为成功证据。
+线上检查必须显式设置 HTTPS 地址并获得实际测试提交授权。当前脚本完成前三关、存档恢复和反馈附件提交，创建明确标记 `automated` 的合成记录；报告及回执位于 `artifacts/style-release-live/`。该脚本不读取其他参与者的反馈；管理员应按报告中的准确回执在远程 D1 核对数据库行，不能只以网页提示为成功证据。只检查 UI 时拦截 API 写请求，不运行这一实际提交流程。
 
 ## GitHub Actions 自动部署
 
-已有 `Test and deploy Muse Bloom` workflow 增加了本地 D1/API/浏览器测试和部署预检。Cloudflare 部署任务仅在 `main` 全部检查通过并显式开启后运行；现有 GitHub Pages 继续独立发布。
+`Test and deploy Muse Bloom`（`style-lab.yml`）在 `main` 的当前游戏、D1/API 和浏览器检查通过后发布正式站，再将旧试玩别名设为跳转。经典 `verify.yml` 只回归和保存历史产物，已停止 Cloudflare 和 GitHub Pages 自动部署，避免旧页面覆盖新版。`[skip deploy]` 提交仅检查，不发布。
 
 在 GitHub 仓库 **Settings → Secrets and variables → Actions** 中配置：
 
