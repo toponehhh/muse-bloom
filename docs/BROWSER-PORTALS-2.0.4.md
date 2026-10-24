@@ -49,4 +49,23 @@ Make every day a new style story. Join Mira in her sunlit room and create outfit
 - [GamePix submission guidelines](https://partners.gamepix.com/guidelines/submission): relative assets, no external game links/analytics, loading feedback, iframe support at 640 × 480, complete game and representative artwork. The current guidelines explicitly allow an SDK-free game; no SDK integration or monetization approval is claimed here.
 - GamePix's optional third-party distribution setting should remain off for the initial submission unless the owner selects broader distribution.
 
-Both authenticated developer portals are required to complete publication. Submission results and public URLs will be recorded after the portals confirm them; a prepared ZIP or saved draft is not publication.
+## Submission results
+
+### itch.io
+
+- Published on 2026-10-24: [Muse Bloom](https://huangdl.itch.io/muse-bloom), project ID `5222182`.
+- Free HTML5 game with no payments or donations; 960 × 640 embed and a fullscreen button. Desktop first; mobile-friendly flag is not advertised.
+- Upload `19997887`: `browser-portals-v2.0.4.zip`, marked as playable in the browser. Cover, three real gameplay screenshots, controls, seven relevant tags and generative-AI classifications are saved.
+- The hosted iframe rendered the character and selected outfit, switched to Details and displayed the score/result image with no page exceptions during the check.
+- A fresh anonymous Chromium 150 session received HTTP 200, started the game and confirmed `STYLE STORIES · 2.0.4` at 2026-10-24 14:45 UTC. Public availability is confirmed; appearance in itch.io search/indexes is not claimed.
+
+### GamePix
+
+- Submitted on 2026-10-24 at 14:55 UTC (22:55 Asia/Shanghai): [Muse Bloom developer record](https://my.gamepix.com/games/muse-bloom), game ID `2M8B38`.
+- Dress-Up category, desktop/landscape, HTML5-JS, SDK-free; optional third-party distribution disabled.
+- Uploaded the verified ZIP and exact-size icon/cover; operation instructions are saved. Build code `3L94qsNNYuFf12TLqNPuF2X91SI`.
+- The official preview rendered the character and selected outfit, switched to Details, displayed the score/result image and advanced to the next challenge, with no page exceptions during the check. The tested embedded viewport was 845 × 475 in Chromium 150. The preview initially needed additional loading time; this is not a claimed game-code fix.
+- The submit request returned HTTP 200 and the portal changed from `New release EDIT` to `New release REVIEW`, with `Cancel review` available. Reloading the record at 14:55:59 UTC confirmed that `REVIEW` persisted. This confirms receipt for review, not approval or a public GamePix listing.
+- Temporary developer preview links expire after 24 hours and are not player-facing links; share the public itch.io page for playtests instead.
+
+The uploaded ZIP was packaged from `3d48b053c4f14b5dd935743bda38cb20dc836b29`. [CI run 40102093211](https://github.com/toponehhh/muse-bloom/actions/runs/40102093211) passed, including standalone portal and iframe tests; the Cloudflare deployment job was intentionally skipped. No Cloudflare production game changes were needed for these submissions. Authenticated browser state, temporary preview tokens and raw submission evidence remain in ignored local artifacts rather than the repository.
