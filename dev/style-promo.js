@@ -86,8 +86,9 @@ async function record(base, name, viewport, scale) {
   browser = await chromium.launch({headless:true,chromiumSandbox:true,...(process.platform==='win32'?{executablePath:process.env.MUSE_BROWSER_EXECUTABLE||'C:\\Tools\\ugchromium\\app\\chrome.exe'}:{})});
   const page = await browser.newPage({viewport:{width:1440,height:1000}});
   await page.goto(base+'?test=1'); await page.waitForFunction(()=>document.documentElement.dataset.ready==='true',null,{timeout:60000});
-  for (const [name,width,height] of [['landscape',1920,1080],['portrait',800,1200],['square',800,800],...(portalMode?[['itch',630,500]]:[])]) {
-    const data = await page.evaluate(({width,height}) => {
+  for (const [name,width,height] of [['landscape',1920,1080],['portrait',800,1200],['square',800,800],...(portalMode?[['itch',630,500],['gamepix-icon',256,256],['gamepix',1360,850]]:[])]) {
+    const format=name==='gamepix'?'jpeg':'png';
+    const data = await page.evaluate(({width,height,format}) => {
       const {renderer:r,D} = window.__campaign; r.paused = true;
       r.setOutfit(['dress_elegant_02','shoes_cute_02','accessory_elegant_02'].map(id=>D.items.find(item=>item.id===id))); r.seek(.6);
       const saved = {x:r.model.x,y:r.model.y,s:r.model.scale.x}; r.model.position.set(0,0);r.model.scale.set(1);r.app.render();
@@ -107,9 +108,11 @@ async function record(base, name, viewport, scale) {
       c.fillStyle='#604260';c.textAlign=portrait?'center':'left';c.textBaseline='alphabetic';
       const fontSize=landscape?width*196/1920:portrait?width*107/800:width/8,x=landscape?width*110/1920:portrait?width/2:width*34/800,y=landscape?height*420/1080:portrait?height*124/1200:height*210/800;
       c.font=`900 ${fontSize}px "Segoe UI",sans-serif`;c.fillText('Muse',x,y);c.fillText('Bloom',x,y+fontSize*.98);
-      return canvas.toDataURL('image/png');
-    }, {width,height});
-    const file=`cover-${name}.png`;fs.writeFileSync(path.join(out,file),Buffer.from(data.split(',')[1],'base64'));
+      return canvas.toDataURL(`image/${format}`,format==='jpeg'?.93:undefined);
+    }, {width,height,format});
+    const file=`cover-${name}.${format==='jpeg'?'jpg':'png'}`;fs.writeFileSync(path.join(out,file),Buffer.from(data.split(',')[1],'base64'));
+    const byteLimit=name==='gamepix-icon'?1_000_000:name==='gamepix'?1_500_000:Infinity;
+    if(fs.statSync(path.join(out,file)).size>byteLimit)throw new Error(`${file} exceeds the GamePix upload limit`);
     metadata.files.push({file,width,height,bytes:fs.statSync(path.join(out,file)).size});console.log(`Created ${file} ${width}x${height}`);
   }
   await page.close();

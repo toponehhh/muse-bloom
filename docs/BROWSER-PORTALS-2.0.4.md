@@ -14,6 +14,8 @@ Packaging needs Python 3.9+ on PATH (`python` on Windows, `python3` elsewhere), 
 - Source revision, individual file hashes and sizes: adjacent `.manifest.json`; do not upload it as a game file.
 - Covers and real gameplay screenshots: `dist/portal-submission-v2.0.4/`.
 - itch.io cover: `cover-itch.png`, 630 × 500, rendered from the current character and clothing.
+- GamePix icon: `cover-gamepix-icon.png`, 256 × 256, below 1 MB.
+- GamePix cover: `cover-gamepix.jpg`, 1360 × 850, high-quality JPEG below 1.5 MB. The generator checks both upload size limits.
 
 The package reuses the verified standalone asset allowlist, with platform-neutral entry metadata. It contains 17 files with `index.html` at the ZIP root, all game resources and license notices. No Cloudflare Worker, feedback endpoint, private feedback data, third-party ad SDK or analytics service is included. The feedback UI is hidden. Gameplay, normal progression and browser-local saves are the same as the 2.0.4 release.
 
@@ -38,7 +40,7 @@ Make every day a new style story. Join Mira in her sunlit room and create outfit
 
 **Controls:** Click or tap a category and select a piece. Use Details for a close-up, Undo to reverse a change, and Reset look to start again. Reveal my look shows your score and rewards. Choose Next challenge to continue, or open Lookbook to wear a saved outfit again.
 
-**Creation disclosure:** Built with JavaScript and PixiJS. Development, artwork and text used AI assistance and were iterated and tested. Game code and bundled library license notices accompany the HTML5 build.
+**Creation disclosure:** Built with JavaScript and PixiJS. Development, artwork, text and synthesized audio used AI assistance and were iterated and tested. Game code and bundled library license notices accompany the HTML5 build.
 
 ## Platform notes checked on 2026-10-24
 
