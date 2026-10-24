@@ -1,6 +1,6 @@
 # CrazyGames submission — Muse Bloom 2.0.3
 
-Prepared 2026-10-22; submitted 2026-10-23 (Asia/Shanghai). This is the current **Style Stories** edition with Mira, 36 challenges, six chapters and 122 collectible items. The **desktop-only Basic Launch** submission is **Awaiting review**. Submission is confirmed; acceptance and publication are still pending.
+Prepared 2026-10-22; submitted 2026-10-23 (Asia/Shanghai). This records the **Style Stories 2.0.3** edition with Mira, 36 challenges, six chapters and 122 collectible items. The owner reported on **2026-10-23** that the **desktop-only Basic Launch** submission was **rejected**. The detailed rejection reason was not available for inspection; an email requesting specific feedback was drafted. The submission confirmations below describe the earlier awaiting-review state, not the current outcome. A separate [Poki application for 2.0.4](POKI-SUBMISSION-2.0.4.md) was received on 2026-10-24.
 
 ## Submission record
 
