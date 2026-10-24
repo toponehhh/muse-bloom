@@ -5,9 +5,10 @@ const path = require('node:path');
 const http = require('node:http');
 const {chromium} = require('playwright');
 const {PNG} = require('pngjs');
-const {verify, out} = require('./package-style-crazygames');
+const portalMode=process.argv.includes('--portals');
+const {verify, out} = require(portalMode?'./package-style-portals':'./package-style-crazygames');
 const D = require('../js/data');
-const evidence = path.resolve(__dirname, '../artifacts/style-crazygames');
+const evidence = path.resolve(__dirname, portalMode?'../artifacts/style-portals':'../artifacts/style-crazygames');
 const report = {kind:'automated-check', humanParticipants:0, startedAt:new Date().toISOString(), checks:[], layouts:[], errors:[], external:[]};
 const pass = message => {report.checks.push(message); console.log('PASS: ' + message);};
 const types = {'.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.png':'image/png'};
@@ -66,7 +67,7 @@ async function characterVisible(page, name) {
   assert.equal(await page.locator('#brief-name').innerText(), 'Coffee with friends');
   await page.locator('[data-category=bottom]').click(); assert.equal(await page.locator(`[data-item="${pleats}"]`).getAttribute('aria-pressed'), 'true');
   await characterVisible(page, 'wear-again'); pass('Actual upload package supports Details, readable scoring, image download, next challenge and saved-outfit restoration after reload');
-  for (const [width,height] of [[907,510],[1216,684],[1077,606],[821,462],[1366,768],[1920,1080],[1536,864],[1280,720],[800,450],[1080,607],[390,844],[320,568]]) {
+  for (const [width,height] of [[907,510],[1216,684],[1077,606],[821,462],[1366,768],[1920,1080],[1536,864],[1280,720],[800,450],[1080,607],[390,844],[320,568],...(portalMode?[[640,480],[960,640]]:[])]) {
     await page.setViewportSize({width,height});
     await page.locator('#reset').click(); await page.locator('[data-category=top]').click(); await page.locator('[data-item=top_casual_01]').click();
     const layout = await page.evaluate(() => ({width:innerWidth, scroll:document.documentElement.scrollWidth, clothing:document.querySelector('#items').getBoundingClientRect().toJSON()}));
@@ -76,7 +77,7 @@ async function characterVisible(page, name) {
     await page.screenshot({path:path.join(evidence, `layout-${width}x${height}.png`)}); await page.keyboard.press('Escape');
     report.layouts.push({width,height,...layout});
   }
-  pass('Ten official DPR-1 iframe sizes and two phone sizes keep clothing and result actions usable');
+  pass('Ten CrazyGames DPR-1 iframe sizes and two phone sizes'+(portalMode?', GamePix 640x480 and itch.io 960x640':'')+' keep clothing and result actions usable');
   await page.setViewportSize({width:1216,height:684}); await ready(page, base + '/portal/build/'); await characterVisible(page, 'nested-entry');
   await context.setOffline(true); await page.locator('[data-category=shoes]').click(); await page.locator(`[data-item="${shoes}"]`).click(); await page.locator('#reveal').click(); assert.equal(await page.locator('#result').isVisible(), true); await context.setOffline(false);
   await page.goto(parent); await page.frameLocator('iframe').locator('html[data-ready=true]').waitFor({timeout:60000}); const frame = page.frames().find(frame => frame.url().startsWith(base));

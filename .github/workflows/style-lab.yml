@@ -35,6 +35,8 @@ jobs:
         run: node dev/production-routing.test.js
       - name: Standalone CrazyGames upload, sandboxed iframe and official viewport sizes
         run: npm run test:style-crazygames
+      - name: Standalone itch.io and GamePix ZIP and iframe sizes
+        run: npm run test:style-portals
       - name: Keep screenshots and contact checks
         if: always()
         uses: actions/upload-artifact@v7.0.2
@@ -44,6 +46,7 @@ jobs:
             artifacts/style-lab/
             artifacts/style-release/
             artifacts/style-crazygames/
+            artifacts/style-portals/
             artifacts/campaign/
             artifacts/campaign-rendering/
             artifacts/campaign-stories/
@@ -66,6 +69,15 @@ jobs:
           name: muse-bloom-style-room-pages
           path: dist/style-room-pages/
           if-no-files-found: error
+      - name: Keep the standalone browser portal ZIP
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: muse-bloom-browser-portals
+          path: |
+            dist/browser-portals-v*.zip
+            dist/browser-portals-v*.manifest.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Package the feedback service assets from the same commit
         run: npm run package:cloudflare
       - uses: actions/upload-artifact@v7.0.2

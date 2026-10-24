@@ -6,14 +6,28 @@ const path = require('node:path');
 const {spawnSync} = require('node:child_process');
 const {chromium} = require('playwright');
 const {createServer} = require('./server');
-const {verify, out:upload} = require('./package-style-crazygames');
+const portalMode=process.argv.includes('--portals');
+const {verify, out:upload} = require(portalMode?'./package-style-portals':'./package-style-crazygames');
 const root = path.resolve(__dirname, '..');
 const release = verify();
-const out = path.join(root, 'dist', `crazygames-submission-v${release.version}`);
+const out = path.join(root, 'dist', `${portalMode?'portal':'crazygames'}-submission-v${release.version}`);
 const scratch = path.join(root, 'artifacts/style-promo');
 const metadata = {version:release.version, sourceCommit:release.sourceCommit, source:'Current game renderer and real browser gameplay', files:[]};
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 let browser; const server = createServer();
+async function portalScreenshots(base){
+  const page=await browser.newPage({viewport:{width:1440,height:1040},reducedMotion:'reduce'});
+  try{
+    await page.goto(base);await page.locator('html[data-ready=true]').waitFor({timeout:60000});
+    const pick=async(category,id)=>{await page.locator(`[data-category="${category}"]`).click();await page.locator(`[data-item="${id}"]`).click();};
+    const shot=async file=>{await page.screenshot({path:path.join(out,file),fullPage:true});metadata.files.push({file,width:1440,height:1040,bytes:fs.statSync(path.join(out,file)).size,source:'Actual UI, normal progression'});};
+    await pick('top','top_cozy_02');await pick('bottom','bottom_cozy_03');await pick('shoes','shoes_cute_02');await page.locator('[data-category=top]').click();await shot('screenshot-wardrobe.png');
+    await pick('top','top_casual_01');await pick('bottom','bottom_casual_01');await pick('shoes','shoes_casual_01');await pick('hair','hair_casual_01');
+    await page.locator('#reveal').click();await page.locator('#next-level').click();
+    await pick('dress','dress_elegant_02');await pick('shoes','shoes_cute_02');await page.locator('[data-category=dress]').click();await shot('screenshot-evening.png');
+    await page.locator('#reveal').click();await page.waitForFunction(()=>document.querySelector('#result-image').naturalWidth>0);await shot('screenshot-results.png');
+  }finally{await page.close();}
+}
 async function record(base, name, viewport, scale) {
   const context = await browser.newContext({viewport, deviceScaleFactor:scale, hasTouch:scale > 1});
   try {
@@ -72,7 +86,7 @@ async function record(base, name, viewport, scale) {
   browser = await chromium.launch({headless:true,chromiumSandbox:true,...(process.platform==='win32'?{executablePath:process.env.MUSE_BROWSER_EXECUTABLE||'C:\\Tools\\ugchromium\\app\\chrome.exe'}:{})});
   const page = await browser.newPage({viewport:{width:1440,height:1000}});
   await page.goto(base+'?test=1'); await page.waitForFunction(()=>document.documentElement.dataset.ready==='true',null,{timeout:60000});
-  for (const [name,width,height] of [['landscape',1920,1080],['portrait',800,1200],['square',800,800]]) {
+  for (const [name,width,height] of [['landscape',1920,1080],['portrait',800,1200],['square',800,800],...(portalMode?[['itch',630,500]]:[])]) {
     const data = await page.evaluate(({width,height}) => {
       const {renderer:r,D} = window.__campaign; r.paused = true;
       r.setOutfit(['dress_elegant_02','shoes_cute_02','accessory_elegant_02'].map(id=>D.items.find(item=>item.id===id))); r.seek(.6);
@@ -91,7 +105,7 @@ async function record(base, name, viewport, scale) {
       c.shadowColor='#67475c38';c.shadowBlur=18;c.shadowOffsetY=9;
       c.drawImage(figure,centerX+(bounds.x-515)*scale,top+(bounds.y-40)*scale,bounds.width*scale,bounds.height*scale);c.shadowColor='transparent';
       c.fillStyle='#604260';c.textAlign=portrait?'center':'left';c.textBaseline='alphabetic';
-      const fontSize=landscape?196:portrait?107:100,x=landscape?110:portrait?width/2:34,y=landscape?420:portrait?124:210;
+      const fontSize=landscape?width*196/1920:portrait?width*107/800:width/8,x=landscape?width*110/1920:portrait?width/2:width*34/800,y=landscape?height*420/1080:portrait?height*124/1200:height*210/800;
       c.font=`900 ${fontSize}px "Segoe UI",sans-serif`;c.fillText('Muse',x,y);c.fillText('Bloom',x,y+fontSize*.98);
       return canvas.toDataURL('image/png');
     }, {width,height});
@@ -99,6 +113,7 @@ async function record(base, name, viewport, scale) {
     metadata.files.push({file,width,height,bytes:fs.statSync(path.join(out,file)).size});console.log(`Created ${file} ${width}x${height}`);
   }
   await page.close();
+  if(portalMode)await portalScreenshots(base);
   if (!process.argv.includes('--covers-only')) {
     await record(base,'landscape',{width:1920,height:1080},1);
     await record(base,'portrait',{width:540,height:810},2);
