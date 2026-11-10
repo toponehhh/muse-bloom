@@ -13,6 +13,7 @@
     "test:lookbook": "node dev/lookbook.test.js",
     "test:experience": "node dev/experience.test.js",
     "standalone": "node dev/standalone.js",
+    "package:astrocade": "node dev/package-astrocade.cjs",
     "package:upload": "node dev/standalone.js dist/crazygames-upload/index.html",
     "test:upload": "npm run package:upload && node dev/upload.test.js",
     "test:accessories": "node dev/salon.test.js",

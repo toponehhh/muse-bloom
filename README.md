@@ -6,6 +6,8 @@ The current game uses Mira and the illustrated room, with **36 challenges, six c
 
 **CrazyGames:** version **2.0.3** was submitted and is awaiting review; see the [submission record](docs/CRAZYGAMES-2.0.3.md). Building `package:style-crazygames` now prepares a separate 2.0.4 candidate. Publishing to Cloudflare does not replace the submitted CrazyGames build.
 
+Astrocade also runs the published **Style Stories 2.0.4** game at the [existing Muse Bloom listing](https://www.astrocade.com/games/muse-bloom-little-style-stories/01M5D05NJ2670M5744RNMKDWVH). Its portrait/sandbox adapter uses Astrocade cloud progress and retains legacy saves; image download and external feedback are hidden on that platform. See [Astrocade release and verification](docs/ASTROCADE-2.0.4.md). Rebuild with `npm run package:astrocade`.
+
 ## Archived classic 1.8 development notes
 
 The notes and commands below describe the retained classic code and offline artifacts. They are historical; the classic workflow runs regression checks but no longer publishes either Cloudflare or GitHub Pages. Use the current release commands and links above for production.
