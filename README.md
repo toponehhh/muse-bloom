@@ -1,79 +1,58 @@
 # Muse Bloom
 
-**Current release: Style Stories 2.0.4.** One production site, built from `main`: [Play Muse Bloom](https://muse-bloom.pages.dev/) · [QA playtest](https://muse-bloom.pages.dev/?qa=1) · [CI and deployment](https://github.com/toponehhh/muse-bloom/actions/workflows/style-lab.yml). Use the in-game Feedback button to submit ratings, screenshots or recordings to the existing private D1/R2 service. The former `style-room` alias redirects to this site.
+Muse Bloom · Style Stories 是基于 PixiJS 和 DragonBones 的 H5 换装游戏，包含 36 个挑战、6 个章节和 122 件物品。当前源码版本由根目录 `release.json` 定义，包元数据同步为 **2.0.5**。
 
-The current game uses Mira and the illustrated room, with **36 challenges, six chapters and 122 items**. Version 2.0.4 keeps waistbands visible over tucked tops and enables antialiasing on colored garments and footwear. It retains GPU fallback, story selection, scoring, Lookbook recovery and feedback receipts. Run `npm run demo:style` for development, `npm run test:style-release` for regression, and `npm run cf:deploy` for a verified main release. The release version is defined in `demos/style-lab/release.json`; the legacy package metadata below is not the live game version. [Release notes](docs/STYLE-ROOM-RELEASE.md) record delivery and validation separately.
+正式站点：[muse-bloom.pages.dev](https://muse-bloom.pages.dev/) · [QA 试玩](https://muse-bloom.pages.dev/?qa=1)。线上实际版本以站点 `build.json` 为准；本地构建不代表已发布。旧 `style-room` 地址仅保留跳转。
 
-**CrazyGames:** version **2.0.3** was submitted and is awaiting review; see the [submission record](docs/CRAZYGAMES-2.0.3.md). Building `package:style-crazygames` now prepares a separate 2.0.4 candidate. Publishing to Cloudflare does not replace the submitted CrazyGames build.
+## 开发
 
-Astrocade also runs the published **Style Stories 2.0.4** game at the [existing Muse Bloom listing](https://www.astrocade.com/games/muse-bloom-little-style-stories/01M5D05NJ2670M5744RNMKDWVH). Its portrait/sandbox adapter uses Astrocade cloud progress and retains legacy saves; image download and external feedback are hidden on that platform. See [Astrocade release and verification](docs/ASTROCADE-2.0.4.md). Rebuild with `npm run package:astrocade`.
-
-## Archived classic 1.8 development notes
-
-The notes and commands below describe the retained classic code and offline artifacts. They are historical; the classic workflow runs regression checks but no longer publishes either Cloudflare or GitHub Pages. Use the current release commands and links above for production.
-
-See [Cloudflare deployment](docs/CLOUDFLARE.md) for the current main deployment and private feedback architecture.
-
-An offline HTML5 dress-up game with three painted characters, 36 challenges and 122 collectible pieces. The first three occasions use 14 painted wardrobe pieces, a warm ivory/rose studio, an adaptive guide, an animated reveal and before/after comparison.
-
-Version 1.8 keeps goals and the live score in the studio, adds optional clothing suggestions, Undo and targeted restyling, and exposes matching mood tags in later challenges. Phone layouts bring clothing into the first playable viewport. Completed goals have a short visual/chime response. Settings includes optional original studio music, with a separate saved preference, master mute and background-tab suspension. Music starts only after interaction and is off by default. See [quality pass and review checklist](docs/QUALITY-1.8.md).
-
-The first occasions are Coffee with friends, The gallery opening and Weekend flower market. Their visible goals reward a complete outfit (40 points) and two occasion details (27 each). An incomplete outfit cannot be revealed. Maximum 94; a complete base can pass, while meeting the details earns the best rank. Later challenges retain the original mood-tag rules. Stored IDs, unlocks and historical look scores are preserved.
-
-## Play and develop
-
-The experimental [Motion Atelier](demos/skeletal/README.md) runs a new original character on **PixiJS 8 + DragonBones** with 20 bones, weighted clothing meshes, 6 garments and 3 animations. Use `npm run demo:skeletal` to open the separate demo at `http://localhost:4175/demos/skeletal/index.html`; `npm run test:skeletal` checks its motion, fit and UI. This experiment does not replace the v1.8 game or its production deployment.
-
-Open the source `index.html`, or run `npm start` and visit `http://localhost:4173`. The delivered standalone file needs no server, account, CDN or installation.
+需要 Node.js 22 或以上。浏览器平台 ZIP 打包还需要 Python 3。
 
 ```sh
-npm ci                    # pinned Playwright tools; game itself needs no install
-npm test                  # 24 rules/save/occasion tests + all 36 solvable briefs
-npm run test:quality      # 10 official CG iframe sizes + 4 phones, live goals and undo
-npm run test:ui           # actual 36-level journey, 366 equip/remove pairs, 27 layouts
-npm run test:fitting      # 246 body coverage + 1449 waist combinations
-npm run test:neckline     # 129 neck/shoulder contacts and failure controls
-npm run test:lookbook     # saves, keyboard, export and gallery layouts
-npm run test:glam         # seven viewports across the current screens
-npm run test:experience   # ten effects, original music, reveal, mute and reduced motion
-npm run package:upload    # dist/crazygames-upload/index.html
-npm run test:upload       # actual root/nested/iframe/offline upload file
-npm run standalone       # dist/Muse-Bloom.html
-npm run test:playtest     # build and verify the private playtest kit
-npm run test:playtest-ui  # initial actions, feedback, touch targets: 32 viewport/state cases
-npm run test:feedback-kind # explicit human/automated types, legacy records and duplicate IDs
-npm run test:feedback-api # isolated D1 API and existing-data migration/retry checks
-npm run test:pages        # build and verify the website at a repository subpath
+npm ci
+npm start                 # 构建当前正式游戏，访问 http://localhost:4173
+npm run build             # 仅构建到 dist/web
+npm test                  # 规则、存档兼容、36 关可解性和源码结构
+npm run test:release      # 完整游戏、衣服贴合、GPU 降级、在线反馈和发布校验
+npm run test:portals      # itch.io / GamePix ZIP、iframe 和窗口缩放
 ```
 
-Tests start their own servers. Windows defaults to installed Edge; set `MUSE_BROWSER_CHANNEL=chrome` for Chrome. Linux uses Playwright Chromium (`npx playwright install chromium`). Current UI coverage is in `dev/salon.test.js`; old v1.6 browser/character scripts and baselines are historical references, not current test commands.
+`npm start` 服务构建后的正式游戏，不再提供旧版或实验入口。修改源码后重启该命令即可重新构建。不要直接双击源码 `index.html`；页面依赖构建生成的 JS/CSS。
 
-## Cloudflare online feedback
+Windows 的浏览器测试默认使用 `C:\Tools\ugchromium\app\chrome.exe`，可用 `MUSE_BROWSER_EXECUTABLE` 指定其他可用 Chromium；Linux CI 使用 Playwright Chromium。测试保持浏览器沙箱开启。本地反馈测试使用隔离的 D1/R2，不会读取或写入生产反馈。
 
-The Cloudflare build adds voluntary online submissions backed by D1, saved drafts, confirmed receipts, safe retries and JSON backups. Run `npm run cf:dev` for the local Worker and database. Deployment commands, database setup, GitHub Actions secrets/variables and administrator queries are in [Cloudflare deployment](docs/CLOUDFLARE.md). Cloudflare publishing stays disabled until its account, D1 database and API token are configured. GitHub Pages and offline builds continue to download feedback locally.
+## 目录
 
-## Private playtest
+| 路径 | 用途 |
+| --- | --- |
+| `index.html`、`release.json` | 唯一游戏入口、版本与关卡数量 |
+| `src/core/` | 物品、挑战、评分、解锁、存档及历史存档迁移 |
+| `src/rendering/` | Mira 骨骼、服装贴合、PixiJS / Canvas 渲染及配件绘图 |
+| `src/ui/` | 当前游戏交互、布局和样式 |
+| `src/feedback/` | 表单、附件、请求与服务端共用的校验规则 |
+| `src/platforms/astrocade/` | Astrocade 云存档、样式及平台素材映射 |
+| `assets/`、`licenses/` | 当前游戏实际使用的素材、来源记录和依赖许可 |
+| `cloudflare/` | 私有反馈 API、D1 迁移、Pages 网关与旧域名跳转配置 |
+| `scripts/` | 开发服务器、构建、平台打包、宣传图与反馈汇总工具 |
+| `tests/` | 正式版自动回归、测试素材与接触点基准 |
+| `docs/` | 当前部署说明、设计参考、QA 与平台送审记录 |
+| `dist/`、`artifacts/` | 可重建的输出与测试证据，均不提交到 Git |
 
-Run `npm run package:playtest`, then open `dist/playtest-v1.8.0/index.html`. The folder contains the game, three neutral tasks, organizer instructions and an offline backup feedback form. Share the complete folder, or ZIP it for participants to extract. The ZIP is a human-sharing format, not a CrazyGames upload instruction.
+旧人物、经典版页面、实验 Demo 和旧版专用工具不再放在工作树中；历史源码可从 Git 提交恢复。保留的旧身份 ID、存档读取和 D1 迁移是正式版兼容逻辑，不能当作旧游戏删除。
 
-`?playtest=1` enables a local anonymous session and a separate save; `fresh=1` starts a new participant. Version 1.8 uses its own session and feedback-draft keys, leaving 1.7 data intact. Normal play does not collect events. Feedback is exported or submitted only by the participant. No answers are sent automatically. Observer forms should use the same participant ID as the game export.
+## 打包与发布
 
 ```sh
-npm run playtest:summary -- path/to/response-folder
+npm run package:pages       # dist/pages：正式前端及 Pages API 网关
+npm run package:feedback    # dist/feedback-service：API 源码/迁移的哈希清单
+npm run package:crazygames  # dist/crazygames-style-stories-v<version>
+npm run package:portals     # dist/browser-portals-v<version>.zip
+npm run package:astrocade   # dist/astrocade-style-stories-v<version>
+npm run cf:deploy          # 验证 main 的同提交产物，迁移 D1 并部署 Worker/Pages
 ```
 
-The form requires an explicit human or automated playtest type. Use `?qa=1` for automation; guide links carry it into the game, including resumed sessions. The summary only counts `testType: human` records without simulation disclosures, deduplicates IDs and retains session events when adding an observer form. Legacy records and conflicting session types are excluded with reasons for organizer review; missing ratings remain missing. These declarations do not authenticate a person's identity. **No real participants have been recruited or measured in this delivery.** Automated export checks are not player enjoyment, retention or approval evidence.
+所有打包入口均使用相同的正式源码。构建只写 `dist/`，不往源码目录生成 bundle。CrazyGames 与其他游戏门户包不包含 Cloudflare Worker、反馈数据或账号配置。Astrocade 继续使用平台云存档；它的打包器保留平台特定转换，不能直接将普通网站包上传到该沙箱。
 
-## Art and compatibility
+CI 统一为 [ci.yml](.github/workflows/ci.yml)：测试 PR 和 `main`；仅 `main` 在部署配置开启时发布。提交包含 `[skip deploy]` 时只检查、不发布。部署下载本轮验证的 Pages 产物，并校验反馈源码哈希，避免前后端错配。
 
-Bella is the fresh-save default; Mika and Zoe remain selectable. Change character in the dialog without covering the head or shoes. The homepage uses the actual dressed character and reflects an existing selection. Clearing clothes restores painted studio basics; choosing a top/bottom replaces a dress naturally.
-
-The polished starter capsule has 14 painted pieces. The remaining 108 collectible items retain the fitted SVG artwork; the entire wardrobe has not been repainted. All pieces still work on all three characters. The reveal moves the whole illustration so clothes remain aligned. This is fixed-view painted art, not a rotatable 3D character or a skeletal walking animation.
-
-`dev/prepare-capsule.py` reads atlas alpha to find each sprite; `dev/build-capsule.js` bakes continuous texture scanlines into the native fitting mask. This prevents neighboring atlas sprites from bleeding into clothes. `npm run assets:capsule` rebuilds fitted WebP textures and embeds them; Python/Pillow is needed only when recalculating source bounds. `npm run assets` regenerates the native SVG fallback/thumbnail files and embeds local artwork. See [art pipeline](docs/ART.md), [generation briefs](docs/CAPSULE-PROMPTS.txt), [hashes](docs/CAPSULE-ASSETS.json) and [Stitch direction](docs/STITCH-DESIGN.md).
-
-## Delivery boundaries
-
-Use `dist/crazygames-upload/index.html` for the portal's file/folder upload, not the source HTML alone or the playtest guide. SDK, cloud saves, ads and platform mute integration remain unimplemented. This version is a playtest candidate; it has not been resubmitted or accepted by CrazyGames. Existing v1.6 promotional media is historical, not a current capture.
-
-Changes are checked in in steps. The current workflow publishes the tested Style Stories artifact from `main` to Cloudflare Pages. Pull requests run checks without publishing. [Classic QA evidence](docs/QA.md), [test contracts](docs/UI-TESTS.md) and [older submission notes](docs/CRAZYGAMES.md) are retained for reference. Remote publication status is recorded separately from local checks. No open-source license is granted by default.
+详见 [Cloudflare 部署与反馈](docs/CLOUDFLARE.md)、[目录维护说明](docs/STRUCTURE.md) 和 [平台历史记录](docs/releases/README.md)。没有默认授予项目的开源许可。

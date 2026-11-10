@@ -1,0 +1,108 @@
+name: Test and deploy Muse Bloom
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: muse-bloom-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  WRANGLER_SEND_METRICS: 'false'
+jobs:
+  verify:
+    # Keep Chromium sandboxing enabled; this runner permits its user namespaces.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - run: npm run test:feedback-api
+      - run: npm run test:feedback-attachments
+      - run: npm run test:feedback-kind
+      - name: Current game, fitting, fallback rendering, feedback and release routing
+        run: npm run test:release
+      - name: Standalone CrazyGames upload and sandboxed iframe sizes
+        run: npm run test:crazygames
+      - name: itch.io and GamePix ZIP and dynamic iframe sizes
+        run: npm run test:portals
+      - name: Astrocade production adapter
+        run: npm run package:astrocade
+      - name: Package the matching private feedback service
+        run: npm run package:feedback
+      - name: Check Worker bindings without deploying
+        run: npx wrangler deploy --dry-run --outdir artifacts/cloudflare-worker
+      - name: Retain current regression evidence
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: muse-bloom-regression
+          path: artifacts/
+          retention-days: 14
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: muse-bloom-pages
+          path: dist/pages/
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: muse-bloom-feedback-service
+          path: dist/feedback-service/
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: muse-bloom-platform-packages
+          path: |
+            dist/crazygames-style-stories-v*/
+            dist/crazygames-style-stories-v*.manifest.json
+            dist/browser-portals-v*.zip
+            dist/browser-portals-v*.manifest.json
+            dist/astrocade-style-stories-v*/
+          if-no-files-found: error
+          retention-days: 14
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && !contains(github.event.head_commit.message, '[skip deploy]')
+    needs: verify
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    environment:
+      name: cloudflare
+      url: https://muse-bloom.pages.dev
+    concurrency:
+      group: muse-bloom-cloudflare-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: muse-bloom-pages
+          path: dist/pages/
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: muse-bloom-feedback-service
+          path: dist/feedback-service/
+      - name: Verify and deploy the tested main artifact and API sources
+        run: node scripts/cloudflare-command.js deploy
+      - name: Preserve links to the retired preview alias
+        run: |
+          node scripts/package-redirects.js
+          node node_modules/wrangler/bin/wrangler.js pages deploy --cwd cloudflare/retired-preview --project-name muse-bloom --branch style-room --commit-hash "$GITHUB_SHA"

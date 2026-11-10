@@ -1,4 +1,4 @@
-import '../js/feedback-kind.js';
+import '../src/feedback/feedback-kind.js';
 import {InputError,readBytes,sha256,prepareUploads,uploadFile,attachToRecord,cleanupUploads} from './attachments.mjs';
 const MAX_BYTES = 512 * 1024;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -77,7 +77,7 @@ async function readBody(request) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+    if (!url.pathname.startsWith('/api/')) return reply({ error: 'Not found' }, 404);
     const upload=url.pathname.match(/^\/api\/feedback\/uploads\/([a-f0-9-]{36})\/([a-f0-9-]{36})$/);
     const preparing=url.pathname==='/api/feedback/uploads';
     if (url.pathname !== '/api/feedback' && !preparing && !upload) return reply({ error: 'Not found' }, 404);

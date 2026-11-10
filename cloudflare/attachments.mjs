@@ -1,4 +1,4 @@
-import '../js/feedback-attachments.js';
+import '../src/feedback/feedback-attachments.js';
 
 const A=globalThis.MuseFeedbackAttachments;
 const DAY=24*60*60*1000;
