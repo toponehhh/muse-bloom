@@ -1,6 +1,8 @@
 node_modules/
 dist/
 artifacts/
+# Local browser sessions, captured pages and temporary task files.
+/work/
 *.log
 .env
 .env.*
