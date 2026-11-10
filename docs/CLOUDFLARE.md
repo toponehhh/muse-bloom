@@ -122,7 +122,7 @@ SELECT game_version, COUNT(*) AS participants,
 FROM ranked WHERE position = 1 GROUP BY game_version;
 ```
 
-需要现有离线汇总工具时，将选中行的 `record_json` 分别保存成 JSON 文件到 `playtest-responses/`，运行 `npm run feedback:summary -- playtest-responses`。该目录已被 Git 忽略。游戏内表单与观察表使用同一编号，以免统计为两个人。工具只统计 `testType: human` 且没有模拟测试声明的记录；`exclusionReasons` 列出自动化、待核实和编号冲突。原始文件保持不变。不要仅凭普通 source 或评分将旧数据改为真人；应由组织者核实来源，并在留存原件后更正记录。
+需要离线汇总时，将选中行的 `record_json` 分别保存成 JSON 文件到 `playtest-responses/`，运行 `npm run feedback:summary -- playtest-responses`。该目录已被 Git 忽略。工具仅统计 `release.json` 当前版本、`testType: human` 且没有模拟测试声明的记录；`exclusionReasons` 列出其他版本、自动化、待核实和编号冲突。原始文件保持不变。不要仅凭普通 source 或评分将旧数据改为真人；应由组织者核实来源，并在留存原件后更正记录。
 
 ## 接口契约与运维
 
@@ -201,6 +201,6 @@ npm run test:feedback-attachments
 npm run test:release
 ```
 
-附件服务测试使用独立的临时 D1/R2，覆盖大小边界、实际流式超限、类型伪造、校验和错误、跨站请求、错误 token、部分上传、R2 成功而 D1 失败、并发重试、过期清理与已提交对象保留。Pages 套件还通过真实服务绑定重跑附件 API。UI 测试生成可播放的短 WebM，验证手机选择/预览/移除、缺失文件补选、响应丢失恢复及窄屏操作按钮，报告写入 `artifacts/feedback-uploads/`。这些本地/CI 测试不能代替生产 R2 和 D1 核对。
+附件服务测试使用独立的临时 D1/R2，覆盖大小边界、实际流式超限、类型伪造、校验和错误、跨站请求、错误 token、部分上传、R2 成功而 D1 失败、并发重试、过期清理与已提交对象保留。Pages UI 套件通过真实服务绑定验证上传和反馈回执。UI 测试使用合成短 WebM，验证手机选择/预览/移除、缺失文件补选、响应丢失恢复及窄屏操作按钮，报告写入 `artifacts/feedback-uploads/`。这些本地/CI 测试不能代替生产 R2 和 D1 核对。
 
 线上验证使用 `/playtest/?qa=1`，仅提交明确标记为自动化测试的截图或录屏；按回执核对 D1 及 R2 大小和校验和。实现参考：[R2 Workers API](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/)。

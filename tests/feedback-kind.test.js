@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {execFileSync}=require('node:child_process'),{classify}=require('../src/feedback/feedback-kind.js');
-const human={version:'1.7.0',source:'participant-session',testType:'human',participant:'P-REAL01',exportedAt:'2026-10-20T01:00:00Z',feedback:{clarity:'4',continue:'Yes'},events:[{action:'look-complete',level:1,score:94}]};
+const human={version:require('../release.json').version,source:'participant-session',testType:'human',participant:'P-REAL01',exportedAt:'2026-10-20T01:00:00Z',feedback:{clarity:'4',continue:'Yes'},events:[{action:'look-complete',level:1,score:94}]};
 assert.equal(classify(human).type,'human');
 assert.equal(classify({...human,source:'automated-check'}).type,'automated');
 assert.equal(classify({...human,testType:'automated'}).type,'automated');
@@ -24,5 +24,8 @@ try {
   assert.equal(summarize().excluded.length,2,'Re-running does not ingest its own summary');
   write('conflict',{...human,source:'automated-check',exportedAt:'2026-10-20T03:00:00Z'});
   result=summarize();assert.equal(result.participants,0);assert.ok(result.exclusionReasons.some(r=>r.reason==='conflicting-session-types'));
+  write('old-version',{...human,version:'1.7.0',participant:'P-OLD'});
+  result=summarize();assert.equal(result.version,human.version);assert.equal(result.participants,0);
+  assert.ok(result.exclusionReasons.some(r=>r.file==='old-version.json'&&r.reason==='unsupported-record'));
   console.log('PASS: explicit kinds, legacy quarantine, simulation disclosures, report double-count regression, observer merge and conflicting IDs');
 }finally{for(const name of fs.readdirSync(dir))fs.unlinkSync(path.join(dir,name));fs.rmdirSync(dir);}

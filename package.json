@@ -7,7 +7,7 @@
     "start": "node scripts/server.js",
     "build": "node scripts/build.js",
     "test": "node --test tests/game.test.js tests/edit.test.js tests/campaign-rules.test.mjs tests/campaign-stories.test.mjs tests/detail-art.test.js tests/structure.test.js && node tests/validate.js",
-    "test:release": "npm run package:pages && node tests/campaign.test.js && node tests/campaign-stories-ui.test.js && node tests/campaign-wearables.test.js && node tests/campaign-waist.test.js && node tests/campaign-rendering.test.js && node tests/campaign-feedback.test.js && node tests/feedback-upload-ui.test.js && node tests/release.test.js && node tests/production-routing.test.js",
+    "test:release": "node tests/build.test.js && npm run package:pages && node tests/campaign.test.js && node tests/campaign-stories-ui.test.js && node tests/campaign-wearables.test.js && node tests/campaign-waist.test.js && node tests/campaign-rendering.test.js && node tests/campaign-feedback.test.js && node tests/feedback-upload-ui.test.js && node tests/release.test.js && node tests/production-routing.test.js",
     "test:feedback-api": "node tests/feedback-api.test.js && node tests/feedback-migration.test.js",
     "test:feedback-attachments": "node tests/feedback-attachments.test.js",
     "test:feedback-kind": "node tests/feedback-kind.test.js",

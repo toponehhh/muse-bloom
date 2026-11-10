@@ -50,7 +50,9 @@ const payload=()=>({schemaVersion:1,submissionId:crypto.randomUUID(),consent:tru
     const badKind=payload();badKind.record.testType='probably-human';await status(await post(badKind),400);
     // Exercise the configured limiter without storing 60 extra records.
     let limited;
-    for(let i=0;i<65;i++){limited=await post('{',{'CF-Connecting-IP':'192.0.2.250'});if(limited.status===429)break;}
+    // A short run can straddle the minute boundary. Allow two windows, while
+    // still requiring the native configured limiter to return a real 429.
+    for(let i=0;i<121;i++){limited=await post('{',{'CF-Connecting-IP':'192.0.2.250'});if(limited.status===429)break;}
     await status(limited,429);assert.equal(limited.headers.get('Retry-After'),'60');
     await db.prepare('DROP TABLE feedback_submissions').run();
     const unavailable=await status(await post(payload()),503);assert.ok(!(await unavailable.text()).includes('no such table'));

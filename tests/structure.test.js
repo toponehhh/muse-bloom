@@ -11,6 +11,7 @@ test('release metadata and default commands point to the production game', () =>
   assert.equal(lock.version, pkg.version);
   assert.equal(lock.packages[''].version, pkg.version);
   assert.equal(pkg.scripts.start, 'node scripts/server.js');
+  for (const retired of ['demos','dev','js','css','playtest','promo','legacy']) assert.equal(fs.existsSync(path.join(root,retired)),false,'Retired directory: '+retired);
   assert.match(fs.readFileSync(path.join(root, 'index.html'), 'utf8'), /id="stage"[\s\S]*id="reveal"/);
   for (const command of Object.values(pkg.scripts)) {
     assert.doesNotMatch(command, /\b(?:demos|dev|js)\//);

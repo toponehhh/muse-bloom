@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
 const {classify}=require('../src/feedback/feedback-kind.js');
+const version=require('../release.json').version;
 const directory=path.resolve(process.argv[2]||'playtest-responses');
 if(!fs.existsSync(directory)){console.error('Provide an existing folder containing exported participant JSON files.');process.exitCode=1;}
 else{
@@ -8,7 +9,7 @@ else{
  for(const name of fs.readdirSync(directory).filter(n=>n.endsWith('.json')&&n!=='playtest-summary.json')){
    try{
      const r=JSON.parse(fs.readFileSync(path.join(directory,name),'utf8'));
-     if(!/^\d+\.\d+\.\d+$/.test(r.version||'')||!['participant-session','manual-feedback','automated-check'].includes(r.source)||!r.participant){excluded.push(name);exclusionReasons.push({file:name,reason:'unsupported-record'});continue;}
+     if(r.version!==version||!['participant-session','manual-feedback','automated-check'].includes(r.source)||!r.participant){excluded.push(name);exclusionReasons.push({file:name,reason:'unsupported-record'});continue;}
      const kind=classify(r);
      if(kind.type!=='human'){
        excluded.push(name);exclusionReasons.push({file:name,participant:r.participant,...kind});
@@ -41,7 +42,7 @@ else{
    return {participant:r.participant,source:r.source,completedLevels:[...new Set(events.filter(e=>e.action==='look-complete'&&e.score>=35).map(e=>e.level))],
      firstLookWallSeconds:Number.isFinite(seconds)?seconds:null,blockedReveals:events.filter(e=>e.action==='reveal-blocked').length,feedback:r.feedback||null};
  });
- const report={version:'1.7.0',status:list.length?'participant_feedback_collected':'awaiting_participants',participants:list.length,ratings,
+ const report={version,status:list.length?'participant_feedback_collected':'awaiting_participants',participants:list.length,ratings,
    wouldContinue:Object.fromEntries(['Yes','Maybe','No'].map(v=>[v,list.filter(r=>r.feedback?.continue===v).length])),
    notes:['Participant IDs are deduplicated; newer answers win and observer forms preserve the session event history. Only human-declared records without simulation disclosures are counted; this is not identity verification.','Legacy, automated and conflicting records are excluded with reasons. First-look wall time can include pauses; it is not an active-playtime or retention metric.'],excluded,exclusionReasons,errors,summaries};
  const destination=path.join(directory,'playtest-summary.json');fs.writeFileSync(destination,JSON.stringify(report,null,2));
