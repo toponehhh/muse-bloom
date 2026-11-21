@@ -84,7 +84,7 @@ async function characterVisible(page, name) {
     await page.screenshot({path:path.join(evidence, `layout-${width}x${height}.png`)}); await page.keyboard.press('Escape');
     report.layouts.push({width,height,...layout});
   }
-  pass('Ten CrazyGames DPR-1 iframe sizes and two phone sizes'+(portalMode?', GamePix 640x480 and itch.io 960x640':'')+' keep clothing and result actions usable');
+  pass('Ten desktop iframe sizes and two phone sizes'+(portalMode?', plus 640x480 and 960x640':'')+' keep clothing and result actions usable');
   await page.setViewportSize({width:1216,height:684}); await ready(page, base + '/portal/build/'); await characterVisible(page, 'nested-entry');
   await context.setOffline(true); await page.locator('[data-category=shoes]').click(); await page.locator(`[data-item="${shoes}"]`).click(); await page.locator('#reveal').click(); assert.equal(await page.locator('#result').isVisible(), true); await context.setOffline(false);
   await page.goto(parent); await page.frameLocator('iframe').locator('html[data-ready=true]').waitFor({timeout:60000}); const frame = page.frames().find(frame => frame.url().startsWith(base));

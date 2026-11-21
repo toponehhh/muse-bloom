@@ -32,8 +32,14 @@ jobs:
         run: npm run test:release
       - name: Standalone CrazyGames upload and sandboxed iframe sizes
         run: npm run test:crazygames
-      - name: itch.io and GamePix ZIP and dynamic iframe sizes
+      - name: itch.io ZIP and dynamic iframe sizes
         run: npm run test:portals
+      - name: GamePix ZIP, SDK lifecycle, pause, ads and save recovery
+        run: npm run test:gamepix
+      - name: Official GamePix SDK in localhost simulation mode
+        run: |
+          curl --fail --silent --show-error --retry 2 --max-time 30 --output "$RUNNER_TEMP/gamepix-sdk.js" https://integration.gamepix.com/sdk/v3/gamepix.sdk.js
+          MUSE_GAMEPIX_SDK_FILE="$RUNNER_TEMP/gamepix-sdk.js" npm run test:gamepix:official
       - name: Astrocade production adapter
         run: npm run package:astrocade
       - name: Package the matching private feedback service
@@ -67,6 +73,8 @@ jobs:
             dist/crazygames-style-stories-v*.manifest.json
             dist/browser-portals-v*.zip
             dist/browser-portals-v*.manifest.json
+            dist/gamepix-v*.zip
+            dist/gamepix-v*.manifest.json
             dist/astrocade-style-stories-v*/
           if-no-files-found: error
           retention-days: 14

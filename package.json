@@ -12,6 +12,8 @@
     "test:feedback-attachments": "node tests/feedback-attachments.test.js",
     "test:feedback-kind": "node tests/feedback-kind.test.js",
     "test:portals": "npm run package:portals && node tests/portals.test.js --portals",
+    "test:gamepix": "npm run package:gamepix && node tests/gamepix.test.js",
+    "test:gamepix:official": "node tests/gamepix.test.js --official",
     "test:crazygames": "npm run package:crazygames && node tests/portals.test.js",
     "package": "npm run package:portals",
     "package:pages": "node scripts/package-pages.js",
