@@ -25,11 +25,17 @@ const root=path.resolve(__dirname,'..');
  }
  require('../scripts/package-feedback').build();
  const command=path.join(root,'scripts/cloudflare-command.js');
- const run=()=>spawnSync(process.execPath,[command,'verify-deploy'],{cwd:root,encoding:'utf8'});
+ const run=(env=process.env)=>spawnSync(process.execPath,[command,'verify-deploy'],{cwd:root,encoding:'utf8',env});
  let result=run();assert.equal(result.status,0,result.stderr);
   const wrongBranch=spawnSync(process.execPath,[command,'deploy'],{cwd:root,encoding:'utf8',env:{...process.env,GITHUB_REF:'refs/heads/feat/not-production'}});
   assert.notEqual(wrongBranch.status,0);assert.match(wrongBranch.stderr,/only allowed from main/);
  const file=path.join(root,'dist/feedback-service/build.json'),original=fs.readFileSync(file);
- try{const wrong=JSON.parse(original);wrong.sourceCommit='0'.repeat(40);fs.writeFileSync(file,JSON.stringify(wrong));result=run();assert.notEqual(result.status,0);assert.match(result.stderr,/same tested commit/);}finally{fs.writeFileSync(file,original);}
+ try{
+   const wrong=JSON.parse(original);wrong.sourceCommit='0'.repeat(40);fs.writeFileSync(file,JSON.stringify(wrong));
+   const localEnv={...process.env};delete localEnv.GITHUB_SHA;
+   result=run(localEnv);assert.notEqual(result.status,0);assert.match(result.stderr,/same tested commit/);
+   result=run({...localEnv,GITHUB_SHA:manifest.sourceCommit});
+   assert.notEqual(result.status,0);assert.match(result.stderr,/Wrong feedback source commit/);
+ }finally{fs.writeFileSync(file,original);}
  console.log('PASS: one main production pipeline, current artifact and feedback binding, old-link redirects, mismatched release rejected; no deployment performed');
 })().catch(error=>{console.error(error);process.exitCode=1});
