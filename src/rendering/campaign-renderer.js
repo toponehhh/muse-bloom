@@ -10,8 +10,15 @@ const bind=Object.fromEntries(bones.map(([name,parent,x,y])=>[name,{x,y}]));
 const colorMatrix=color=>{const n=parseInt(color.slice(1),16),c=[n>>16,(n>>8)&255,n&255].map(x=>x/255);return [...c.flatMap(v=>[.2126*v*1.12,.7152*v*1.12,.0722*v*1.12,0,0]),0,0,0,1,0];};
 export class CampaignRenderer {
   constructor(stage){this.stage=stage;this.cache=new Map();this.details=new Map();this.active=[];this.textures={};this.images={};this.clock=0;this.view='full';}
-  async init(){
-    let count=0;await Promise.all(Object.entries(files).map(async([key,file])=>{const t=await Assets.load('./assets/'+file);this.textures[key]=t;this.images[key]=t.source.resource;document.querySelector('#loading-copy').textContent=`Opening your wardrobe… ${++count} / ${Object.keys(files).length}`;}));
+  async init(onProgress){
+    const total=Object.keys(files).length;
+    let count=0;
+    await Promise.all(Object.entries(files).map(async([key,file])=>{
+      const t=await Assets.load('./assets/'+file);
+      this.textures[key]=t;this.images[key]=t.source.resource;
+      document.querySelector('#loading-copy').textContent=`Opening your wardrobe… ${++count} / ${total}`;
+      onProgress?.(count,total);
+    }));
     this.app=new Application();await this.app.init({backgroundAlpha:0,antialias:true,resolution:Math.min(devicePixelRatio,2),autoDensity:true,preference:'webgl',autoStart:false});this.stage.prepend(this.app.canvas);this.app.canvas.setAttribute('aria-hidden','true');
     this.canvasMode=this.app.renderer.type===RendererType.CANVAS;this.stage.dataset.renderer=this.canvasMode?'canvas':this.app.renderer.type===RendererType.WEBGL?'webgl':'webgpu';
     if(!this.app.renderer.renderPipes.mesh)throw new Error('Character mesh renderer is unavailable');

@@ -1,6 +1,6 @@
 {
   "name": "muse-bloom",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "private": true,
   "description": "Muse Bloom Style Stories: 36 dress-up challenges and 122 collectible pieces.",
   "scripts": {
@@ -18,6 +18,7 @@
     "package:feedback": "node scripts/package-feedback.js",
     "package:crazygames": "node scripts/package-crazygames.js",
     "package:portals": "node scripts/package-portals.js",
+    "package:gamepix": "node scripts/package-portals.js --gamepix",
     "package:astrocade": "node scripts/package-astrocade.cjs",
     "promo:portals": "npm run package:portals && node scripts/promo.js --portals --covers-only",
     "promo:crazygames": "npm run package:crazygames && node scripts/promo.js",

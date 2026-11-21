@@ -8,15 +8,22 @@ let storage;try{storage=localStorage;}catch{}
 const state={...loadCampaign(storage,campaignOptions(location.search)),category:'top',filter:null,view:'full'},history=[],thumbnails=new Map();
 state.paused||=reduced.matches;enterChallenge(state,state.level);
 const renderer=new CampaignRenderer($('#stage'));
+const gamePix=window.MuseGamePix;
 let audio,lastResult,activeImage,pictures={};
+gamePix?.onPauseChange(paused=>{
+  renderer.paused=paused||state.paused;
+  if(renderer.app?.ticker){if(paused)renderer.app.stop();else renderer.app.start();}
+  if(paused)audio?.suspend().catch(()=>{});
+  else if(state.sound&&!document.hidden)audio?.resume().catch(()=>{});
+});
 const pictureKey=campaignStorageKeys(state).looks;
 try{const raw=JSON.parse(storage.getItem(pictureKey));if(raw&&typeof raw==='object'&&!Array.isArray(raw))for(const [key,value]of Object.entries(raw))if(D.themes.some(t=>t.id===key)&&typeof value==='string'&&value.startsWith('data:image/jpeg;')&&value.length<800000)pictures[key]=value;}catch{}
 const persist=()=>{const ok=persistCampaign(storage,state);if(!ok)$('#selection-note').textContent='Device storage is unavailable. Keep this page open to retain your progress.';return ok;};
 const currentTheme=()=>D.themes[state.level-1],equipped=()=>G.equippedItems(state.outfit);
-function chime(success=false){if(!state.sound||document.hidden)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume().catch(()=>{});(success?[523.25,659.25,783.99]:[659.25,880]).forEach((frequency,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.07;o.type='sine';o.frequency.value=frequency;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.023,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.24);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.25);});}catch{state.sound=false;refreshSettings();}}
+function chime(success=false){if(!state.sound||document.hidden||gamePix?.paused)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume().catch(()=>{});(success?[523.25,659.25,783.99]:[659.25,880]).forEach((frequency,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.07;o.type='sine';o.frequency.value=frequency;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.023,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.24);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.25);});}catch{state.sound=false;refreshSettings();}}
 function sparkle(){if(reduced.matches)return;$('#sparkles').replaceChildren();for(let i=0;i<9;i++){const star=document.createElement('i');star.className='spark';star.style.cssText=`left:${35+(i*17)%33}%;top:${35+(i*11)%32}%;--dx:${(i-4)*9}px;animation-delay:${i*.025}s`;$('#sparkles').append(star);star.addEventListener('animationend',()=>star.remove(),{once:true});}}
 function thumb(item){if(!thumbnails.has(item.id))thumbnails.set(item.id,renderer.thumbnail(item));return thumbnails.get(item.id);}
-function refreshSettings(){renderer.paused=state.paused;$('#sound').setAttribute('aria-pressed',String(state.sound));$('#sound').setAttribute('aria-label',state.sound?'Turn sound off':'Turn sound on');$('#motion').setAttribute('aria-pressed',String(state.paused));$('#motion').setAttribute('aria-label',state.paused?'Play motion':'Pause motion');$('#motion').textContent=state.paused?'▷':'Ⅱ';}
+function refreshSettings(){renderer.paused=state.paused||!!gamePix?.paused;$('#sound').setAttribute('aria-pressed',String(state.sound));$('#sound').setAttribute('aria-label',state.sound?'Turn sound off':'Turn sound on');$('#motion').setAttribute('aria-pressed',String(state.paused));$('#motion').setAttribute('aria-label',state.paused?'Play motion':'Pause motion');$('#motion').textContent=state.paused?'▷':'Ⅱ';}
 function refreshBrief(){
  const theme=currentTheme(),chapter=D.chapters[theme.chapter-1],checks=E.goals(theme,equipped()),tags=new Set(equipped().flatMap(i=>i.tags));
  $('#chapter-label').textContent=`CHAPTER ${String(theme.chapter).padStart(2,'0')} · ${chapter.short.toUpperCase()}`;$('#wardrobe-title').textContent=chapter.name;$('#brief-name').textContent=theme.name;$('#brief-text').textContent=theme.description;$('#level-number').textContent=`${String(state.level).padStart(2,'0')} / 36`;
@@ -73,7 +80,16 @@ function controls(){
  $('#filter-clear').addEventListener('click',()=>{state.filter=null;renderItems();});$('#map-open').addEventListener('click',map);$('#book-open').addEventListener('click',book);
  document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$('#'+b.dataset.close).close()));
  $('#reveal').addEventListener('click',showResult);$('#retry-look').addEventListener('click',()=>$('#result').close());
- $('#next-level').addEventListener('click',()=>{$('#result').close();if(lastResult.complete)book();else if(lastResult.result.score>=35&&state.level<36)selectLevel(state.level+1);});
+ $('#next-level').addEventListener('click',async()=>{
+   const result=$('#result');
+   if(!result.open||gamePix?.paused)return;
+   result.close();
+   if(lastResult.complete){book();return;}
+   if(lastResult.result.score>=35&&state.level<36){
+     if(gamePix)await gamePix.betweenChallenges();
+     selectLevel(state.level+1);
+   }
+ });
  $('#download').addEventListener('click',()=>{if(activeImage){const a=document.createElement('a');a.href=activeImage;a.download=`Muse-Bloom-level-${state.level}.jpg`;a.click();}});
  $('#undo').addEventListener('click',()=>{const previous=history.pop();if(previous){state.outfit=previous;applyOutfit();}});$('#reset').addEventListener('click',()=>{history.push(structuredClone(state.outfit));state.outfit=starterOutfit();applyOutfit();});
  for(const [id,view]of [['full-view','full'],['detail-view','detail']])$('#'+id).addEventListener('click',()=>{renderer.view=state.view=view;renderer.resize();$('#full-view').setAttribute('aria-pressed',String(view==='full'));$('#detail-view').setAttribute('aria-pressed',String(view==='detail'));});
@@ -82,10 +98,14 @@ function controls(){
 }
 async function start(){
  document.querySelectorAll('button').forEach(b=>b.disabled=true);let timeout;
- try{await Promise.race([renderer.init(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Asset loading timed out')),45000);})]);}finally{clearTimeout(timeout);}
+ gamePix?.loading(0);
+ try{await Promise.race([renderer.init((count,total)=>gamePix?.loading(Math.round(90*count/total))),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Asset loading timed out')),45000);})]);}finally{clearTimeout(timeout);}
+ if(gamePix?.paused)renderer.app.stop();
  await renderer.prepareDetails(D.items);controls();applyOutfit();refreshSettings();$('#release-version').textContent=`STYLE STORIES · ${release.version}`;
  if(state.qa){$('#qa-notice').hidden=false;$('#qa-notice').textContent=state.allStories?'QA preview · All stories selectable':'QA preview · Normal story progression';$('.privacy-note').textContent='QA progress is saved separately from your regular game.';}
+ if(gamePix){gamePix.loading(100);await gamePix.loaded();}
  $('#loading').hidden=true;document.querySelectorAll('button:not([data-item])').forEach(b=>b.disabled=false);$('#undo').disabled=true;document.documentElement.dataset.ready='true';
+ gamePix?.start();
  if(state.migrated)$('#selection-note').textContent='Your classic progress is here. Meet your new wardrobe.';
  if(new URLSearchParams(location.search).has('test'))window.__campaign={state,renderer,D,G,E,equip,selectLevel,showResult,snapshot:()=>({version:release.version,level:state.level,outfit:structuredClone(state.outfit),owned:state.save.unlockedItems.length,completed:D.themes.filter(t=>(state.save.levels[t.id]?.best||0)>=35).length,score:G.scoreBreakdown(currentTheme(),equipped()),save:structuredClone(state.save)}),setOutfit(outfit){state.outfit=G.normalizeOutfit(outfit,state.save.unlockedItems);applyOutfit();}};
 }

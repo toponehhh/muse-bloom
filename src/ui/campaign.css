@@ -111,3 +111,7 @@
  .campaign #result .result-copy>button{min-height:32px}
  .campaign #result .result-buttons button{min-height:28px}
 }
+
+html[data-gamepix-paused] :is(main, header, footer, dialog)[inert] * {
+ animation-play-state: paused !important;
+}
