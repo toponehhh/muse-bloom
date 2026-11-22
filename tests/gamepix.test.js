@@ -32,6 +32,7 @@ function installTestPlayer() {
   const events = new Map();
   const player = window.testPlayer = {
     calls:[['config', window.GamePixConfig?.lifecycle]],
+    audioResumes:0,
     emit(event) { for (const callback of events.get(event) || []) callback(); }
   };
   const query = new URLSearchParams(location.search);
@@ -48,6 +49,7 @@ function installTestPlayer() {
   const Audio = window.AudioContext;
   window.AudioContext = class extends Audio {
     constructor(...args) { super(...args); window.testAudio = this; }
+    resume() { player.audioResumes++; return super.resume(); }
   };
   window.GamePix = {
     events:{on(event, callback) {
@@ -55,6 +57,7 @@ function installTestPlayer() {
       if (!events.has(event)) events.set(event, []);
       events.get(event).push(callback);
       if (event === 'pause' && query.has('earlyPause')) callback();
+      if (event === 'soundOff' && query.has('earlyMute')) callback();
     }},
     lifecycle:{
       loading(value) { player.calls.push(['loading', value]); },
@@ -102,12 +105,15 @@ async function countCalls(frame, name) {
 async function contract(context, base, parent, sdkUrl) {
   await context.route(sdkUrl, route => route.fulfill({contentType:'application/javascript', body:'(' + installTestPlayer.toString() + ')()'}));
   const page = await context.newPage();
-  await page.goto(parent + '/?holdReady&earlyPause&test=1');
+  await page.goto(parent + '/?holdReady&earlyPause&earlyMute&test=1');
   const frame = page.frames().find(frame => frame.url().startsWith(base));
   await frame.waitForFunction(() => typeof window.testPlayer?.ack === 'function');
   const calls = await frame.evaluate(() => testPlayer.calls);
-  assert.deepEqual(calls.slice(0, 3), [['config','manual'], ['on','pause'], ['on','resume']]);
-  assert.ok(calls.findIndex(([name]) => name === 'read') > 2);
+  const firstRead = calls.findIndex(([name]) => name === 'read');
+  assert.ok(firstRead > 0, 'The campaign must read its save after SDK initialization');
+  assert.deepEqual(calls[0], ['config','manual']);
+  assert.deepEqual(calls.slice(0, firstRead).filter(([name]) => name === 'on').map(([,event]) => event).sort(),
+    ['pause','resume','soundOff','soundOn']);
   const progress = calls.filter(([name]) => name === 'loading').map(([,value]) => value);
   assert.equal(progress[0], 0);
   assert.equal(progress.at(-1), 100);
@@ -125,8 +131,33 @@ async function contract(context, base, parent, sdkUrl) {
   await assertCampaignViewport(frame, 'GamePix 800×450 iframe');
   pass('SDK precedes save reads, seven asset completions report increasing progress, and gameplay starts once after acknowledgement and an early host pause');
 
+  // soundOff arrived before the campaign created its AudioContext. The first
+  // gesture still saves the player's preference, without playing a chime.
+  await frame.locator('#sound').click();
+  assert.deepEqual(await frame.evaluate(() => [__campaign.state.sound, !!window.testAudio]), [true,false]);
+  await frame.locator('#sound').click();
+  await frame.evaluate(() => testPlayer.emit('soundOn'));
   await frame.locator('#sound').click();
   await frame.waitForFunction(() => window.testAudio?.state === 'running');
+  const resumeCount = await frame.evaluate(() => testPlayer.audioResumes);
+  await frame.evaluate(() => {testPlayer.emit('soundOff');testPlayer.emit('soundOff');});
+  await frame.waitForFunction(() => testAudio.state === 'suspended');
+  const mutedClock = await frame.evaluate(() => __campaign.renderer.clock);
+  await frame.locator('[data-category=bottom]').click();
+  await frame.getByRole('button', {name:/Ivory Pleats/}).click();
+  await frame.waitForFunction(clock => __campaign.renderer.clock > clock, mutedClock);
+  assert.deepEqual(await frame.evaluate(() => [testAudio.state, __campaign.state.sound, document.querySelector('main').inert]), ['suspended',true,false]);
+  await frame.evaluate(() => {testPlayer.emit('pause');testPlayer.emit('resume');});
+  assert.equal(await frame.evaluate(() => testPlayer.audioResumes), resumeCount, 'Resume cannot override the host mute');
+  await frame.evaluate(() => {testPlayer.emit('pause');testPlayer.emit('soundOn');testPlayer.emit('soundOn');});
+  assert.equal(await frame.evaluate(() => testPlayer.audioResumes), resumeCount, 'Sound on cannot override a host pause');
+  await frame.evaluate(() => testPlayer.emit('resume'));
+  await frame.waitForFunction(() => testAudio.state === 'running');
+  await frame.evaluate(() => testPlayer.emit('soundOff'));
+  await frame.waitForFunction(() => testAudio.state === 'suspended');
+  await frame.evaluate(() => testPlayer.emit('soundOn'));
+  await frame.waitForFunction(() => testAudio.state === 'running');
+  pass('Independent soundOff/soundOn controls Web Audio while outfit selection and animation continue, respects early and duplicate events and cannot override pause');
   await frame.evaluate(() => {testPlayer.emit('pause');testPlayer.emit('pause');});
   await frame.waitForFunction(() => testAudio.state === 'suspended');
   assert.equal(await frame.evaluate(() => __campaign.renderer.app.ticker.started), false);
@@ -139,6 +170,10 @@ async function contract(context, base, parent, sdkUrl) {
   await frame.locator('#detail-view').click();
   assert.equal(await frame.locator('#detail-view').getAttribute('aria-pressed'), 'true');
   await frame.locator('#sound').click();
+  await frame.waitForFunction(() => testAudio.state === 'suspended');
+  const userMutedCount = await frame.evaluate(() => testPlayer.audioResumes);
+  await frame.evaluate(() => {testPlayer.emit('soundOff');testPlayer.emit('soundOn');});
+  assert.equal(await frame.evaluate(() => testPlayer.audioResumes), userMutedCount, 'The Player cannot unmute a user-muted game');
   await frame.locator('#motion').click();
   await frame.locator('#map-open').click();
   await frame.evaluate(() => testPlayer.emit('pause'));
