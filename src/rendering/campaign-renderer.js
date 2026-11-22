@@ -16,7 +16,7 @@ export class CampaignRenderer {
     await Promise.all(Object.entries(files).map(async([key,file])=>{
       const t=await Assets.load('./assets/'+file);
       this.textures[key]=t;this.images[key]=t.source.resource;
-      document.querySelector('#loading-copy').textContent=`Opening your wardrobe… ${++count} / ${total}`;
+      count++;
       onProgress?.(count,total);
     }));
     this.app=new Application();await this.app.init({backgroundAlpha:0,antialias:true,resolution:Math.min(devicePixelRatio,2),autoDensity:true,preference:'webgl',autoStart:false});this.stage.prepend(this.app.canvas);this.app.canvas.setAttribute('aria-hidden','true');

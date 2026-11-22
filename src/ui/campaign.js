@@ -105,16 +105,39 @@ function controls(){
  document.addEventListener('visibilitychange',()=>{if(document.hidden||gamePix)syncAudio();});reduced.addEventListener('change',e=>{if(e.matches){state.paused=true;refreshSettings();}});$('#feedback-open').addEventListener('click',openFeedback);
 }
 async function start(){
- document.querySelectorAll('button').forEach(b=>b.disabled=true);let timeout;
+ document.querySelectorAll('button').forEach(b=>b.disabled=true);
+ const retry=$('#retry'),slowNotice=$('#slow-load');
+ retry.addEventListener('click',()=>location.reload());
  gamePix?.loading(0);
- try{await Promise.race([renderer.init((count,total)=>gamePix?.loading(Math.round(90*count/total))),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Asset loading timed out')),45000);})]);}finally{clearTimeout(timeout);}
+ const slowDownload=setTimeout(()=>{
+   slowNotice.hidden=false;
+   retry.hidden=false;
+   retry.disabled=false;
+ },45000);
+ try{
+   await renderer.init((count,total)=>{
+     if(document.documentElement.dataset.ready==='error')return;
+     $('#loading-copy').textContent=`Opening your wardrobe… ${count} / ${total}`;
+     gamePix?.loading(Math.round(90*count/total));
+   });
+ }finally{
+   clearTimeout(slowDownload);
+   slowNotice.hidden=true;
+   retry.hidden=true;
+ }
  if(gamePix?.paused)renderer.app.stop();
  await renderer.prepareDetails(D.items);controls();applyOutfit();refreshSettings();$('#release-version').textContent=`STYLE STORIES · ${release.version}`;
  if(state.qa){$('#qa-notice').hidden=false;$('#qa-notice').textContent=state.allStories?'QA preview · All stories selectable':'QA preview · Normal story progression';$('.privacy-note').textContent='QA progress is saved separately from your regular game.';}
  if(gamePix){gamePix.loading(100);await gamePix.loaded();}
- $('#loading').hidden=true;document.querySelectorAll('button:not([data-item])').forEach(b=>b.disabled=false);$('#undo').disabled=true;document.documentElement.dataset.ready='true';
+ $('#loading').hidden=true;$('#stage').setAttribute('role','img');document.querySelectorAll('button:not([data-item])').forEach(b=>b.disabled=false);$('#undo').disabled=true;document.documentElement.dataset.ready='true';
  gamePix?.start();
  if(state.migrated)$('#selection-note').textContent='Your classic progress is here. Meet your new wardrobe.';
  if(new URLSearchParams(location.search).has('test'))window.__campaign={state,renderer,D,G,E,equip,selectLevel,showResult,snapshot:()=>({version:release.version,level:state.level,outfit:structuredClone(state.outfit),owned:state.save.unlockedItems.length,completed:D.themes.filter(t=>(state.save.levels[t.id]?.best||0)>=35).length,score:G.scoreBreakdown(currentTheme(),equipped()),save:structuredClone(state.save)}),setOutfit(outfit){state.outfit=G.normalizeOutfit(outfit,state.save.unlockedItems);applyOutfit();}};
 }
-start().catch(error=>{console.error(error);document.documentElement.dataset.ready='error';$('#loading').innerHTML='<span>✳</span><p>The wardrobe could not open.<br>Please try again.</p><button id="retry">Try again</button>';$('#retry').addEventListener('click',()=>location.reload());});
+start().catch(error=>{
+ console.error(error);
+ document.documentElement.dataset.ready='error';
+ $('#loading-copy').textContent='The wardrobe could not open. Please try again.';
+ $('#retry').disabled=false;
+ $('#retry').hidden=false;
+});

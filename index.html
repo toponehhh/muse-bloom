@@ -5,7 +5,12 @@
  <p id="qa-notice" role="status" hidden></p>
  <main>
   <section class="fitting-room" aria-label="Character fitting room"><div class="room-title"><span><i class="live-dot"></i>Mira’s room</span><div class="room-actions"><button id="sound" aria-pressed="false" aria-label="Turn sound on">♪</button><button id="motion" aria-pressed="false" aria-label="Pause motion">Ⅱ</button></div></div>
-   <div id="stage" role="img" aria-label="Mira in her dressing room"><div id="loading" role="status"><span>✳</span><p id="loading-copy">Opening your wardrobe…</p></div><div id="sparkles" aria-hidden="true"></div></div>
+   <div id="stage" role="group" aria-label="Mira in her dressing room">
+    <div id="loading"><span aria-hidden="true">✳</span>
+     <div role="status"><p id="loading-copy">Opening your wardrobe…</p><p id="slow-load" hidden>Your wardrobe is still downloading.<br>You can keep waiting or try again.</p></div>
+     <button id="retry" type="button" hidden>Try again</button>
+    </div><div id="sparkles" aria-hidden="true"></div>
+   </div>
    <div class="scene-tools"><div class="view-switch"><button id="full-view" aria-pressed="true">Full look</button><button id="detail-view" aria-pressed="false">Details</button></div><div><button id="undo" disabled>↶ Undo</button><button id="reset">Reset look</button></div></div>
   </section>
   <section class="wardrobe" aria-labelledby="wardrobe-title">
