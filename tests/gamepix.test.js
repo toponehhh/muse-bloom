@@ -108,8 +108,70 @@ async function countCalls(frame, name) {
   return frame.evaluate(name => testPlayer.calls.filter(([method]) => method === name).length, name);
 }
 
+async function slowFirstVisit(context, base) {
+  const tab = await context.newPage();
+  const character = Promise.withResolvers();
+  const dress = Promise.withResolvers();
+  const requests = [];
+  tab.on('request', request => {
+    const file = new URL(request.url()).pathname.match(/\/assets\/([^/]+\.png)$/);
+    if (file) requests.push(file[1]);
+  });
+  try {
+    await tab.route('**/assets/mira.png*', async route => { await character.promise; await route.continue(); });
+    await tab.goto(base + '/', {waitUntil:'domcontentloaded'});
+    await tab.locator('#slow-load').waitFor({timeout:65000});
+    assert.equal(await tab.getByRole('button', {name:'Try again', exact:true}).isEnabled(), true);
+    assert.notEqual(await tab.locator('html').getAttribute('data-ready'), 'error');
+    assert.deepEqual([...new Set(requests)].sort(), ['mira.png','room.png']);
+    assert.equal(await countCalls(tab, 'loaded'), 0);
+    character.resolve();
+    await ready(tab);
+    assert.equal(await countCalls(tab, 'loaded'), 1);
+    assert.equal(await countCalls(tab, 'start'), 1);
+    assert.equal(await tab.locator('#loading').isHidden(), true);
+    assert.equal(await tab.evaluate(() => performance.getEntriesByType('navigation')[0].type), 'navigate');
+    assert.ok(!requests.includes('campaign-dresses.png') && !requests.includes('campaign-shoes.png'));
+    pass('The original first visit starts automatically after a real 45-second delay. Only room and character PNGs are required for the starter outfit');
+
+    await tab.route('**/assets/campaign-dresses.png*', async route => { await dress.promise; await route.continue(); });
+    const pendingDress = tab.waitForRequest('**/assets/campaign-dresses.png*');
+    await tab.getByRole('button', {name:'Dresses',exact:true}).click();
+    await pendingDress;
+    await tab.route('**/assets/campaign-shoes.png*', route => route.abort());
+    await tab.getByRole('button', {name:'Shoes',exact:true}).click();
+    await tab.getByRole('button', {name:'Retry images'}).waitFor();
+    assert.equal(await tab.getByRole('button', {name:/Cloud Sneakers/}).isEnabled(), true);
+    assert.equal(await tab.getByRole('button', {name:/Petal Mary Janes/}).isDisabled(), true);
+    await tab.unroute('**/assets/campaign-shoes.png*');
+    await tab.getByRole('button', {name:'Retry images'}).click();
+    await tab.getByRole('button', {name:/Petal Mary Janes/}).click();
+    dress.resolve();
+    await styleAndReveal(tab);
+    await tab.locator('#next-level').click();
+    await tab.evaluate(() => testPlayer.finishAd('success'));
+    await nextStory(tab);
+    await tab.getByRole('button', {name:'Dresses',exact:true}).click();
+    await tab.getByRole('button', {name:/Lavender Day Dress/}).click();
+    assert.equal(await tab.getByRole('button', {name:/Lavender Day Dress/}).getAttribute('aria-pressed'), 'true');
+    assert.equal(requests.filter(file => file === 'campaign-dresses.png').length, 1);
+    pass('Deferred wardrobe downloads survive tab changes, a failed sheet can be retried while other pieces remain usable, and the next story reuses the dress atlas');
+  } finally {
+    character.resolve();
+    dress.resolve();
+    await tab.close();
+  }
+}
+
 async function contract(context, base, parent, sdkUrl) {
-  await context.route(sdkUrl, route => route.fulfill({contentType:'application/javascript', body:'(' + installTestPlayer.toString() + ')()'}));
+  const playerScript = {contentType:'application/javascript', body:'(' + installTestPlayer.toString() + ')()'};
+  const firstVisit = await browser.newContext({viewport:{width:800,height:450}});
+  watchErrors(firstVisit);
+  try {
+    await firstVisit.route(sdkUrl, route => route.fulfill(playerScript));
+    await slowFirstVisit(firstVisit, base);
+  } finally { await firstVisit.close(); }
+  await context.route(sdkUrl, route => route.fulfill(playerScript));
   const page = await context.newPage();
   await page.goto(parent + '/?holdReady&earlyPause&earlyMute&test=1');
   const frame = page.frames().find(frame => frame.url().startsWith(base));
@@ -124,7 +186,7 @@ async function contract(context, base, parent, sdkUrl) {
   assert.equal(progress[0], 0);
   assert.equal(progress.at(-1), 100);
   assert.deepEqual(progress, [...new Set(progress)].sort((a,b) => a-b));
-  assert.equal(progress.length, 9);
+  assert.deepEqual(progress, [0,45,90,100]);
   assert.ok(progress.every(Number.isInteger));
   assert.deepEqual(calls.at(-1), ['loaded']);
   assert.notEqual(await frame.locator('html').getAttribute('data-ready'), 'true');
@@ -135,7 +197,7 @@ async function contract(context, base, parent, sdkUrl) {
   await frame.evaluate(() => {testPlayer.emit('resume');testPlayer.emit('resume');});
   assert.deepEqual(await frame.evaluate(() => testPlayer.calls.filter(([n]) => n === 'start')), [['start','true']]);
   await assertCampaignViewport(frame, 'GamePix 800×450 iframe');
-  pass('SDK precedes save reads, seven asset completions report increasing progress, and gameplay starts once after acknowledgement and an early host pause');
+  pass('SDK precedes save reads, progress follows the two starter atlases, and gameplay starts once after acknowledgement and an early host pause');
 
   // soundOff arrived before the campaign created its AudioContext. The first
   // gesture still saves the player's preference, without playing a chime.
@@ -226,7 +288,10 @@ async function contract(context, base, parent, sdkUrl) {
   const fresh = await browser.newContext();
   watchErrors(fresh);
   try {
-    await fresh.addInitScript(save => { window.testSyncedSave = save; }, synced);
+    const restoredSave = JSON.parse(synced.value);
+    const {starterOutfit} = await import('../src/core/campaign-state.mjs');
+    restoredSave.outfit = starterOutfit();
+    await fresh.addInitScript(save => { window.testSyncedSave = save; }, {key:synced.key,value:JSON.stringify(restoredSave)});
     await fresh.route(sdkUrl, route => route.fulfill({contentType:'application/javascript',body:'(' + installTestPlayer.toString() + ')()'}));
     const restored = await fresh.newPage();
     await restored.goto(base + '/');
@@ -235,8 +300,11 @@ async function contract(context, base, parent, sdkUrl) {
     assert.equal(await restored.evaluate(() => testPlayer.startedWithoutLocalSave), true);
     await restored.locator('#book-open').click();
     assert.match(await restored.locator('[data-saved="1"]').innerText(), /40 points/);
+    await restored.locator('[data-saved="1"]').click();
+    await restored.locator('#lookbook').waitFor({state:'hidden'});
+    assert.match(await restored.locator('#stage').getAttribute('aria-label'), /Ivory Pleats.*Petal Mary Janes/);
   } finally { await fresh.close(); }
-  pass('A fresh browser profile restores a save supplied by the test Player before the game first reads storage');
+  pass('A fresh browser profile restores the Player save and can wear a saved look whose artwork was absent at startup');
 
   for (const scenario of ['sdk-blocked','ready-rejected','asset-failure']) {
     const isolated = await browser.newContext({viewport:{width:800,height:450}});
@@ -251,6 +319,10 @@ async function contract(context, base, parent, sdkUrl) {
         await tab.locator('html[data-ready="error"] #retry').waitFor({timeout:65000});
         assert.equal(await countCalls(tab, 'loaded'), 0);
         assert.equal(await countCalls(tab, 'start'), 0);
+        await isolated.unroute('**/assets/mira.png*');
+        await tab.getByRole('button', {name:'Try again',exact:true}).click();
+        await ready(tab);
+        assert.equal(await countCalls(tab, 'start'), 1);
         continue;
       }
       await ready(tab);
