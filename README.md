@@ -57,7 +57,7 @@ npm run cf:deploy          # 验证 main 的同提交产物，迁移 D1 并部�
 
 所有打包入口均使用相同的正式源码。构建只写 `dist/`，不往源码目录生成 bundle。CrazyGames 与其他游戏门户包不包含 Cloudflare Worker、反馈数据或账号配置。Astrocade 继续使用平台云存档；它的打包器保留平台特定转换，不能直接将普通网站包上传到该沙箱。
 
-GamePix 送审使用 `dist/gamepix-v<version>.zip`。游戏在读取存档前加载官方 SDK，衣橱可以操作时报告开始。玩家从及格成绩页进入下一关时请求插屏广告。选择继续修改搭配可以直接返回衣橱。官方 SDK 测试默认从 CDN 加载脚本，也可以通过 `MUSE_GAMEPIX_SDK_FILE` 指定从官方 CDN 下载的本地副本。测试报告在 `artifacts/gamepix/`。[GamePix JavaScript 接入指南](https://partners.gamepix.com/sdk/doc/javascript)
+GamePix 送审使用 `dist/gamepix-v<version>.zip`。游戏在读取存档前加载官方 SDK，优先下载房间、人物和存档中穿戴的图集。新玩家的默认穿搭只需两张 PNG。进入关卡和切换衣橱分类时按需加载其余图集，已加载的图集可以跨关复用。首次下载超过 45 秒时可以继续等待，也可以手动重试。衣橱可操作时游戏向 SDK 报告开始，玩家从及格成绩页进入下一关时请求插屏广告。官方 SDK 测试默认从 CDN 加载脚本，也可以通过 `MUSE_GAMEPIX_SDK_FILE` 指定从官方 CDN 下载的本地副本。测试报告在 `artifacts/gamepix/`。[GamePix JavaScript 接入指南](https://partners.gamepix.com/sdk/doc/javascript)
 
 CI 统一为 [ci.yml](.github/workflows/ci.yml)：测试 PR 和 `main`；仅 `main` 在部署配置开启时发布。提交包含 `[skip deploy]` 时只检查、不发布。部署下载本轮验证的 Pages 产物，并校验反馈源码哈希，避免前后端错配。
 

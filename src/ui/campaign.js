@@ -9,7 +9,7 @@ const state={...loadCampaign(storage,campaignOptions(location.search)),category:
 state.paused||=reduced.matches;enterChallenge(state,state.level);
 const renderer=new CampaignRenderer($('#stage'));
 const gamePix=window.MuseGamePix;
-let audio,lastResult,activeImage,pictures={};
+let audio,lastResult,activeImage,lockedPreviews,pictures={};
 function soundAllowed(){
   return state.sound&&!document.hidden&&!gamePix?.paused&&!gamePix?.soundMuted;
 }
@@ -31,6 +31,18 @@ const currentTheme=()=>D.themes[state.level-1],equipped=()=>G.equippedItems(stat
 function chime(success=false){if(!soundAllowed())return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume().catch(()=>{});(success?[523.25,659.25,783.99]:[659.25,880]).forEach((frequency,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.07;o.type='sine';o.frequency.value=frequency;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.023,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.24);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.25);});}catch{state.sound=false;refreshSettings();}}
 function sparkle(){if(reduced.matches)return;$('#sparkles').replaceChildren();for(let i=0;i<9;i++){const star=document.createElement('i');star.className='spark';star.style.cssText=`left:${35+(i*17)%33}%;top:${35+(i*11)%32}%;--dx:${(i-4)*9}px;animation-delay:${i*.025}s`;$('#sparkles').append(star);star.addEventListener('animationend',()=>star.remove(),{once:true});}}
 function thumb(item){if(!thumbnails.has(item.id))thumbnails.set(item.id,renderer.thumbnail(item));return thumbnails.get(item.id);}
+function showItemImage(card,item,owned){
+ const img=new Image();img.src=thumb(item);img.alt='';
+ card.prepend(img);card.removeAttribute('aria-busy');card.disabled=!owned;
+}
+function loadCardImage(card,item,owned){
+ card.disabled=true;card.setAttribute('aria-busy','true');
+ renderer.loadItemArt([item]).then(()=>{
+   if(card.isConnected)showItemImage(card,item,owned);
+ }).catch(()=>{
+   if(card.isConnected){card.removeAttribute('aria-busy');$('#art-retry').hidden=false;}
+ });
+}
 function refreshSettings(){renderer.paused=state.paused||!!gamePix?.paused;$('#sound').setAttribute('aria-pressed',String(state.sound));$('#sound').setAttribute('aria-label',state.sound?'Turn sound off':'Turn sound on');$('#motion').setAttribute('aria-pressed',String(state.paused));$('#motion').setAttribute('aria-label',state.paused?'Play motion':'Pause motion');$('#motion').textContent=state.paused?'▷':'Ⅱ';}
 function refreshBrief(){
  const theme=currentTheme(),chapter=D.chapters[theme.chapter-1],checks=E.goals(theme,equipped()),tags=new Set(equipped().flatMap(i=>i.tags));
@@ -41,13 +53,26 @@ function refreshBrief(){
  $('#undo').disabled=!history.length;
 }
 function renderItems(){
+ lockedPreviews?.disconnect();
  const area=$('#items'),scroll=area.scrollTop;area.replaceChildren();const own=new Set(state.save.unlockedItems),ids=new Set(equipped().map(i=>i.id));
+ $('#art-retry').hidden=true;
  document.querySelectorAll('[data-category]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.category===state.category));b.dataset.filtered=String(state.filter&&b.dataset.category===state.category);});
  $('#collection-name').textContent=D.categoryNames[state.category];$('#filter-clear').hidden=!state.filter;
  let items=D.items.filter(i=>i.category===state.category);if(state.filter)items=items.filter(i=>state.filter.includes(i.id));
  items.sort((a,b)=>Number(own.has(b.id))-Number(own.has(a.id)));$('#collection-note').textContent=`${items.filter(i=>own.has(i.id)).length} / ${items.length} owned`;
  for(const item of items){const b=document.createElement('button');b.className='item';b.dataset.item=item.id;b.setAttribute('aria-pressed',String(ids.has(item.id)));b.setAttribute('aria-label',`${item.name}. ${item.tags.join(', ')}${own.has(item.id)?'':'. Locked'}`);b.disabled=!own.has(item.id);
-  const img=new Image();img.src=thumb(item);img.alt='';const title=document.createElement('strong');title.textContent=item.name;const note=document.createElement('small');note.textContent=item.tags.join(' · ');b.append(img,title,note);
+  const title=document.createElement('strong');title.textContent=item.name;const note=document.createElement('small');note.textContent=item.tags.join(' · ');b.append(title,note);
+  if(renderer.hasItemArt(item))showItemImage(b,item,own.has(item.id));
+  else if(own.has(item.id))loadCardImage(b,item,true);
+  else{
+    lockedPreviews??=new IntersectionObserver(entries=>{
+      for(const {target,isIntersecting} of entries){
+        if(!isIntersecting||!target.isConnected)continue;
+        lockedPreviews.unobserve(target);loadCardImage(target,G.byId[target.dataset.item],false);
+      }
+    },{root:area});
+    lockedPreviews.observe(b);
+  }
   if(!own.has(item.id)){const lock=document.createElement('span');lock.className='lock-badge';lock.textContent=item.unlockType==='streak'?'3 S ranks':`Level ${item.unlockLevel}`;b.append(lock);}b.addEventListener('click',()=>equip(item.id));area.append(b);
  }area.scrollTop=scroll;
 }
@@ -65,9 +90,21 @@ function map(){
 }
 function book(){
  const area=$('#book-grid');area.replaceChildren();const looks=G.savedLooks(state.save);if(!looks.length){const p=document.createElement('p');p.className='empty';p.textContent='Your first story starts here. Reveal a passing look to keep it in your collection.';area.append(p);}
+ let lastChoice=0;
  for(const look of looks){const theme=D.themes[look.level-1],b=document.createElement('button');b.className='book-card';b.dataset.saved=look.level;
   if(pictures[theme.id]){const img=new Image();img.src=pictures[theme.id];img.alt='Saved look for '+theme.name;b.append(img);}else{const placeholder=document.createElement('span');placeholder.className='missing-picture';placeholder.textContent=look.rank;b.append(placeholder);}
-  const title=document.createElement('strong');title.textContent=theme.name;const note=document.createElement('span');note.textContent=`${look.rank} · ${look.score} points · Wear again`;b.append(title,note);b.addEventListener('click',()=>{selectLevel(look.level);state.outfit=G.normalizeOutfit(look.outfit,state.save.unlockedItems);applyOutfit();$('#lookbook').close();$('#selection-note').textContent='Your saved look is back. Make it yours again.';});area.append(b);
+  const title=document.createElement('strong');title.textContent=theme.name;const note=document.createElement('span');note.textContent=`${look.rank} · ${look.score} points · Wear again`;b.append(title,note);
+  b.addEventListener('click',async()=>{
+    const choice=++lastChoice,outfit=G.normalizeOutfit(look.outfit,state.save.unlockedItems),items=G.equippedItems(outfit);
+    if(!items.every(item=>renderer.hasItemArt(item))){
+      b.disabled=true;note.textContent='Loading your saved outfit…';
+      try{await renderer.loadItemArt(items);}
+      catch{note.textContent='Outfit download failed. Select to try again.';return;}
+      finally{b.disabled=false;}
+      if(choice!==lastChoice||!b.isConnected||!$('#lookbook').open)return;
+    }
+    selectLevel(look.level);state.outfit=outfit;applyOutfit();$('#lookbook').close();$('#selection-note').textContent='Your saved look is back. Make it yours again.';
+  });area.append(b);
  }$('#lookbook').showModal();
 }
 function showResult(){
@@ -84,6 +121,7 @@ function showResult(){
  $('#next-level').textContent=complete?'Explore your Lookbook →':result.score>=35&&state.level<36?'Next challenge →':'Try another combination';$('#result').showModal();chime(result.rank==='S');recordAction('look-complete',{level:state.level,score:result.score,items:equipped().map(i=>i.id)});
 }
 function controls(){
+ $('#art-retry').addEventListener('click',renderItems);
  document.querySelectorAll('[data-category]').forEach(b=>b.addEventListener('click',()=>{state.category=b.dataset.category;state.filter=null;renderItems();$('#items').scrollTop=0;}));
  $('#filter-clear').addEventListener('click',()=>{state.filter=null;renderItems();});$('#map-open').addEventListener('click',map);$('#book-open').addEventListener('click',book);
  document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$('#'+b.dataset.close).close()));
@@ -115,11 +153,12 @@ async function start(){
    retry.disabled=false;
  },45000);
  try{
+   const gamePixBuild=document.querySelector('meta[name="muse-distribution"][content="gamepix"]');
    await renderer.init((count,total)=>{
      if(document.documentElement.dataset.ready==='error')return;
      $('#loading-copy').textContent=`Opening your wardrobe… ${count} / ${total}`;
      gamePix?.loading(Math.round(90*count/total));
-   });
+   },gamePixBuild?equipped():undefined);
  }finally{
    clearTimeout(slowDownload);
    slowNotice.hidden=true;

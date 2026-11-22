@@ -9,13 +9,33 @@ const files={mira:'mira.png',rose:'rose-lilac.png',blue:'blue-ivory.png',tops:'c
 const bind=Object.fromEntries(bones.map(([name,parent,x,y])=>[name,{x,y}]));
 const colorMatrix=color=>{const n=parseInt(color.slice(1),16),c=[n>>16,(n>>8)&255,n&255].map(x=>x/255);return [...c.flatMap(v=>[.2126*v*1.12,.7152*v*1.12,.0722*v*1.12,0,0]),0,0,0,1,0];};
 export class CampaignRenderer {
-  constructor(stage){this.stage=stage;this.cache=new Map();this.details=new Map();this.active=[];this.textures={};this.images={};this.clock=0;this.view='full';}
-  async init(onProgress){
-    const total=Object.keys(files).length;
+  constructor(stage){this.stage=stage;this.cache=new Map();this.details=new Map();this.active=[];this.textures={};this.images={};this.downloads=new Map();this.clock=0;this.view='full';}
+  itemAtlas(item){return templates[templateFor(item)]?.texture;}
+  hasItemArt(item){const key=this.itemAtlas(item);return !key||!!this.textures[key];}
+  loadAtlas(key){
+    if(!this.downloads.has(key)){
+      const file=files[key];
+      const download=(async()=>{
+        const t=await Assets.load('./assets/'+file);
+        this.images[key]=t.source.resource;
+        this.textures[key]=t;
+      })().catch(error=>{this.downloads.delete(key);throw error;});
+      this.downloads.set(key,download);
+    }
+    return this.downloads.get(key);
+  }
+  loadItemArt(items){
+    const keys=new Set(items.map(item=>this.itemAtlas(item)).filter(Boolean));
+    return Promise.all(Array.from(keys,key=>this.loadAtlas(key)));
+  }
+  async init(onProgress,initialOutfit){
+    const required=initialOutfit
+      ? [...new Set(['mira','room',...initialOutfit.map(item=>this.itemAtlas(item)).filter(Boolean)])]
+      : Object.keys(files);
+    const total=required.length;
     let count=0;
-    await Promise.all(Object.entries(files).map(async([key,file])=>{
-      const t=await Assets.load('./assets/'+file);
-      this.textures[key]=t;this.images[key]=t.source.resource;
+    await Promise.all(required.map(async key=>{
+      await this.loadAtlas(key);
       count++;
       onProgress?.(count,total);
     }));
@@ -24,7 +44,7 @@ export class CampaignRenderer {
     if(!this.app.renderer.renderPipes.mesh)throw new Error('Character mesh renderer is unavailable');
     if(this.canvasMode)this.app.ticker.maxFPS=24;
     PixiFactory.useSharedTicker=false;const f=PixiFactory.factory;f.parseDragonBonesData(makeSkeleton());
-    for(const key of ['mira','rose','blue'])f.parseTextureAtlasData({name:'muse-style-lab',width:1024,height:1536,SubTexture:[{name:key,x:0,y:0,width:1024,height:1536}]},this.textures[key]);
+    f.parseTextureAtlasData({name:'muse-style-lab',width:1024,height:1536,SubTexture:[{name:'mira',x:0,y:0,width:1024,height:1536}]},this.textures.mira);
     this.body=f.buildArmatureDisplay('Mira','muse-style-lab');this.body.animation.play('breathe');this.body.animation.lastAnimationState.displayControl=false;
     this.model=new Container();this.model.sortableChildren=true;this.body.zIndex=0;this.model.addChild(this.body);this.shadow=new Graphics();this.app.stage.addChild(this.shadow,this.model);
     // Skin sampled from the original neck fills open garment necklines. Original
