@@ -33,7 +33,7 @@ Windows 的浏览器测试默认使用 `C:\Tools\ugchromium\app\chrome.exe`，�
 | `src/ui/` | 当前游戏交互、布局和样式 |
 | `src/feedback/` | 表单、附件、请求与服务端共用的校验规则 |
 | `src/platforms/astrocade/` | Astrocade 云存档、样式及平台素材映射 |
-| `src/platforms/gamepix/` | GamePix SDK v3 的加载、暂停和关间广告回调 |
+| `src/platforms/gamepix/` | GamePix SDK v3 的加载、暂停与恢复、独立静音与恢复声音、关间广告回调 |
 | `assets/`、`licenses/` | 当前游戏实际使用的素材、来源记录和依赖许可 |
 | `cloudflare/` | 私有反馈 API、D1 迁移、Pages 网关与旧域名跳转配置 |
 | `scripts/` | 开发服务器、构建、平台打包、宣传图与反馈汇总工具 |

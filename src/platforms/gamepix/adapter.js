@@ -10,6 +10,8 @@
   let adPending = false;
   let paused = false;
   let pauseListener;
+  let soundMuted = false;
+  let soundListener;
   let ready = false;
   let playRequested = false;
   let started = false;
@@ -32,8 +34,16 @@
     startWhenPlayable();
   }
 
+  function setSoundMuted(muted) {
+    if (soundMuted === muted) return;
+    soundMuted = muted;
+    soundListener?.();
+  }
+
   sdk.events.on('pause', () => { hostPaused = true; syncPause(); });
   sdk.events.on('resume', () => { hostPaused = false; syncPause(); });
+  sdk.events.on('soundOff', () => setSoundMuted(true));
+  sdk.events.on('soundOn', () => setSoundMuted(false));
   document.addEventListener('cancel', event => {
     if (paused && event.target.inert) event.preventDefault();
   }, true);
@@ -41,6 +51,8 @@
   window.MuseGamePix = {
     get paused() { return paused; },
     onPauseChange(listener) { pauseListener = listener; listener(paused); },
+    get soundMuted() { return soundMuted; },
+    onSoundChange(listener) { soundListener = listener; listener(); },
     loading(percent) { sdk.lifecycle.loading(percent); },
     async loaded() {
       waitingForPlayer = true;
