@@ -42,8 +42,12 @@
 
   sdk.events.on('pause', () => { hostPaused = true; syncPause(); });
   sdk.events.on('resume', () => { hostPaused = false; syncPause(); });
-  sdk.events.on('soundOff', () => setSoundMuted(true));
-  sdk.events.on('soundOn', () => setSoundMuted(false));
+  // The hosted Player checks these properties even when its events already
+  // delivered the audio command. Both entry points share the same mute state.
+  sdk.soundOff = () => setSoundMuted(true);
+  sdk.soundOn = () => setSoundMuted(false);
+  sdk.events.on('soundOff', sdk.soundOff);
+  sdk.events.on('soundOn', sdk.soundOn);
   document.addEventListener('cancel', event => {
     if (paused && event.target.inert) event.preventDefault();
   }, true);

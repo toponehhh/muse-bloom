@@ -33,7 +33,13 @@ function installTestPlayer() {
   const player = window.testPlayer = {
     calls:[['config', window.GamePixConfig?.lifecycle]],
     audioResumes:0,
-    emit(event) { for (const callback of events.get(event) || []) callback(); }
+    emit(event) {
+      for (const callback of events.get(event) || []) callback();
+      if (event === 'soundOff' || event === 'soundOn') {
+        if (typeof window.GamePix[event] !== 'function') throw new Error('Missing GamePix.' + event + ' callback');
+        window.GamePix[event]();
+      }
+    }
   };
   const query = new URLSearchParams(location.search);
   if (window.testSyncedSave) {
@@ -284,6 +290,13 @@ async function officialLocal(context, base, sdkUrl) {
     await ready(tab);
     assert.equal(await tab.evaluate(() => typeof window.GamePix?.events?.on), 'function');
     assert.equal(await tab.evaluate(() => typeof window.MuseGamePix?.betweenChallenges), 'function');
+    const audio = await tab.evaluate(() => {
+      GamePix.soundOff();
+      const muted = MuseGamePix.soundMuted;
+      GamePix.soundOn();
+      return [muted, MuseGamePix.soundMuted, MuseGamePix.paused];
+    });
+    assert.deepEqual(audio, [true,false,false], 'The official SDK exposes both game audio callbacks to the Player');
     await tab.evaluate(() => {
       window.adResults = [];
       const original = GamePix.ads.interstitial;
